@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../core/theme/app_colors.dart';
+import '../services/auth_state.dart';
 
 class CollectorDashboard extends StatelessWidget {
   const CollectorDashboard({super.key});
