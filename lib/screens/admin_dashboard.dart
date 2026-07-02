@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
-import '../services/auth_state.dart';
+import '../services/auth_service.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
@@ -157,7 +157,7 @@ class _ReportCard extends StatelessWidget {
  content: const Text('Are you sure you want to log out?'),
  actions: [
  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
- TextButton(onPressed: () { AuthState.instance.logout(); Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false); }, child: const Text('Log Out', style: TextStyle(color: AppColors.error))),
+ TextButton(onPressed: () { AuthService.instance.signOut(); Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false); }, child: const Text('Log Out', style: TextStyle(color: AppColors.error))),
  ],
  ));
  }

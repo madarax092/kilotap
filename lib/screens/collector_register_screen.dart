@@ -1,8 +1,48 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
+import '../services/auth_service.dart';
 
-class CollectorRegisterScreen extends StatelessWidget {
+class CollectorRegisterScreen extends StatefulWidget {
   const CollectorRegisterScreen({super.key});
+  @override State<CollectorRegisterScreen> createState() => _CollectorRegisterScreenState();
+}
+
+class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
+  final _nameCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
+  bool _loading = false;
+
+  Future<void> _register() async {
+    final email = _emailCtrl.text.trim();
+    final pass = _passCtrl.text.trim();
+    final name = _nameCtrl.text.trim();
+    final phone = _phoneCtrl.text.trim();
+
+    if (email.isEmpty || pass.isEmpty || name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill in all required fields')));
+      return;
+    }
+
+    setState(() => _loading = true);
+
+    final role = await AuthService.instance.register(
+      email, pass, name, phone, 'Collector',
+      extraFields: {'vehicleType': 'Tricycle', 'yearsCollecting': '5'},
+    );
+
+    if (!mounted) return;
+    setState(() => _loading = false);
+
+    if (role != null) {
+      Navigator.pushNamedAndRemoveUntil(context, '/collector', (r) => false);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registration failed. Try a different email.')));
+    }
+  }
+
+  @override void dispose() { _nameCtrl.dispose(); _phoneCtrl.dispose(); _emailCtrl.dispose(); _passCtrl.dispose(); super.dispose(); }
 
   @override Widget build(BuildContext context) {
     return Scaffold(
@@ -26,10 +66,10 @@ class CollectorRegisterScreen extends StatelessWidget {
             ]),
           ),
           const SizedBox(height: 24),
-          _Field('Full Name', 'Juan Dela Cruz'),
-          _Field('Phone Number', '+63 9XX XXX XXXX'),
-          _Field('Email', 'juan@email.com'),
-          _Field('Password', 'Create password'),
+          _Field('Full Name', 'Juan Dela Cruz', controller: _nameCtrl),
+          _Field('Phone Number', '+63 9XX XXX XXXX', controller: _phoneCtrl),
+          _Field('Email', 'collector@email.com', controller: _emailCtrl),
+          _Field('Password', 'Create password', controller: _passCtrl, obscure: true),
           const SizedBox(height: 20),
           _Field('Vehicle Type', 'Select Vehicle'),
           _Field('Years Collecting', 'e.g. 5 years'),
@@ -39,8 +79,8 @@ class CollectorRegisterScreen extends StatelessWidget {
             width: double.infinity, height: 50,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.buyerBlue, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-              onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/collector', (r) => false),
-              child: const Text('CREATE ACCOUNT', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+              onPressed: _loading ? null : _register,
+              child: _loading ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('CREATE ACCOUNT', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
             ),
           ),
           const SizedBox(height: 16),
@@ -54,14 +94,16 @@ class CollectorRegisterScreen extends StatelessWidget {
 
 class _Field extends StatelessWidget {
   final String label, hint;
-  const _Field(this.label, this.hint);
+  final TextEditingController? controller;
+  final bool obscure;
+  const _Field(this.label, this.hint, {this.controller, this.obscure = false});
   @override Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(label.toUpperCase(), style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
         const SizedBox(height: 4),
-        Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12), decoration: BoxDecoration(color: AppColors.inputGrey, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider)), child: Text(hint, style: const TextStyle(fontSize: 14, color: AppColors.textMuted))),
+        Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12), decoration: BoxDecoration(color: AppColors.inputGrey, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider)), child: TextField(controller: controller, obscureText: obscure, decoration: InputDecoration.collapsed(hintText: hint, hintStyle: const TextStyle(fontSize: 14, color: AppColors.textMuted)), style: const TextStyle(fontSize: 14, color: AppColors.textPrimary))),
       ]),
     );
   }

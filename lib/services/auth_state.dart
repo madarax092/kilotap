@@ -17,10 +17,13 @@ class AuthState {
 
   /// Check if current role can access the given route prefix
   bool canAccess(String route) {
+    // Public routes — accessible without login
+    if (route == '/' || route == '/register' || route == '/register-household' || route == '/register-collector' || route == '/chat') return true;
+    // Must be logged in for role-specific routes
     if (_role == null) return false;
     if (route.startsWith('/household') || route.startsWith('/sell') || route.startsWith('/pickups') || route.startsWith('/profile') || route == '/rate') return isHousehold;
     if (route.startsWith('/collector') || route.startsWith('/find') || route.startsWith('/idcard') || route.startsWith('/earnings') || route.startsWith('/route') || route.startsWith('/collector_profile')) return isCollector;
     if (route.startsWith('/admin') || route.startsWith('/users') || route.startsWith('/verify') || route.startsWith('/reports') || route.startsWith('/analytics')) return isAdmin;
-    return true; // public routes: /, /register, /chat
+    return true; // fallback
   }
 }
