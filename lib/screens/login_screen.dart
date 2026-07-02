@@ -25,9 +25,13 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(children: [
               const SizedBox(height: 60),
               Container(
-                width: 72, height: 72,
-                decoration: BoxDecoration(color: AppColors.sellerGreen, borderRadius: BorderRadius.circular(20)),
-                child: const Center(child: Text('K', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.white))),
+                width: 100, height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                padding: const EdgeInsets.all(8),
+                child: Image.asset('assets/images/kilotap_logo.png'),
               ),
               const SizedBox(height: 16),
               const Text('KiloTap', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
