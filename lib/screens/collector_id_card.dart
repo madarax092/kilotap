@@ -11,10 +11,13 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
 
   @override Widget build(BuildContext context) {
     // 3D rotate effect
-    final cardTransform = _mode == 1 ? Matrix4.identity()
-      ..setEntry(3, 2, 0.001)
-      ..rotateX(-0.08)
-      ..rotateY(0.12) : Matrix4.identity();
+    Matrix4 cardTransform = Matrix4.identity();
+    if (_mode == 1) {
+      cardTransform = Matrix4.identity()
+        ..setEntry(3, 2, 0.001)
+        ..rotateX(-0.08)
+        ..rotateY(0.12);
+    }
 
     return Scaffold(
       backgroundColor: AppColors.canvas,
@@ -58,11 +61,11 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
         const SizedBox(height: 20),
         // Toggle modes — actually functional now
         Row(children: [
-          _ModeButton('2D View', _mode == 0, () => setState(() => _mode = 0)),
+          _ModeButton(label: '2D View', active: _mode == 0, onTap: () => setState(() => _mode = 0)),
           const SizedBox(width: 8),
-          _ModeButton('3D Rotate', _mode == 1, () => setState(() => _mode = 1)),
+          _ModeButton(label: '3D Rotate', active: _mode == 1, onTap: () => setState(() => _mode = 1)),
           const SizedBox(width: 8),
-          _ModeButton('Share Card', _mode == 2, () { setState(() => _mode = 2); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Card shared! kilotap.app/v/jd123'), duration: Duration(seconds: 2))); }),
+          _ModeButton(label: 'Share Card', active: _mode == 2, onTap: () { setState(() => _mode = 2); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Card shared! kilotap.app/v/jd123'), duration: Duration(seconds: 2))); }),
         ]),
         if (_mode == 2) ...[
           const SizedBox(height: 12),

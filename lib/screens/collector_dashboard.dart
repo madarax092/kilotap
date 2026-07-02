@@ -9,9 +9,9 @@ class CollectorDashboard extends StatelessWidget {
 
   @override Widget build(BuildContext context) {
     final markers = {
-      const Marker(markerId: MarkerId('you'), position: _davaoCenter, icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen), infoWindow: InfoWindow(title: 'You')),
-      const Marker(markerId: MarkerId('p1'), position: LatLng(7.0735, 125.6110), infoWindow: InfoWindow(title: '3.2 kg'), icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue)),
-      const Marker(markerId: MarkerId('p2'), position: LatLng(7.0695, 125.6105), infoWindow: InfoWindow(title: '25 kg'), icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed)),
+      Marker(markerId: MarkerId('you'), position: _davaoCenter, icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen), infoWindow: InfoWindow(title: 'You')),
+      Marker(markerId: MarkerId('p1'), position: LatLng(7.0735, 125.6110), infoWindow: InfoWindow(title: '3.2 kg'), icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue)),
+      Marker(markerId: MarkerId('p2'), position: LatLng(7.0695, 125.6105), infoWindow: InfoWindow(title: '25 kg'), icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed)),
     };
     return Scaffold(
       backgroundColor: AppColors.canvas,
