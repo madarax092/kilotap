@@ -16,7 +16,9 @@ import 'screens/user_management_screen.dart';
 import 'screens/verify_collector_screen.dart';
 import 'screens/reports_screen.dart';
 import 'screens/analytics_screen.dart';
-import 'screens/register_screen.dart';
+import 'screens/role_picker_screen.dart';
+import 'screens/household_register_screen.dart';
+import 'screens/collector_register_screen.dart';
 import 'screens/chat_screen.dart';
 import 'screens/rate_collector_screen.dart';
 
@@ -24,7 +26,9 @@ class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/': return _page(const LoginScreen());
-      case '/register': return _page(const RegisterScreen());
+      case '/register': return _page(const RolePickerScreen());
+      case '/register-household': return _page(const HouseholdRegisterScreen());
+      case '/register-collector': return _page(const CollectorRegisterScreen());
       case '/household': return _page(const HouseholdDashboard());
       case '/collector': return _page(const CollectorDashboard());
       case '/admin': return _page(const AdminDashboard());
