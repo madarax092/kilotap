@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
+import '../services/auth_state.dart';
 
 class HouseholdProfileScreen extends StatelessWidget {
   const HouseholdProfileScreen({super.key});
@@ -74,7 +75,10 @@ class HouseholdProfileScreen extends StatelessWidget {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
-            onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false),
+            onPressed: () {
+              AuthState.instance.logout();
+              Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false);
+            },
             child: const Text('Log Out', style: TextStyle(color: AppColors.error)),
           ),
         ],

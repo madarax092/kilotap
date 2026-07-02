@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
+import '../services/auth_state.dart';
 import 'screens/login_screen.dart';
 import 'screens/household_dashboard.dart';
 import 'screens/sell_scrap_screen.dart';
@@ -24,7 +25,14 @@ import 'screens/rate_collector_screen.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
-    switch (settings.name) {
+    final route = settings.name ?? '/';
+
+    // Route guard — redirect unauthorized roles to login
+    if (!AuthState.instance.canAccess(route) && route != '/') {
+      return _page(const LoginScreen());
+    }
+
+    switch (route) {
       case '/': return _page(const LoginScreen());
       case '/register': return _page(const RolePickerScreen());
       case '/register-household': return _page(const HouseholdRegisterScreen());

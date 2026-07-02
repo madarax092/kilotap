@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
+import '../services/auth_state.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,6 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final user = _users[email];
     if (user != null && user['pass'] == pass) {
       final role = user['role']!;
+      AuthState.instance.login(role);
       final route = role == 'Collector' ? '/collector' : role == 'Admin' ? '/admin' : '/household';
       Navigator.of(context).pushNamedAndRemoveUntil(route, (r) => false);
     } else {
