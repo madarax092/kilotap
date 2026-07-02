@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
-import 'login_screen.dart';
-import 'household_dashboard.dart';
-import 'collector_dashboard.dart';
-import 'collector_id_card.dart';
-import 'admin_dashboard.dart';
-import 'stubs.dart';
+import 'screens/login_screen.dart';
+import 'screens/household_dashboard.dart';
+import 'screens/collector_dashboard.dart';
+import 'screens/collector_id_card.dart';
+import 'screens/admin_dashboard.dart';
+import 'screens/stubs.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
