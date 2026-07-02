@@ -25,9 +25,9 @@ class HouseholdProfileScreen extends StatelessWidget {
       const SizedBox(height: 30),
     ]),
     bottomNavigationBar: BottomNavigationBar(currentIndex: 3, selectedItemColor: AppColors.sellerGreen, unselectedItemColor: AppColors.textMuted, backgroundColor: AppColors.canvas, type: BottomNavigationBarType.fixed, items: const [BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'), BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Sell'), BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Pickups'), BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile')]),
-  ));
+ );
 
-  static void confirmLogout(BuildContext context) {
+ static void confirmLogout(BuildContext context) {
     showDialog(context: context, builder: (ctx) => AlertDialog(
       title: const Text('Log Out'),
       content: const Text('Are you sure you want to log out?'),
@@ -35,8 +35,8 @@ class HouseholdProfileScreen extends StatelessWidget {
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
         TextButton(onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false), child: const Text('Log Out', style: TextStyle(color: AppColors.error))),
       ],
-    ));
-  }
+    );
+    }
 
   Widget _buildSection(String title, List<(String, String)> rows) {
     return Padding(
