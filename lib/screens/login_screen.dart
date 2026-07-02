@@ -8,11 +8,13 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _phoneCtrl = TextEditingController();
-  String _role = 'Household';
+  final _passCtrl = TextEditingController();
 
-  void _login() {
-    final route = _role == 'Collector' ? '/collector' : _role == 'Admin' ? '/admin' : '/household';
-    Navigator.of(context).pushNamedAndRemoveUntil(route, (route) => false);
+  void _login(String role) {
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      role == 'Collector' ? '/collector' : role == 'Admin' ? '/admin' : '/household',
+      (route) => false,
+    );
   }
 
   @override Widget build(BuildContext context) {
@@ -24,12 +26,10 @@ class _LoginScreenState extends State<LoginScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 28),
             child: Column(children: [
               const SizedBox(height: 60),
+              // Logo
               Container(
                 width: 100, height: 100,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                ),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
                 padding: const EdgeInsets.all(8),
                 child: Image.asset('assets/images/kilotap_logo.png'),
               ),
@@ -37,6 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const Text('KiloTap', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
               const Text('Tap the App. Trade the Scrap.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
               const SizedBox(height: 50),
+              // Phone
               TextField(
                 controller: _phoneCtrl,
                 decoration: InputDecoration(
@@ -44,49 +45,49 @@ class _LoginScreenState extends State<LoginScreen> {
                   filled: true, fillColor: AppColors.inputGrey,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.divider)),
                   enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.divider)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: _roleColor(_role))),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.sellerGreen)),
                 ),
               ),
               const SizedBox(height: 16),
+              // Password
               TextField(
+                controller: _passCtrl,
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: 'Password', labelStyle: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w600, letterSpacing: 1),
                   filled: true, fillColor: AppColors.inputGrey,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.divider)),
                   enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.divider)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.sellerGreen)),
                 ),
               ),
-              const SizedBox(height: 12),
-              Row(children: ['Household', 'Collector', 'Admin'].map((r) => Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _role = r),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10), margin: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(color: _role == r ? _roleColor(r).withOpacity(0.1) : AppColors.inputGrey, borderRadius: BorderRadius.circular(10), border: Border.all(color: _role == r ? _roleColor(r) : AppColors.divider)),
-                    child: Text(r, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _role == r ? _roleColor(r) : AppColors.textSecondary)),
-                  ),
-                ),
-              )).toList()),
               const SizedBox(height: 28),
-              SizedBox(width: double.infinity, height: 50,
+              // Log In
+              SizedBox(
+                width: double.infinity, height: 50,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: _roleColor(_role), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  onPressed: _login,
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.sellerGreen, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                  onPressed: () => _login('Household'),
                   child: const Text('LOG IN', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
                 ),
               ),
               const SizedBox(height: 24),
               const Divider(),
-              SizedBox(width: double.infinity, height: 48,
+              // Google
+              SizedBox(
+                width: double.infinity, height: 48,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(foregroundColor: AppColors.textPrimary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), side: const BorderSide(color: AppColors.divider)),
-                  onPressed: _login,
+                  onPressed: () => _login('Household'),
                   child: const Text('Continue with Google', style: TextStyle(fontWeight: FontWeight.w600)),
                 ),
               ),
               const SizedBox(height: 24),
-              TextButton(onPressed: () => Navigator.pushNamed(context, '/register'), child: const Text('New to KiloTap? Register here', style: TextStyle(color: AppColors.sellerGreen, fontWeight: FontWeight.w600))),
+              // Register link
+              TextButton(
+                onPressed: () => Navigator.pushNamed(context, '/register'),
+                child: const Text('New to KiloTap? Register here', style: TextStyle(color: AppColors.sellerGreen, fontWeight: FontWeight.w600)),
+              ),
             ]),
           ),
         ),
@@ -94,8 +95,5 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Color _roleColor(String role) {
-    switch (role) { case 'Collector': return AppColors.buyerBlue; case 'Admin': return AppColors.adminRed; default: return AppColors.sellerGreen; }
-  }
-  @override void dispose() { _phoneCtrl.dispose(); super.dispose(); }
+  @override void dispose() { _phoneCtrl.dispose(); _passCtrl.dispose(); super.dispose(); }
 }
