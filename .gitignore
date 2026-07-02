@@ -47,3 +47,5 @@ firebase_options.dart
 /android/app/profile
 /android/app/release
 .hermes/plans/
+# Agent/markdown files — local only
+**/*.md
