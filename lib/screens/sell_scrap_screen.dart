@@ -63,6 +63,24 @@ class SellScrapScreen extends StatelessWidget {
         SizedBox(width: double.infinity, height: 50, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.sellerGreen, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), onPressed: () {}, child: const Text('SUBMIT PICKUP REQUEST', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)))),
         const SizedBox(height: 30),
       ]),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 1,
+        selectedItemColor: AppColors.sellerGreen,
+        unselectedItemColor: AppColors.textMuted,
+        backgroundColor: AppColors.canvas,
+        type: BottomNavigationBarType.fixed,
+        onTap: (i) {
+          if (i == 0) Navigator.pushReplacementNamed(context, '/household');
+          if (i == 2) Navigator.pushNamed(context, '/pickups');
+          if (i == 3) Navigator.pushNamed(context, '/profile');
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Sell'),
+          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Pickups'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+      ),
     );
   }
 }
