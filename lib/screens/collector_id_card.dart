@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
+import '../core/theme/app_colors.dart';
 
 class CollectorIDCard extends StatelessWidget {
   const CollectorIDCard({super.key});
@@ -71,11 +71,26 @@ class CollectorIDCard extends StatelessWidget {
         _VerifyItem('Vehicle Photo', true),
         _VerifyItem('Profile Photo Match', true),
         const SizedBox(height: 20),
-        _SectionTitle('SHOW THIS CARD TO'),
-        _ShowToItem('Subdivision Guards'),
-        _ShowToItem('Households Before Entry'),
-        _ShowToItem('Business Owners'),
-        _ShowToItem('Barangay Officials'),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _SectionTitle('SHOW THIS CARD TO'),
+            _ShowToItem('Subdivision Guards'),
+            _ShowToItem('Households Before Entry'),
+            _ShowToItem('Business Owners'),
+            _ShowToItem('Barangay Officials'),
+          ]),
+        ),
+        const SizedBox(height: 20),
+        // Action buttons
+        Row(children: [
+          Expanded(child: _ActionBtn('DOWNLOAD', AppColors.buyerBlue, Colors.white)),
+          const SizedBox(width: 8),
+          Expanded(child: _ActionBtn('SHARE', Colors.transparent, AppColors.textPrimary)),
+          const SizedBox(width: 8),
+          Expanded(child: _ActionBtn('REPORT LOST', AppColors.error.withOpacity(0.05), AppColors.error)),
+        ]),
         const SizedBox(height: 30),
       ]),
     );
@@ -135,4 +150,14 @@ class _ShowToItem extends StatelessWidget {
       ]),
     );
   }
+}
+
+class _ActionBtn extends StatelessWidget {
+  final String label; final Color bg, fg;
+  const _ActionBtn(this.label, this.bg, this.fg);
+  @override Widget build(BuildContext context) => ElevatedButton(
+    style: ElevatedButton.styleFrom(backgroundColor: bg, foregroundColor: fg, padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), side: bg == Colors.transparent ? const BorderSide(color: AppColors.divider) : null),
+    onPressed: () {},
+    child: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+  );
 }
