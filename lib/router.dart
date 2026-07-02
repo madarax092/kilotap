@@ -6,12 +6,19 @@ import 'screens/sell_scrap_screen.dart';
 import 'screens/my_pickups_screen.dart';
 import 'screens/household_profile_screen.dart';
 import 'screens/collector_dashboard.dart';
+import 'screens/find_scrap_screen.dart';
 import 'screens/collector_id_card.dart';
 import 'screens/my_earnings_screen.dart';
+import 'screens/my_route_screen.dart';
 import 'screens/collector_profile_screen.dart';
 import 'screens/admin_dashboard.dart';
+import 'screens/user_management_screen.dart';
+import 'screens/verify_collector_screen.dart';
+import 'screens/reports_screen.dart';
+import 'screens/analytics_screen.dart';
 import 'screens/register_screen.dart';
-import 'screens/remaining_screens.dart';
+import 'screens/chat_screen.dart';
+import 'screens/rate_collector_screen.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
