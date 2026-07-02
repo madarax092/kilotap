@@ -1,92 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'providers/auth_provider.dart';
-import 'screens/landing/landing_screen.dart';
-import 'screens/auth/seller_auth_screen.dart';
-import 'screens/auth/buyer_auth_screen.dart';
-import 'screens/seller/seller_home_screen.dart';
-import 'screens/seller/book_pickup_screen.dart';
-import 'screens/seller/seller_history_screen.dart';
-import 'screens/seller/seller_settings_screen.dart';
-import 'screens/buyer/buyer_home_screen.dart';
-import 'screens/buyer/buyer_history_screen.dart';
-import 'screens/buyer/buyer_settings_screen.dart';
+import '../core/theme/app_colors.dart';
+import 'login_screen.dart';
+import 'household_dashboard.dart';
+import 'collector_dashboard.dart';
+import 'collector_id_card.dart';
+import 'admin_dashboard.dart';
+import 'stubs.dart';
 
-final appRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
+class AppRouter {
+  static Route<dynamic> generateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case '/':
+        return _page(const LoginScreen());
+      case '/register':
+        return _page(stubScreen('Register', AppColors.sellerGreen, subtitle: 'Account registration'));
+      case '/household':
+        return _page(const HouseholdDashboard());
+      case '/collector':
+        return _page(const CollectorDashboard());
+      case '/admin':
+        return _page(const AdminDashboard());
+      case '/sell':
+        return _page(stubScreen('Sell Scrap', AppColors.sellerGreen, subtitle: 'Camera-only capture'));
+      case '/bookings':
+        return _page(stubScreen('My Bookings', AppColors.sellerGreen, subtitle: 'Pickup history'));
+      case '/profile':
+        return _page(stubScreen('My Profile', AppColors.sellerGreen, subtitle: 'Account settings'));
+      case '/find':
+        return _page(stubScreen('Find Scrap', AppColors.buyerBlue, subtitle: 'Map view with nearby requests'));
+      case '/idcard':
+        return _page(const CollectorIDCard());
+      case '/earnings':
+        return _page(stubScreen('My Earnings', AppColors.buyerBlue, subtitle: 'Revenue tracking'));
+      case '/collector_profile':
+        return _page(stubScreen('Collector Profile', AppColors.buyerBlue, subtitle: 'Verification & stats'));
+      default:
+        return _page(const LoginScreen());
+    }
+  }
 
-  return GoRouter(
-    initialLocation: '/',
-    debugLogDiagnostics: false,
-    redirect: (context, state) {
-      final isLoggedIn = authState.valueOrNull != null;
-      final isAuthRoute = state.matchedLocation == '/' ||
-          state.matchedLocation == '/seller-auth' ||
-          state.matchedLocation == '/buyer-auth';
-
-      // If not logged in and not on auth routes, redirect to landing
-      if (!isLoggedIn && !isAuthRoute) return '/';
-      return null;
-    },
-    routes: [
-      // ─── Landing ──────────────────────────────────────────────────────────
-      GoRoute(
-        path: '/',
-        name: 'landing',
-        builder: (context, state) => const LandingScreen(),
-      ),
-
-      // ─── Auth ─────────────────────────────────────────────────────────────
-      GoRoute(
-        path: '/seller-auth',
-        name: 'seller-auth',
-        builder: (context, state) => const SellerAuthScreen(),
-      ),
-      GoRoute(
-        path: '/buyer-auth',
-        name: 'buyer-auth',
-        builder: (context, state) => const BuyerAuthScreen(),
-      ),
-
-      // ─── Seller ───────────────────────────────────────────────────────────
-      GoRoute(
-        path: '/seller-home',
-        name: 'seller-home',
-        builder: (context, state) => const SellerHomeScreen(),
-      ),
-      GoRoute(
-        path: '/book-pickup',
-        name: 'book-pickup',
-        builder: (context, state) => const BookPickupScreen(),
-      ),
-      GoRoute(
-        path: '/seller-history',
-        name: 'seller-history',
-        builder: (context, state) => const SellerHistoryScreen(),
-      ),
-      GoRoute(
-        path: '/seller-settings',
-        name: 'seller-settings',
-        builder: (context, state) => const SellerSettingsScreen(),
-      ),
-
-      // ─── Buyer ────────────────────────────────────────────────────────────
-      GoRoute(
-        path: '/buyer-home',
-        name: 'buyer-home',
-        builder: (context, state) => const BuyerHomeScreen(),
-      ),
-      GoRoute(
-        path: '/buyer-history',
-        name: 'buyer-history',
-        builder: (context, state) => const BuyerHistoryScreen(),
-      ),
-      GoRoute(
-        path: '/buyer-settings',
-        name: 'buyer-settings',
-        builder: (context, state) => const BuyerSettingsScreen(),
-      ),
-    ],
-  );
-});
+  static MaterialPageRoute _page(Widget child) => MaterialPageRoute(builder: (_) => child);
+}

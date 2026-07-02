@@ -1,30 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'firebase_options.dart';
-import 'app.dart';
+import 'router.dart';
+import 'core/theme/app_colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(const KiloTapApp());
+}
 
-  // ─── Firestore Offline Persistence ─────────────────────────
-  // Caches recently-read docs locally — no network needed on revisit
-  final db = FirebaseFirestore.instance;
-  await db.enablePersistence();
+class KiloTapApp extends StatelessWidget {
+  const KiloTapApp({super.key});
 
-  // ─── Image Cache Config ────────────────────────────────────
-  // 200MB disk cache, 200-image memory cache
-  PaintingBinding.instance.imageCache.maximumSize = 200;
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 200 << 20;
-
-  runApp(
-    const ProviderScope(
-      child: KiloTapApp(),
-    ),
-  );
+  @override Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'KiloTap',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        scaffoldBackgroundColor: AppColors.canvas,
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.sellerGreen),
+        fontFamily: 'Arial',
+        useMaterial3: true,
+      ),
+      onGenerateRoute: AppRouter.generateRoute,
+      initialRoute: '/',
+    );
+  }
 }
