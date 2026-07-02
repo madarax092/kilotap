@@ -11,6 +11,7 @@ class AdminDashboard extends StatelessWidget {
         backgroundColor: AppColors.canvas, elevation: 0,
         title: const Text('Admin Panel', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
         actions: [
+          IconButton(icon: const Icon(Icons.logout, size: 18, color: AppColors.textSecondary), tooltip: 'Log Out', onPressed: () => _confirmLogout(context)),
           Container(
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -144,7 +145,18 @@ class _ReportCard extends StatelessWidget {
         Text(meta, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
         const SizedBox(height: 6),
         Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: urgent ? AppColors.warning.withOpacity(0.1) : AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(6)), child: Text(status, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: urgent ? AppColors.warning : AppColors.success))),
-      ]),
-    );
-  }
-}
+ ]),
+ );
+ }
+ }
+
+ void _confirmLogout(BuildContext context) {
+ showDialog(context: context, builder: (ctx) => AlertDialog(
+ title: const Text('Log Out'),
+ content: const Text('Are you sure you want to log out?'),
+ actions: [
+ TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+ TextButton(onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false), child: const Text('Log Out', style: TextStyle(color: AppColors.error))),
+ ],
+ ));
+ }

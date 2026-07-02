@@ -14,11 +14,29 @@ class HouseholdProfileScreen extends StatelessWidget {
       _buildSection('PREFERENCES', [('Default Pickup', 'ASAP'), ('Preferred Time', 'Morning 8-12PM'), ('Notifications', 'Push + SMS'), ('Language', 'Bisaya / English')]),
       _buildSection('STATISTICS', [('Total Pickups', '16'), ('Total Weight', '87.3 kg'), ('Favorite Collector', 'Juan (6 pickups)'), ('Carbon Saved', '~42 kg CO2e')]),
       const SizedBox(height: 20),
+      // Log Out — neutral, at bottom, won't be pressed accidentally
+      OutlinedButton(
+        style: OutlinedButton.styleFrom(foregroundColor: AppColors.textPrimary, side: const BorderSide(color: AppColors.divider), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), padding: const EdgeInsets.symmetric(vertical: 14)),
+        onPressed: () => _confirmLogout(context),
+        child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.logout, size: 16), SizedBox(width: 8), Text('Log Out')]),
+      ),
+      const SizedBox(height: 8),
       OutlinedButton(style: OutlinedButton.styleFrom(foregroundColor: AppColors.error, side: const BorderSide(color: AppColors.error), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), padding: const EdgeInsets.symmetric(vertical: 14)), onPressed: () {}, child: const Text('Delete Account')),
       const SizedBox(height: 30),
     ]),
     bottomNavigationBar: BottomNavigationBar(currentIndex: 3, selectedItemColor: AppColors.sellerGreen, unselectedItemColor: AppColors.textMuted, backgroundColor: AppColors.canvas, type: BottomNavigationBarType.fixed, items: const [BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'), BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Sell'), BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Pickups'), BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile')]),
-  );
+  ));
+
+  void _confirmLogout(BuildContext context) {
+  showDialog(context: context, builder: (ctx) => AlertDialog(
+    title: const Text('Log Out'),
+    content: const Text('Are you sure you want to log out?'),
+    actions: [
+      TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+      TextButton(onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false), child: const Text('Log Out', style: TextStyle(color: AppColors.error))),
+    ],
+  ));
+  }
 
   Widget _buildSection(String title, List<(String, String)> rows) {
     return Padding(
