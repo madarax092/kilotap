@@ -125,15 +125,15 @@ class _Section extends StatelessWidget {
 
 class _DocRow extends StatelessWidget {
   final String label; const _DocRow(this.label);
-  @override Widget build(BuildContext context) => Padding(
+  @override Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.divider))),
     child: Row(children: [
       Container(width: 20, height: 20, decoration: const BoxDecoration(color: AppColors.success, shape: BoxShape.circle), child: const Icon(Icons.check, size: 12, color: Colors.white)),
       const SizedBox(width: 8),
       Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary))),
       const Text('View', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.buyerBlue)),
     ]),
-    decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.divider))),
   );
 }
 
