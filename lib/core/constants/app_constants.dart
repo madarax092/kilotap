@@ -11,27 +11,15 @@ class AppConstants {
   // ─── User Roles ────────────────────────────────────────────────────────────
   static const String roleSeller = 'seller';
   static const String roleBuyer = 'buyer';
+  static const String roleAdmin = 'admin';
 
-  // ─── Account Types (Seller) ────────────────────────────────────────────────
-  static const String accountIndividual = 'individual';
-  static const String accountBusiness = 'business';
-
-  // ─── Scrap Types ───────────────────────────────────────────────────────────
-  static const List<ScrapType> scrapTypes = [
-    ScrapType(id: 'plastic', name: 'Plastic', icon: '♻️', pricePerKg: 15.0),
-    ScrapType(id: 'metals', name: 'Metals', icon: '🔩', pricePerKg: 80.0),
-    ScrapType(id: 'appliances', name: 'Appliances', icon: '🔌', pricePerKg: 50.0),
-    ScrapType(id: 'paper', name: 'Paper', icon: '📄', pricePerKg: 5.0),
-    ScrapType(id: 'glass', name: 'Glass', icon: '🪟', pricePerKg: 3.0),
-    ScrapType(id: 'mixed', name: 'Mixed Scrap', icon: '📦', pricePerKg: 25.0),
-  ];
-
-  // ─── Pickup Status ─────────────────────────────────────────────────────────
+  // ─── Booking Status ────────────────────────────────────────────────────────
   static const String statusPending = 'pending';
-  static const String statusAssigned = 'assigned';
-  static const String statusInProgress = 'in_progress';
+  static const String statusAccepted = 'accepted';
+  static const String statusEnRoute = 'en_route';
   static const String statusCompleted = 'completed';
   static const String statusCancelled = 'cancelled';
+  static const String statusDisputed = 'disputed';
 
   // ─── Time Slots ────────────────────────────────────────────────────────────
   static const List<String> timeSlots = [
@@ -40,37 +28,32 @@ class AppConstants {
     'Evening (5pm - 8pm)',
   ];
 
-  // ─── Vehicle Types (Buyer) ─────────────────────────────────────────────────
+  // ─── Vehicle Types ─────────────────────────────────────────────────────────
   static const List<String> vehicleTypes = [
-    'Tricycle',
-    'Motorcycle with Sidecar',
-    'Kuliglig',
-    'Small Truck',
-    'Pickup Truck',
-    'Van',
+    'Pushcart (Kariton)',
+    'Tricycle / Sidecar',
+    'Multicab / Truck',
+    'Single Motorcycle',
   ];
 
   // ─── Firestore Collections ─────────────────────────────────────────────────
   static const String colUsers = 'users';
-  static const String colPickups = 'pickups';
-  static const String colMarketPrices = 'market_prices';
+  static const String colCollectors = 'collectors';
+  static const String colBookings = 'bookings';
+  static const String colBookingItems = 'bookingItems';
+  static const String colRatings = 'ratings';
+  static const String colSubdivisionAccess = 'subdivisionAccess';
+
+  // ─── Rating Categories ─────────────────────────────────────────────────────
+  static const List<String> ratingCategories = [
+    'On_Time',
+    'Professional',
+    'Careful_Handling',
+    'Good_Communication',
+  ];
 
   // ─── Shared Prefs Keys ─────────────────────────────────────────────────────
   static const String prefUserRole = 'user_role';
   static const String prefUserToken = 'user_token';
   static const String prefOnboarded = 'onboarded';
-}
-
-class ScrapType {
-  final String id;
-  final String name;
-  final String icon;
-  final double pricePerKg;
-
-  const ScrapType({
-    required this.id,
-    required this.name,
-    required this.icon,
-    required this.pricePerKg,
-  });
 }

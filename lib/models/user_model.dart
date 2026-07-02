@@ -1,12 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// User roles in KiloTap
-enum UserRole { seller, buyer }
+enum UserRole { seller, buyer, admin }
 
-/// Seller account types
-enum SellerAccountType { individual, business }
-
-/// KiloTap User model — covers both Seller and Buyer
+/// KiloTap User model — core account only
+/// Collector-specific fields moved to CollectorModel
 class UserModel {
   final String uid;
   final String displayName;
@@ -14,10 +12,6 @@ class UserModel {
   final String phone;
   final String address;
   final UserRole role;
-  final SellerAccountType? accountType; // Seller only
-  final bool isVerified; // Buyer only
-  final String? areaOfOperation; // Buyer only
-  final List<VehicleInfo> vehicles; // Buyer only
   final String? photoUrl;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -29,10 +23,6 @@ class UserModel {
     required this.phone,
     required this.address,
     required this.role,
-    this.accountType,
-    this.isVerified = false,
-    this.areaOfOperation,
-    this.vehicles = const [],
     this.photoUrl,
     required this.createdAt,
     required this.updatedAt,
@@ -40,17 +30,7 @@ class UserModel {
 
   bool get isSeller => role == UserRole.seller;
   bool get isBuyer => role == UserRole.buyer;
-
-  String get accountTypeLabel {
-    switch (accountType) {
-      case SellerAccountType.individual:
-        return 'Individual / Household';
-      case SellerAccountType.business:
-        return 'Business / Organization';
-      default:
-        return '';
-    }
-  }
+  bool get isAdmin => role == UserRole.admin;
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
@@ -60,17 +40,7 @@ class UserModel {
       email: data['email'] ?? '',
       phone: data['phone'] ?? '',
       address: data['address'] ?? '',
-      role: data['role'] == 'seller' ? UserRole.seller : UserRole.buyer,
-      accountType: data['accountType'] == 'individual'
-          ? SellerAccountType.individual
-          : data['accountType'] == 'business'
-              ? SellerAccountType.business
-              : null,
-      isVerified: data['isVerified'] ?? false,
-      areaOfOperation: data['areaOfOperation'],
-      vehicles: (data['vehicles'] as List<dynamic>? ?? [])
-          .map((v) => VehicleInfo.fromMap(v as Map<String, dynamic>))
-          .toList(),
+      role: _parseRole(data['role']),
       photoUrl: data['photoUrl'],
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -83,77 +53,18 @@ class UserModel {
       'email': email,
       'phone': phone,
       'address': address,
-      'role': role == UserRole.seller ? 'seller' : 'buyer',
-      'accountType': accountType == SellerAccountType.individual
-          ? 'individual'
-          : accountType == SellerAccountType.business
-              ? 'business'
-              : null,
-      'isVerified': isVerified,
-      'areaOfOperation': areaOfOperation,
-      'vehicles': vehicles.map((v) => v.toMap()).toList(),
+      'role': role.name,
       'photoUrl': photoUrl,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
     };
   }
 
-  UserModel copyWith({
-    String? displayName,
-    String? email,
-    String? phone,
-    String? address,
-    SellerAccountType? accountType,
-    bool? isVerified,
-    String? areaOfOperation,
-    List<VehicleInfo>? vehicles,
-    String? photoUrl,
-  }) {
-    return UserModel(
-      uid: uid,
-      displayName: displayName ?? this.displayName,
-      email: email ?? this.email,
-      phone: phone ?? this.phone,
-      address: address ?? this.address,
-      role: role,
-      accountType: accountType ?? this.accountType,
-      isVerified: isVerified ?? this.isVerified,
-      areaOfOperation: areaOfOperation ?? this.areaOfOperation,
-      vehicles: vehicles ?? this.vehicles,
-      photoUrl: photoUrl ?? this.photoUrl,
-      createdAt: createdAt,
-      updatedAt: DateTime.now(),
-    );
+  static UserRole _parseRole(String? role) {
+    switch (role) {
+      case 'buyer': return UserRole.buyer;
+      case 'admin': return UserRole.admin;
+      default: return UserRole.seller;
+    }
   }
-}
-
-/// Buyer vehicle information
-class VehicleInfo {
-  final String type;
-  final String model;
-  final String plateNumber;
-
-  const VehicleInfo({
-    required this.type,
-    required this.model,
-    required this.plateNumber,
-  });
-
-  factory VehicleInfo.fromMap(Map<String, dynamic> map) {
-    return VehicleInfo(
-      type: map['type'] ?? '',
-      model: map['model'] ?? '',
-      plateNumber: map['plateNumber'] ?? '',
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'type': type,
-      'model': model,
-      'plateNumber': plateNumber,
-    };
-  }
-
-  String get displayLabel => '$type · $plateNumber';
 }
