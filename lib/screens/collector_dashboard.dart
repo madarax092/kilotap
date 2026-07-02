@@ -38,7 +38,27 @@ class CollectorDashboard extends StatelessWidget {
           const SizedBox(width: 10),
           _StatCard(label: 'Earnings', value: '₱450', color: AppColors.buyerBlue),
         ]),
-        const SizedBox(height: 20),
+        const SizedBox(height: 12),
+        // Verification banner
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(color: AppColors.warning.withOpacity(0.06), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.warning.withOpacity(0.3))),
+          child: Row(children: [
+            const Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 20),
+            const SizedBox(width: 10),
+            const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Account Pending Verification', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.warning)),
+              SizedBox(height: 2),
+              Text('Submit documents in your Profile to start receiving pickup notifications.', style: TextStyle(fontSize: 11, color: AppColors.warning)),
+            ])),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () => Navigator.pushNamed(context, '/collector_profile'),
+              child: Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: AppColors.warning, borderRadius: BorderRadius.circular(8)), child: const Text('Verify', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white))),
+            ),
+          ]),
+        ),
+        const SizedBox(height: 16),
         // Map area
         Container(
           height: 200,
@@ -107,9 +127,11 @@ class _RequestCard extends StatelessWidget {
         Row(children: [
           Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: urgent ? AppColors.error.withOpacity(0.1) : AppColors.warning.withOpacity(0.1), borderRadius: BorderRadius.circular(6)), child: Text(type, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: urgent ? AppColors.error : AppColors.warning))),
           const Spacer(),
-          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.buyerBlue, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 20), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), onPressed: () {}, child: const Text('ACCEPT')),
-          const SizedBox(width: 8),
-          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.inputGrey, foregroundColor: AppColors.textPrimary, padding: const EdgeInsets.symmetric(horizontal: 20), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), onPressed: () {}, child: const Text('DECLINE')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.inputGrey, foregroundColor: AppColors.warning, padding: const EdgeInsets.symmetric(horizontal: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+            onPressed: () => Navigator.pushNamed(context, '/collector_profile'),
+            child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.lock, size: 14), SizedBox(width: 4), Text('Verify to accept', style: TextStyle(fontSize: 11))]),
+          ),
         ]),
       ]),
     );
