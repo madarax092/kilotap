@@ -2,42 +2,48 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import 'screens/login_screen.dart';
 import 'screens/household_dashboard.dart';
+import 'screens/sell_scrap_screen.dart';
+import 'screens/my_pickups_screen.dart';
+import 'screens/household_profile_screen.dart';
 import 'screens/collector_dashboard.dart';
+import 'screens/find_scrap_screen.dart';
 import 'screens/collector_id_card.dart';
+import 'screens/collector_profile_screen.dart';
+import 'screens/my_earnings_screen.dart';
+import 'screens/my_route_screen.dart';
 import 'screens/admin_dashboard.dart';
-import 'screens/stubs.dart';
+import 'screens/user_management_screen.dart';
+import 'screens/verify_collector_screen.dart';
+import 'screens/reports_screen.dart';
+import 'screens/analytics_screen.dart';
+import 'screens/register_screen.dart';
+import 'screens/chat_screen.dart';
+import 'screens/rate_collector_screen.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
-      case '/':
-        return _page(const LoginScreen());
-      case '/register':
-        return _page(stubScreen('Register', AppColors.sellerGreen, subtitle: 'Account registration'));
-      case '/household':
-        return _page(const HouseholdDashboard());
-      case '/collector':
-        return _page(const CollectorDashboard());
-      case '/admin':
-        return _page(const AdminDashboard());
-      case '/sell':
-        return _page(stubScreen('Sell Scrap', AppColors.sellerGreen, subtitle: 'Camera-only capture'));
-      case '/bookings':
-        return _page(stubScreen('My Bookings', AppColors.sellerGreen, subtitle: 'Pickup history'));
-      case '/profile':
-        return _page(stubScreen('My Profile', AppColors.sellerGreen, subtitle: 'Account settings'));
-      case '/find':
-        return _page(stubScreen('Find Scrap', AppColors.buyerBlue, subtitle: 'Map view with nearby requests'));
-      case '/idcard':
-        return _page(const CollectorIDCard());
-      case '/earnings':
-        return _page(stubScreen('My Earnings', AppColors.buyerBlue, subtitle: 'Revenue tracking'));
-      case '/collector_profile':
-        return _page(stubScreen('Collector Profile', AppColors.buyerBlue, subtitle: 'Verification & stats'));
-      default:
-        return _page(const LoginScreen());
+      case '/': return _page(const LoginScreen());
+      case '/register': return _page(const RegisterScreen());
+      case '/household': return _page(const HouseholdDashboard());
+      case '/collector': return _page(const CollectorDashboard());
+      case '/admin': return _page(const AdminDashboard());
+      case '/sell': return _page(const SellScrapScreen());
+      case '/pickups': return _page(const MyPickupsScreen());
+      case '/rate': return _page(const RateCollectorScreen());
+      case '/profile': return _page(const HouseholdProfileScreen());
+      case '/find': return _page(const FindScrapScreen());
+      case '/idcard': return _page(const CollectorIDCard());
+      case '/route': return _page(const MyRouteScreen());
+      case '/earnings': return _page(const MyEarningsScreen());
+      case '/collector_profile': return _page(const CollectorProfileScreen());
+      case '/users': return _page(const UserManagementScreen());
+      case '/verify': return _page(const VerifyCollectorScreen(collectorId: ''));
+      case '/reports': return _page(const ReportsScreen());
+      case '/analytics': return _page(const AnalyticsScreen());
+      case '/chat': return _page(const ChatScreen());
+      default: return _page(const LoginScreen());
     }
   }
-
   static MaterialPageRoute _page(Widget child) => MaterialPageRoute(builder: (_) => child);
 }
