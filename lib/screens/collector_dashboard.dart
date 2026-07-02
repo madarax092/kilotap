@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../core/theme/app_colors.dart';
 
 class CollectorDashboard extends StatelessWidget {
   const CollectorDashboard({super.key});
 
+  static const _davaoCenter = LatLng(7.0712, 125.6089);
+
   @override Widget build(BuildContext context) {
+    final markers = {
+      const Marker(markerId: MarkerId('you'), position: _davaoCenter, icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen), infoWindow: InfoWindow(title: 'You')),
+      const Marker(markerId: MarkerId('p1'), position: LatLng(7.0735, 125.6110), infoWindow: InfoWindow(title: '3.2 kg'), icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue)),
+      const Marker(markerId: MarkerId('p2'), position: LatLng(7.0695, 125.6105), infoWindow: InfoWindow(title: '25 kg'), icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed)),
+    };
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
@@ -34,13 +42,14 @@ class CollectorDashboard extends StatelessWidget {
         // Map area
         Container(
           height: 200,
-          decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
-          child: const Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(Icons.map_outlined, size: 48, color: AppColors.buyerBlue),
-            SizedBox(height: 8),
-            Text('Nearby Pickup Map', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
-            Text('4 requests in your area', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
-          ])),
+          margin: const EdgeInsets.only(bottom: 4),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
+          clipBehavior: Clip.antiAlias,
+          child: GoogleMap(
+            initialCameraPosition: const CameraPosition(target: _davaoCenter, zoom: 14.5),
+            markers: markers,
+            zoomControlsEnabled: false,
+          ),
         ),
         const SizedBox(height: 20),
         // Nearby requests
