@@ -127,7 +127,7 @@ class _BottomNav extends StatelessWidget {
       type: BottomNavigationBarType.fixed,
       onTap: (i) {
         if (i == 1) Navigator.pushNamed(context, '/sell');
-        if (i == 2) Navigator.pushNamed(context, '/bookings');
+        if (i == 2) Navigator.pushNamed(context, '/pickups');
         if (i == 3) Navigator.pushNamed(context, '/profile');
       },
       items: const [
