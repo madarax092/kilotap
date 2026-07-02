@@ -35,7 +35,7 @@ class HouseholdProfileScreen extends StatelessWidget {
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
         TextButton(onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false), child: const Text('Log Out', style: TextStyle(color: AppColors.error))),
       ],
-    );
+    ));
     }
 
   Widget _buildSection(String title, List<(String, String)> rows) {
