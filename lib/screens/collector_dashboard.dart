@@ -127,11 +127,16 @@ class _RequestCard extends StatelessWidget {
         Row(children: [
           Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: urgent ? AppColors.error.withOpacity(0.1) : AppColors.warning.withOpacity(0.1), borderRadius: BorderRadius.circular(6)), child: Text(type, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: urgent ? AppColors.error : AppColors.warning))),
           const Spacer(),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.inputGrey, foregroundColor: AppColors.warning, padding: const EdgeInsets.symmetric(horizontal: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-            onPressed: () => Navigator.pushNamed(context, '/collector_profile'),
-            child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.lock, size: 14), SizedBox(width: 4), Text('Verify to accept', style: TextStyle(fontSize: 11))]),
-          ),
+          if (AuthState.instance.hasPermission('accept_pickup')) ...[
+            ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.buyerBlue, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), onPressed: () {}, child: const Text('ACCEPT', style: TextStyle(fontSize: 11))),
+            const SizedBox(width: 8),
+            ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.inputGrey, foregroundColor: AppColors.textPrimary, padding: const EdgeInsets.symmetric(horizontal: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), onPressed: () {}, child: const Text('DECLINE', style: TextStyle(fontSize: 11))),
+          ] else
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.inputGrey, foregroundColor: AppColors.warning, padding: const EdgeInsets.symmetric(horizontal: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+              onPressed: () => Navigator.pushNamed(context, '/collector_profile'),
+              child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.lock, size: 14), SizedBox(width: 4), Text('Verify to accept', style: TextStyle(fontSize: 11))]),
+            ),
         ]),
       ]),
     );
