@@ -62,7 +62,14 @@ class MyEarningsScreen extends StatelessWidget {
         const SizedBox(height: 30),
       ]),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 3, selectedItemColor: AppColors.buyerBlue, unselectedItemColor: AppColors.textMuted,
+        currentIndex: 3,
+        onTap: (i) {
+          if (i == 0) Navigator.pushReplacementNamed(context, '/collector');
+          if (i == 1) Navigator.pushNamed(context, '/find');
+          if (i == 2) Navigator.pushNamed(context, '/idcard');
+          if (i == 4) Navigator.pushNamed(context, '/collector_profile');
+        },
+        selectedItemColor: AppColors.buyerBlue, unselectedItemColor: AppColors.textMuted,
         backgroundColor: AppColors.canvas, type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),

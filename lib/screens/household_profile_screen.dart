@@ -46,6 +46,11 @@ class HouseholdProfileScreen extends StatelessWidget {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 3,
+        onTap: (i) {
+          if (i == 0) Navigator.pushReplacementNamed(context, '/household');
+          if (i == 1) Navigator.pushNamed(context, '/sell');
+          if (i == 2) Navigator.pushNamed(context, '/pickups');
+        },
         selectedItemColor: AppColors.sellerGreen,
         unselectedItemColor: AppColors.textMuted,
         backgroundColor: AppColors.canvas,

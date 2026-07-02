@@ -88,7 +88,14 @@ class CollectorProfileScreen extends StatelessWidget {
         const SizedBox(height: 30),
       ]),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 4, selectedItemColor: AppColors.buyerBlue, unselectedItemColor: AppColors.textMuted,
+        currentIndex: 4,
+        onTap: (i) {
+          if (i == 0) Navigator.pushReplacementNamed(context, '/collector');
+          if (i == 1) Navigator.pushNamed(context, '/find');
+          if (i == 2) Navigator.pushNamed(context, '/idcard');
+          if (i == 3) Navigator.pushNamed(context, '/earnings');
+        },
+        selectedItemColor: AppColors.buyerBlue, unselectedItemColor: AppColors.textMuted,
         backgroundColor: AppColors.canvas, type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
