@@ -7,6 +7,7 @@ import 'screens/my_pickups_screen.dart';
 import 'screens/household_profile_screen.dart';
 import 'screens/collector_dashboard.dart';
 import 'screens/collector_id_card.dart';
+import 'screens/my_earnings_screen.dart';
 import 'screens/admin_dashboard.dart';
 import 'screens/register_screen.dart';
 import 'screens/remaining_screens.dart';
