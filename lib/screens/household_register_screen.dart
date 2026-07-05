@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
-import '../core/constants/davao_data.dart';
 import '../services/auth_service.dart';
 
 class HouseholdRegisterScreen extends StatefulWidget {
@@ -53,9 +52,7 @@ class _HouseholdRegisterScreenState extends State<HouseholdRegisterScreen> {
         _Field('Full Name', 'Juan Dela Cruz', controller: _nameCtrl),
         _Field('Email', 'household@email.com', controller: _emailCtrl),
         _Field('Password', 'Create password', controller: _passCtrl, obscure: true),
-        _Drop('Barangay', DavaoData.barangays, (v) => _barangay = v ?? ''),
         _Field('Address', 'Block/Lot/Street'),
-        _Drop('Housing Type', DavaoData.housingTypes, (v) => _housingType = v ?? ''),
         const SizedBox(height: 24),
         SizedBox(width: double.infinity, height: 50, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.sellerGreen, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), onPressed: _loading ? null : _register, child: _loading ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('CREATE ACCOUNT', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)))),
         const SizedBox(height: 30),
@@ -80,5 +77,3 @@ class _Field extends StatelessWidget {
   ]));
 }
 
-class _Drop extends StatefulWidget { final String label; final List<String> items; final ValueChanged<String?> onChanged; const _Drop(this.label, this.items, this.onChanged); @override State<_Drop> createState() => _DropState(); }
-class _DropState extends State<_Drop> { String? _value; @override Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(bottom: 14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.label.toUpperCase(), style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 0.5)), const SizedBox(height: 4), Container(padding: const EdgeInsets.symmetric(horizontal: 14), decoration: BoxDecoration(color: AppColors.inputGrey, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider)), child: DropdownButtonHideUnderline(child: DropdownButton<String>(value: _value, hint: const Text('Select...', style: TextStyle(fontSize: 14, color: AppColors.textMuted)), isExpanded: true, dropdownColor: AppColors.pureWhite, style: const TextStyle(fontSize: 14, color: AppColors.textPrimary), items: widget.items.map((i) => DropdownMenuItem(value: i, child: Text(i, style: const TextStyle(fontSize: 14)))).toList(), onChanged: (v) { setState(() => _value = v); widget.onChanged(v); })))])); }

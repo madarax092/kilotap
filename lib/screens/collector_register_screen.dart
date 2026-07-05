@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
-import '../core/constants/davao_data.dart';
 import '../services/auth_service.dart';
 
 class CollectorRegisterScreen extends StatefulWidget {
@@ -109,39 +108,3 @@ class _Field extends StatelessWidget {
 }
 
 // Dropdown with search — for barangay list (18+ items)
-class _Dropdown extends StatefulWidget {
-  final String label;
-  final List<String> items;
-  final ValueChanged<String?> onChanged;
-  const _Dropdown(this.label, this.items, this.onChanged);
-  @override State<_Dropdown> createState() => _DropdownState();
-}
-
-class _DropdownState extends State<_Dropdown> {
-  String? _value;
-
-  @override Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(widget.label.toUpperCase(), style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
-        const SizedBox(height: 4),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(color: AppColors.inputGrey, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider)),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _value,
-              hint: const Text('Select...', style: TextStyle(fontSize: 14, color: AppColors.textMuted)),
-              isExpanded: true,
-              dropdownColor: AppColors.pureWhite,
-              style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
-              items: widget.items.map((i) => DropdownMenuItem(value: i, child: Text(i, style: const TextStyle(fontSize: 14)))).toList(),
-              onChanged: (v) { setState(() => _value = v); widget.onChanged(v); },
-            ),
-          ),
-        ),
-      ]),
-    );
-  }
-}
