@@ -4,13 +4,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 import 'router.dart';
 import 'core/theme/app_colors.dart';
+import 'services/auth_service.dart';
+import 'services/cache_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Hive (matches paper NFR 2.2.3.2.3)
+  await CacheService.instance.init();
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Enable Firestore offline persistence — instant load after first open
-  FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: true, cacheSizeBytes: 104857600); // 100 MB
+  // Firestore offline persistence — dual protection with Hive
+  FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: true, cacheSizeBytes: 104857600);
   runApp(const KiloTapApp());
 }
 
