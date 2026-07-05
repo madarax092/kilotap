@@ -21,7 +21,7 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
 
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      appBar: automaticallyImplyLeading: false, AppBar(backgroundColor: AppColors.canvas, elevation: 0, title: const Text('My KiloTap ID', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800))),
+      appBar: AppBar(automaticallyImplyLeading: false, backgroundColor: AppColors.canvas, elevation: 0, title: const Text('My KiloTap ID', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800))),
       body: ListView(padding: const EdgeInsets.symmetric(horizontal: 28), children: [
         const SizedBox(height: 8),
         // ID Card — with 3D transform
