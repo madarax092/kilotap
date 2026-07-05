@@ -39,7 +39,6 @@ class CollectorProfileScreen extends StatelessWidget {
         Container(
           decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
           child: const Column(children: [
-            _DocRow('Barangay Clearance'),
             _DocRow('Valid Government ID'),
             _DocRow('Vehicle Photo'),
             _DocRow('Profile Photo Match'),

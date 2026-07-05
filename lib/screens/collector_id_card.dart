@@ -73,7 +73,6 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
         ],
         const SizedBox(height: 20),
         _SectionTitle('VERIFICATION STATUS'),
-        _VerifyItem('Barangay Clearance', true),
         _VerifyItem('Valid Government ID', true),
         _VerifyItem('Vehicle Photo', true),
         _VerifyItem('Profile Photo Match', true),

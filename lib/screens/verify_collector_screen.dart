@@ -16,7 +16,7 @@ class VerifyCollectorScreen extends StatelessWidget {
         Row(children: [_DTile('🆔', 'Valid ID'), const SizedBox(width: 10), _DTile('🛵', 'Vehicle Photo')]),
         const SizedBox(height: 16),
         _VSec('COLLECTOR DETAILS', [('Name', 'Pedro Reyes'), ('Phone', '+63928XXXXXXX'), ('Vehicle', 'Tricycle'), ('Experience', '3 years'), ('Areas', 'Matina, Ecoland, Maa'), ('Submitted', 'June 28, 2026')]),
-        _VSec('VERIFICATION CHECKLIST', [('✓', 'Profile photo matches ID photo'), ('✓', 'Barangay Clearance is legible'), ('✓', 'Barangay Clearance not expired'), ('✓', 'Valid ID is government-issued'), ('✓', 'Vehicle photo matches stated type'), ('○', 'Cross-check with Barangay (optional)')], check: true),
+        _VSec('VERIFICATION CHECKLIST', [('✓', 'Profile photo matches ID photo'), ('✓', 'Valid ID is government-issued'), ('✓', 'Vehicle photo matches stated type')], check: true),
         Padding(padding: const EdgeInsets.only(bottom: 12), child: TextField(decoration: InputDecoration(hintText: 'Admin notes...', filled: true, fillColor: AppColors.inputGrey, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.divider))), maxLines: 2)),
         Row(children: [
           Expanded(child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.success, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), onPressed: () {}, child: const Text('APPROVE & ISSUE ID', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800)))),
