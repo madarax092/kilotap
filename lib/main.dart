@@ -10,7 +10,7 @@ import 'services/cache_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Hive (matches paper NFR 2.2.3.2.3)
+  // Initialize local cache
   await CacheService.instance.init();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

@@ -1,6 +1,6 @@
 import 'role_permissions.dart';
 
-/// Auth state — matches ACM Paper: role from UserAccount/{uid}/Role
+/// Tracks current user role and permissions
 class AuthState {
   AuthState._();
   static final AuthState _instance = AuthState._();

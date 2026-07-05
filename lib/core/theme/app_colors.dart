@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// KiloTap Color Palette — per Capstone Paper
+/// KiloTap Color Palette
 class AppColors {
   AppColors._();
 

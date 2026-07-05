@@ -60,7 +60,7 @@ class AdminDashboard extends StatelessWidget {
         _ReportCard('#RPT-0018', 'Investigate', AppColors.warning, 'Collector no-show for #PKP-0035', 'Maria S. · June 29'),
         _ReportCard('#RPT-0017', 'Resolved', AppColors.success, 'Wrong items collected', 'Jose R. · June 28'),
         const SizedBox(height: 20),
-        // Paper Table 12: AuditLogs — NFR 2.2.3.1.13 Transaction Monitoring
+        // Transaction Monitoring
         Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Text('TRANSACTION MONITORING', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
           const SizedBox(height: 10),

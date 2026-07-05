@@ -2,12 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'auth_state.dart';
 
-/// Firebase Authentication + Firestore — matches ACM Paper Data Dictionary
+/// Firebase Authentication + Firestore role management
 ///
-/// Collections per paper:
-///   UserAccount/{uid}     — auth credentials + role flag
-///   ScrapSeller/{uid}     — household profile (if role=Household)
-///   ScrapCollector/{uid}  — collector profile (if role=Collector)
+/// Collections: UserAccount, ScrapSeller, ScrapCollector
 class AuthService {
   static final AuthService _instance = AuthService._();
   static AuthService get instance => _instance;
