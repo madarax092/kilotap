@@ -8,7 +8,7 @@ class HouseholdDashboard extends StatelessWidget {
   @override Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      appBar: AppBar(
+      appBar: AppBar(automaticallyImplyLeading: false, 
         backgroundColor: AppColors.canvas, elevation: 0,
         title: const Text('Kumusta, Maria', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
         actions: [

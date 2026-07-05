@@ -16,7 +16,7 @@ class CollectorDashboard extends StatelessWidget {
     };
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      appBar: AppBar(
+      appBar: AppBar(automaticallyImplyLeading: false, 
         backgroundColor: AppColors.canvas, elevation: 0,
         title: const Text('Kumusta, Juan', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
         actions: [
