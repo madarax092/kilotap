@@ -27,7 +27,7 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
   @override Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      appBar: AppBar(backgroundColor: AppColors.canvas, elevation: 0, leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary), onPressed: () => Navigator.pop(context)), title: const Text('Find Scrap', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800))),
+      appBar: automaticallyImplyLeading: false, AppBar(backgroundColor: AppColors.canvas, elevation: 0, title: const Text('Find Scrap', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800))),
       body: Column(children: [
         Padding(padding: const EdgeInsets.symmetric(horizontal: 28), child: SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [_Filt('All', true), _Filt('<1 km', false), _Filt('<3 km', false), _Filt('Heavy', false), _Filt('ASAP', false), _Filt('Metal', false)]))),
         const SizedBox(height: 12),

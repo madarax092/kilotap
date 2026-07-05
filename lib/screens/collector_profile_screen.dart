@@ -10,7 +10,6 @@ class CollectorProfileScreen extends StatelessWidget {
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
         backgroundColor: AppColors.canvas, elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary), onPressed: () => Navigator.pop(context)),
         title: const Text('My Profile', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
       ),
       body: ListView(padding: const EdgeInsets.symmetric(horizontal: 28), children: [

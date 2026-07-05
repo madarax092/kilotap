@@ -21,7 +21,7 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
 
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      appBar: AppBar(backgroundColor: AppColors.canvas, elevation: 0, leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary), onPressed: () => Navigator.pop(context)), title: const Text('My KiloTap ID', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800))),
+      appBar: automaticallyImplyLeading: false, AppBar(backgroundColor: AppColors.canvas, elevation: 0, title: const Text('My KiloTap ID', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800))),
       body: ListView(padding: const EdgeInsets.symmetric(horizontal: 28), children: [
         const SizedBox(height: 8),
         // ID Card — with 3D transform
@@ -95,6 +95,26 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
         ]),
         const SizedBox(height: 30),
       ]),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 2,
+        selectedItemColor: AppColors.buyerBlue,
+        unselectedItemColor: AppColors.textMuted,
+        backgroundColor: AppColors.canvas,
+        type: BottomNavigationBarType.fixed,
+        onTap: (i) {
+          if (i == 0) Navigator.pushReplacementNamed(context, '/collector');
+          if (i == 1) Navigator.pushNamed(context, '/find');
+          if (i == 3) Navigator.pushNamed(context, '/earnings');
+          if (i == 4) Navigator.pushNamed(context, '/collector_profile');
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Find'),
+          BottomNavigationBarItem(icon: Icon(Icons.credit_card), label: 'ID'),
+          BottomNavigationBarItem(icon: Icon(Icons.payments), label: 'Earn'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+      ),
     );
   }
 }

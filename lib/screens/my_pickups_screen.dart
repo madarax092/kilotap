@@ -11,7 +11,6 @@ class MyPickupsScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.canvas,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary), onPressed: () => Navigator.pop(context)),
         title: const Text('My Pickups', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
       ),
       body: ListView(
