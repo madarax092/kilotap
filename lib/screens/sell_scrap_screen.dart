@@ -29,8 +29,7 @@ class SellScrapScreen extends StatelessWidget {
           const SizedBox(height: 8),
           _MetaRow('GPS', '7.0712, 125.6089 (Maa)'),
           _MetaRow('Timestamp', '2026-07-01 14:30:52'),
-          _MetaRow('Device', 'Samsung A54 \u00b7 Android 14'),
-          _MetaRow('SHA-256', 'a7f3b9c2...'),
+          _MetaRow('Device', 'Samsung A54 · Android 14'),
         ]),
         const SizedBox(height: 12),
         // AI Analysis
@@ -41,7 +40,7 @@ class SellScrapScreen extends StatelessWidget {
           _AnalysisRow('Cardboard Boxes', '3 pcs'),
           _AnalysisRow('Scrap Iron', '2 pcs'),
           const Divider(),
-          const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Est. Total', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary)), Text('~8.5 kg \u00b7 \u03A9 0.35', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.success))]),
+          const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Est. Total', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary)), Text('~8.5 kg', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.success))]),
         ]),
         const SizedBox(height: 16),
         // Pickup options
