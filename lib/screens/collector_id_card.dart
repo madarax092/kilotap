@@ -53,6 +53,7 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('Scan to Verify', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
                 Text('kilotap.app/v/jd123', style: TextStyle(fontSize: 10, color: AppColors.buyerBlue)),
+                Text('Issued by KiloTap', style: TextStyle(fontSize: 9, color: AppColors.textMuted)),
                 Text('Valid until Dec 15, 2026', style: TextStyle(fontSize: 9, color: AppColors.textMuted)),
               ])),
             ])),

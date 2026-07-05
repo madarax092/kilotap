@@ -29,6 +29,7 @@ class CollectorProfileScreen extends StatelessWidget {
         _Section('PERSONAL INFO', [
           ('Phone', '+63927XXXXXXX'),
           ('Vehicle', 'Tricycle'),
+          ('Max Capacity', '200 kg'),
           ('Areas', 'Maa, Matina, Ecoland'),
           ('Languages', 'Bisaya, Tagalog'),
         ]),
