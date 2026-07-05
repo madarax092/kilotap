@@ -23,7 +23,7 @@ class AdminDashboard extends StatelessWidget {
         const SizedBox(height: 12),
         // Stat cards
         Row(children: [
-          GestureDetector(onTap: () => Navigator.pushNamed(context, '/users'), child: _Stat('342', 'Total Users', AppColors.textPrimary)),
+          _Stat('342', 'Total Users', AppColors.textPrimary, onTap: () => Navigator.pushNamed(context, '/users')),
           const SizedBox(width: 10),
           _Stat('18', 'Active Pickups', AppColors.textPrimary),
         ]),
@@ -31,7 +31,7 @@ class AdminDashboard extends StatelessWidget {
         Row(children: [
           _Stat('47', 'Today', AppColors.textPrimary),
           const SizedBox(width: 10),
-          GestureDetector(onTap: () => Navigator.pushNamed(context, '/verify'), child: _Stat('5', 'Pending Verify', AppColors.adminRed)),
+          _Stat('5', 'Pending Verify', AppColors.adminRed, onTap: () => Navigator.pushNamed(context, '/verify')),
         ]),
         const SizedBox(height: 20),
         // Last 7 Days
@@ -85,8 +85,9 @@ class AdminDashboard extends StatelessWidget {
 class _Stat extends StatelessWidget {
   final String val, label;
   final Color color;
-  const _Stat(this.val, this.label, this.color);
-  @override Widget build(BuildContext context) => Expanded(child: Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(val, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: color)), const SizedBox(height: 2), Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary))])));
+  final VoidCallback? onTap;
+  const _Stat(this.val, this.label, this.color, {this.onTap});
+  @override Widget build(BuildContext context) => Expanded(child: GestureDetector(onTap: onTap, child: Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(val, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: color)), const SizedBox(height: 2), Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary))]))));
 }
 
 class _Bar extends StatelessWidget {
