@@ -23,7 +23,7 @@ class AdminDashboard extends StatelessWidget {
         const SizedBox(height: 12),
         // Stat cards
         Row(children: [
-          _Stat('342', 'Total Users', AppColors.textPrimary),
+          GestureDetector(onTap: () => Navigator.pushNamed(context, '/users'), child: _Stat('342', 'Total Users', AppColors.textPrimary)),
           const SizedBox(width: 10),
           _Stat('18', 'Active Pickups', AppColors.textPrimary),
         ]),
@@ -31,7 +31,7 @@ class AdminDashboard extends StatelessWidget {
         Row(children: [
           _Stat('47', 'Today', AppColors.textPrimary),
           const SizedBox(width: 10),
-          _Stat('5', 'Pending Verify', AppColors.adminRed),
+          GestureDetector(onTap: () => Navigator.pushNamed(context, '/verify'), child: _Stat('5', 'Pending Verify', AppColors.adminRed)),
         ]),
         const SizedBox(height: 20),
         // Last 7 Days
@@ -53,12 +53,18 @@ class AdminDashboard extends StatelessWidget {
         const SizedBox(height: 10),
         _VerifyCard('Pedro Reyes', 'Tricycle · Barangay Maa', '2h ago'),
         _VerifyCard('Ana Lopez', 'Kariton · Barangay Ecoland', '5h ago'),
+        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          TextButton(onPressed: () => Navigator.pushNamed(context, '/verify'), child: const Text('View all →', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.buyerBlue))),
+        ]),
         const SizedBox(height: 20),
-        // Recent Reports
+        // User Complaints
         const Text('USER COMPLAINTS', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
         const SizedBox(height: 10),
         _ReportCard('#RPT-0018', 'Investigate', AppColors.warning, 'Collector no-show for #PKP-0035', 'Maria S. · June 29'),
         _ReportCard('#RPT-0017', 'Resolved', AppColors.success, 'Wrong items collected', 'Jose R. · June 28'),
+        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          TextButton(onPressed: () => Navigator.pushNamed(context, '/reports'), child: const Text('View all →', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.buyerBlue))),
+        ]),
         const SizedBox(height: 20),
         // Transaction Monitoring
         Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
