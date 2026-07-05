@@ -13,8 +13,6 @@ class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
   final _phoneCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-  String _vehicleType = '';
-  String _area = '';
   bool _loading = false;
 
   Future<void> _register() async {

@@ -1,5 +1,4 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'auth_service.dart';
 
 /// Hive local cache — matches ACM Paper NFR 2.2.3.2.3

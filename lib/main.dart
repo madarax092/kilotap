@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 import 'router.dart';
 import 'core/theme/app_colors.dart';
-import 'services/auth_service.dart';
 import 'services/cache_service.dart';
 
 void main() async {

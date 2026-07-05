@@ -13,8 +13,6 @@ class _HouseholdRegisterScreenState extends State<HouseholdRegisterScreen> {
   final _phoneCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-  String _barangay = '';
-  String _housingType = '';
   bool _loading = false;
 
   Future<void> _register() async {
