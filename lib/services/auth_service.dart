@@ -2,9 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'auth_state.dart';
 
-/// Firebase Authentication + Firestore role management
-///
-/// Collections: UserAccount, ScrapSeller, ScrapCollector
+/// Firebase Auth + Firestore — matches ACM Paper Data Dictionary (Tables 6-8)
 class AuthService {
   static final AuthService _instance = AuthService._();
   static AuthService get instance => _instance;
@@ -17,7 +15,6 @@ class AuthService {
   static const colSeller = 'ScrapSeller';
   static const colCollector = 'ScrapCollector';
 
-  /// Sign in — reads role from UserAccount
   Future<String?> signIn(String email, String password) async {
     try {
       final cred = await _auth.signInWithEmailAndPassword(email: email, password: password);
@@ -31,20 +28,19 @@ class AuthService {
     }
   }
 
-  /// Register — creates UserAccount + role-specific profile document
   Future<String?> register({
     required String email,
     required String password,
     required String fullName,
     required String phone,
     required String role,
-    Map<String, dynamic>? extraFields,
+    required String address,
   }) async {
     try {
       final cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
       final uid = cred.user!.uid;
 
-      // 1. UserAccount — login credentials + role (matches Table 6 in paper)
+      // Table 6: UserAccount
       await _firestore.collection(colAccount).doc(uid).set({
         'Account_Id': uid,
         'Auth_UID': uid,
@@ -54,28 +50,30 @@ class AuthService {
         'Created_At': FieldValue.serverTimestamp(),
       });
 
-      // 2. Role-specific profile document
+      // Table 7: ScrapSeller (subcollection)
       if (role == 'Household') {
         await _firestore.collection(colAccount).doc(uid).collection(colSeller).doc(uid).set({
           'Seller_Id': uid,
           'Account_Id': uid,
           'FullName': fullName,
-          'Address': extraFields?['address'] ?? '',
-          'createdAt': FieldValue.serverTimestamp(),
-          if (extraFields != null) ...extraFields,
+          'Address': address,
         });
-      } else if (role == 'Collector') {
+      }
+
+      // Table 8: ScrapCollector (subcollection)
+      if (role == 'Collector') {
         await _firestore.collection(colAccount).doc(uid).collection(colCollector).doc(uid).set({
-          'Collector_Id': uid,
+          'Collector_ID': uid,
           'Account_Id': uid,
           'FullName': fullName,
-          'VehicleType': extraFields?['vehicleType'] ?? '',
-          'VehicleCapacityKg': extraFields?['vehicleCapacityKg'] ?? 0,
-          'VerificationStatus': 'pending',
+          'VehicleType': '',
+          'VehicleCapacityKg': 0,
+          'VerificationStatus': 'Pending',
+          'VerificationDocs': '',
+          'DigitalBadgeURL': '',
           'OnlineStatus': false,
+          'CurrentGPS': null,
           'AvgRating': 0.0,
-          'createdAt': FieldValue.serverTimestamp(),
-          if (extraFields != null) ...extraFields,
         });
       }
 
@@ -86,21 +84,20 @@ class AuthService {
     }
   }
 
-  /// Get user profile data for display
   Future<Map<String, dynamic>?> getProfile(String? uid) async {
     if (uid == null) return null;
     final role = AuthState.instance.role;
     if (role == 'Household') {
       final doc = await _firestore.collection(colAccount).doc(uid).collection(colSeller).doc(uid).get();
       return doc.data();
-    } else if (role == 'Collector') {
+    }
+    if (role == 'Collector') {
       final doc = await _firestore.collection(colAccount).doc(uid).collection(colCollector).doc(uid).get();
       return doc.data();
     }
     return null;
   }
 
-  /// Sign out
   Future<void> signOut() async {
     await _auth.signOut();
     AuthState.instance.logout();

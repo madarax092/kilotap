@@ -32,8 +32,7 @@ class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
     setState(() => _loading = true);
 
     final role = await AuthService.instance.register(
-      email: email, password: pass, fullName: name, phone: phone, role: 'Collector',
-      extraFields: {'vehicleType': _vehicleType, 'yearsCollecting': _years, 'area': _area},
+      email: email, password: pass, fullName: name, phone: phone, role: 'Collector', address: 'Davao City',
     );
 
     if (!mounted) return;
