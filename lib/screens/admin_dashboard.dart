@@ -55,7 +55,7 @@ class AdminDashboard extends StatelessWidget {
         _VerifyCard('Ana Lopez', 'Kariton · Barangay Ecoland', '5h ago'),
         const SizedBox(height: 20),
         // Recent Reports
-        const Text('RECENT REPORTS', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
+        const Text('USER COMPLAINTS', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
         const SizedBox(height: 10),
         _ReportCard('#RPT-0018', 'Investigate', AppColors.warning, 'Collector no-show for #PKP-0035', 'Maria S. · June 29'),
         _ReportCard('#RPT-0017', 'Resolved', AppColors.success, 'Wrong items collected', 'Jose R. · June 28'),
@@ -101,6 +101,18 @@ class _ReportCard extends StatelessWidget {
     const SizedBox(height: 4),
     Text(issue, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
     Text(detail, style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+  ]));
+}
+
+class _Audit extends StatelessWidget {
+  final String admin, action, target, change, time;
+  const _Audit(this.admin, this.action, this.target, this.change, this.time);
+  @override Widget build(BuildContext context) => Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(children: [
+    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('$admin · $action', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+      Text('$target: $change', style: const TextStyle(fontSize: 9, color: AppColors.textMuted)),
+    ])),
+    Text(time, style: const TextStyle(fontSize: 9, color: AppColors.textMuted)),
   ]));
 }
 
