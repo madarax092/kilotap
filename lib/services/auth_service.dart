@@ -56,7 +56,7 @@ class AuthService {
 
       // 2. Role-specific profile document
       if (role == 'Household') {
-        await _firestore.collection(colSeller).doc(uid).set({
+        await _firestore.collection(colAccount).doc(uid).collection(colSeller).doc(uid).set({
           'Seller_Id': uid,
           'Account_Id': uid,
           'FullName': fullName,
@@ -65,7 +65,7 @@ class AuthService {
           if (extraFields != null) ...extraFields,
         });
       } else if (role == 'Collector') {
-        await _firestore.collection(colCollector).doc(uid).set({
+        await _firestore.collection(colAccount).doc(uid).collection(colCollector).doc(uid).set({
           'Collector_Id': uid,
           'Account_Id': uid,
           'FullName': fullName,
@@ -91,10 +91,10 @@ class AuthService {
     if (uid == null) return null;
     final role = AuthState.instance.role;
     if (role == 'Household') {
-      final doc = await _firestore.collection(colSeller).doc(uid).get();
+      final doc = await _firestore.collection(colAccount).doc(uid).collection(colSeller).doc(uid).get();
       return doc.data();
     } else if (role == 'Collector') {
-      final doc = await _firestore.collection(colCollector).doc(uid).get();
+      final doc = await _firestore.collection(colAccount).doc(uid).collection(colCollector).doc(uid).get();
       return doc.data();
     }
     return null;
