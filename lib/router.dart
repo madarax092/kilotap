@@ -50,7 +50,7 @@ class AppRouter {
       case '/earnings': return _page(const MyEarningsScreen());
       case '/collector_profile': return _page(const CollectorProfileScreen());
       case '/users': return _page(const UserManagementScreen());
-      case '/verify': return _page(const VerifyCollectorScreen(collectorId: ''));
+      case '/verify': return _page(const VerifyCollectorScreen());
       case '/reports': return _page(const ReportsScreen());
       case '/analytics': return _page(const AnalyticsScreen());
       case '/chat': return _page(const ChatScreen());
