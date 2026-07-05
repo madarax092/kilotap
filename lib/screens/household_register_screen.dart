@@ -27,7 +27,7 @@ class _HouseholdRegisterScreenState extends State<HouseholdRegisterScreen> {
       return;
     }
     setState(() => _loading = true);
-    final role = await AuthService.instance.register(email, pass, name, phone, 'Household', extraFields: {'barangay': _barangay, 'housingType': _housingType});
+    final role = await AuthService.instance.register(email: email, password: pass, fullName: name, phone: phone, role: 'Household', extraFields: {'barangay': _barangay, 'housingType': _housingType, 'address': ''});
     if (!mounted) return;
     setState(() => _loading = false);
     if (role != null) {

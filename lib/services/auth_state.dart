@@ -1,22 +1,21 @@
 import 'role_permissions.dart';
 
-/// Simple auth state holder — demo mode (replace with Firebase later)
+/// Auth state — matches ACM Paper: role from UserAccount/{uid}/Role
 class AuthState {
   AuthState._();
   static final AuthState _instance = AuthState._();
   static AuthState get instance => _instance;
 
   String? _role;
+  String? _uid;
+
   String? get role => _role;
+  String? get uid => _uid;
   bool get isLoggedIn => _role != null;
-  bool get isVerified => _role == 'VerifiedCollector';
 
-  void login(String role) => _role = role;
-  void logout() => _role = null;
+  void login(String role, String uid) { _role = role; _uid = uid; }
+  void logout() { _role = null; _uid = null; }
 
-  /// Check if current role can access the given route
   bool canAccess(String route) => RolePermissions.canAccessRoute(_role, route);
-
-  /// Check if current role has a specific permission
   bool hasPermission(String permission) => RolePermissions.hasPermission(_role, permission);
 }
