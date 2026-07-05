@@ -57,7 +57,6 @@ class SellScrapScreen extends StatelessWidget {
         const Text('SELECT COLLECTOR', style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
         const SizedBox(height: 8),
         _CollectorOpt('Auto-match nearest', 'Best available collector', true),
-        _CollectorOpt('Juan D. \u26054.8', '0.3 km \u00b7 Tricycle', false),
         const SizedBox(height: 24),
         SizedBox(width: double.infinity, height: 50, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.sellerGreen, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), onPressed: () {}, child: const Text('SUBMIT PICKUP REQUEST', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)))),
         const SizedBox(height: 30),
