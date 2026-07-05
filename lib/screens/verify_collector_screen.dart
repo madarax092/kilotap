@@ -7,8 +7,7 @@ class VerifyCollectorScreen extends StatefulWidget {
 }
 
 class _VerifyCollectorScreenState extends State<VerifyCollectorScreen> {
-  // In production: query Firestore where verificationStatus == 'pending'
-  final _pending = const [
+  final _pending = [
     {'name': 'Pedro Reyes', 'vehicle': 'Tricycle', 'area': 'Matina, Ecoland, Maa', 'exp': '3 years', 'phone': '+63928XXXXXXX', 'submitted': 'June 28, 2026', 'docs': ['Profile Photo', 'Valid ID', 'Vehicle Photo']},
     {'name': 'Ana Lopez', 'vehicle': 'Kariton', 'area': 'Ecoland', 'exp': '1 year', 'phone': '+63917XXXXXXX', 'submitted': 'June 29, 2026', 'docs': ['Profile Photo', 'Valid ID', 'Vehicle Photo']},
   ];
@@ -25,7 +24,12 @@ class _VerifyCollectorScreenState extends State<VerifyCollectorScreen> {
           Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2), decoration: const BoxDecoration(color: AppColors.adminRed, shape: BoxShape.circle), child: Text('${_pending.length}', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white))),
         ]),
         const SizedBox(height: 12),
-        ..._pending.map((c) => _VerifyTile(c['name']!, c['vehicle']!, c['area']!, c['exp']!, c['phone']!, c['submitted']!, List<String>.from(c['docs'] as List), () => Navigator.push(context, MaterialPageRoute(builder: (_) => _VerifyDetail(data: c))))),
+        ..._pending.map((c) => _VerifyTile(
+          c['name'] as String, c['vehicle'] as String, c['area'] as String, c['exp'] as String,
+          c['phone'] as String, c['submitted'] as String,
+          List<String>.from(c['docs'] as List),
+          () => Navigator.push(context, MaterialPageRoute(builder: (_) => _VerifyDetail(data: c))),
+        )),
         const SizedBox(height: 30),
       ]),
     );
@@ -67,7 +71,7 @@ class _VerifyDetail extends StatelessWidget {
         // Document grid — 3 docs only
         Row(children: docs.map((d) => Expanded(child: _DTile(_docIcon(d), d))).toList()),
         const SizedBox(height: 16),
-        _VSec('COLLECTOR DETAILS', [('Name', data['name']!), ('Phone', data['phone']!), ('Vehicle', data['vehicle']!), ('Experience', data['exp']!), ('Areas', data['area']!), ('Submitted', data['submitted']!)]),
+        _VSec('COLLECTOR DETAILS', [('Name', data['name'] as String), ('Phone', data['phone'] as String), ('Vehicle', data['vehicle'] as String), ('Experience', data['exp'] as String), ('Areas', data['area'] as String), ('Submitted', data['submitted'] as String)]),
         _VSec('VERIFICATION CHECKLIST', [('✓', 'Profile photo matches ID photo'), ('✓', 'Valid ID is government-issued'), ('✓', 'Vehicle photo matches stated type')], check: true),
         Padding(padding: const EdgeInsets.only(bottom: 12), child: TextField(decoration: InputDecoration(hintText: 'Admin notes...', filled: true, fillColor: AppColors.inputGrey, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.divider))), maxLines: 2)),
         Row(children: [
