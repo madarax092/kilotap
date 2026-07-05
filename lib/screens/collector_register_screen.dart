@@ -14,7 +14,6 @@ class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   String _vehicleType = '';
-  String _years = '';
   String _area = '';
   bool _loading = false;
 
@@ -75,7 +74,6 @@ class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
           _Field('Password', 'Create password', controller: _passCtrl, obscure: true),
           const SizedBox(height: 20),
           _Dropdown('Vehicle Type', DavaoData.vehicleTypes, (v) => _vehicleType = v ?? ''),
-          _Dropdown('Years Collecting', ['1 year', '2 years', '3 years', '4 years', '5+ years'], (v) => _years = v ?? ''),
           _Dropdown('Usual Route Areas', DavaoData.barangays, (v) => _area = v ?? ''),
           const SizedBox(height: 24),
           SizedBox(

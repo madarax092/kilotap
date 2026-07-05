@@ -29,7 +29,6 @@ class CollectorProfileScreen extends StatelessWidget {
         _Section('PERSONAL INFO', [
           ('Phone', '+63927XXXXXXX'),
           ('Vehicle', 'Tricycle'),
-          ('Years Collecting', '5'),
           ('Areas', 'Maa, Matina, Ecoland'),
           ('Languages', 'Bisaya, Tagalog'),
         ]),

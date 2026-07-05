@@ -8,8 +8,8 @@ class VerifyCollectorScreen extends StatefulWidget {
 
 class _VerifyCollectorScreenState extends State<VerifyCollectorScreen> {
   final _pending = [
-    {'name': 'Pedro Reyes', 'vehicle': 'Tricycle', 'area': 'Matina, Ecoland, Maa', 'exp': '3 years', 'phone': '+63928XXXXXXX', 'submitted': 'June 28, 2026', 'docs': ['Profile Photo', 'Valid ID', 'Vehicle Photo']},
-    {'name': 'Ana Lopez', 'vehicle': 'Kariton', 'area': 'Ecoland', 'exp': '1 year', 'phone': '+63917XXXXXXX', 'submitted': 'June 29, 2026', 'docs': ['Profile Photo', 'Valid ID', 'Vehicle Photo']},
+    {'name': 'Pedro Reyes', 'vehicle': 'Tricycle', 'area': 'Matina, Ecoland, Maa', 'phone': '+63928XXXXXXX', 'submitted': 'June 28, 2026', 'docs': ['Profile Photo', 'Valid ID', 'Vehicle Photo']},
+    {'name': 'Ana Lopez', 'vehicle': 'Kariton', 'area': 'Ecoland', 'phone': '+63917XXXXXXX', 'submitted': 'June 29, 2026', 'docs': ['Profile Photo', 'Valid ID', 'Vehicle Photo']},
   ];
 
   @override Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class _VerifyCollectorScreenState extends State<VerifyCollectorScreen> {
         ]),
         const SizedBox(height: 12),
         ..._pending.map((c) => _VerifyTile(
-          c['name'] as String, c['vehicle'] as String, c['area'] as String, c['exp'] as String,
+          c['name'] as String, c['vehicle'] as String, c['area'] as String,
           c['phone'] as String, c['submitted'] as String,
           List<String>.from(c['docs'] as List),
           () => Navigator.push(context, MaterialPageRoute(builder: (_) => _VerifyDetail(data: c))),
@@ -37,10 +37,10 @@ class _VerifyCollectorScreenState extends State<VerifyCollectorScreen> {
 }
 
 class _VerifyTile extends StatelessWidget {
-  final String name, vehicle, area, exp, phone, submitted;
+  final String name, vehicle, area, phone, submitted;
   final List<String> docs;
   final VoidCallback onTap;
-  const _VerifyTile(this.name, this.vehicle, this.area, this.exp, this.phone, this.submitted, this.docs, this.onTap);
+  const _VerifyTile(this.name, this.vehicle, this.area, this.phone, this.submitted, this.docs, this.onTap);
   @override Widget build(BuildContext context) => Container(
     margin: const EdgeInsets.only(bottom: 8),
     decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
@@ -71,7 +71,7 @@ class _VerifyDetail extends StatelessWidget {
         // Document grid — 3 docs only
         Row(children: docs.map((d) => Expanded(child: _DTile(_docIcon(d), d))).toList()),
         const SizedBox(height: 16),
-        _VSec('COLLECTOR DETAILS', [('Name', data['name'] as String), ('Phone', data['phone'] as String), ('Vehicle', data['vehicle'] as String), ('Experience', data['exp'] as String), ('Areas', data['area'] as String), ('Submitted', data['submitted'] as String)]),
+        _VSec('COLLECTOR DETAILS', [('Name', data['name'] as String), ('Phone', data['phone'] as String), ('Vehicle', data['vehicle'] as String), ('Areas', data['area'] as String), ('Submitted', data['submitted'] as String)]),
         _VSec('VERIFICATION CHECKLIST', [('✓', 'Profile photo matches ID photo'), ('✓', 'Valid ID is government-issued'), ('✓', 'Vehicle photo matches stated type')], check: true),
         Padding(padding: const EdgeInsets.only(bottom: 12), child: TextField(decoration: InputDecoration(hintText: 'Admin notes...', filled: true, fillColor: AppColors.inputGrey, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.divider))), maxLines: 2)),
         Row(children: [
