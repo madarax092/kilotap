@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final route = role == 'Collector' ? '/collector' : role == 'Admin' ? '/admin' : '/household';
       Navigator.of(context).pushNamedAndRemoveUntil(route, (r) => false);
     } else {
-      _showError('Invalid credentials or account not found.\nTry: household@test.com / collector@test.com / admin@test.com (pass: 123)');
+      _showError('Invalid email or password. Please try again.');
     }
   }
 
@@ -91,8 +91,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: _loading ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('LOG IN', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
                 ),
               ),
-              const SizedBox(height: 12),
-              const Text('Demo: household@test.com / collector@test.com / admin@test.com\nPassword: 123', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
               const SizedBox(height: 20),
               const Divider(),
               SizedBox(

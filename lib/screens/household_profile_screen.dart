@@ -9,7 +9,7 @@ class HouseholdProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      appBar: AppBar(
+      appBar: AppBar(automaticallyImplyLeading: false, 
         backgroundColor: AppColors.canvas,
         elevation: 0,
         title: const Text('My Profile', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
