@@ -75,11 +75,11 @@ class _VerifyDetail extends StatelessWidget {
         _VSec('VERIFICATION CHECKLIST', [('✓', 'Profile photo matches ID photo'), ('✓', 'Valid ID is government-issued'), ('✓', 'Vehicle photo matches stated type')], check: true),
         Padding(padding: const EdgeInsets.only(bottom: 12), child: TextField(decoration: InputDecoration(hintText: 'Admin notes...', filled: true, fillColor: AppColors.inputGrey, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.divider))), maxLines: 2)),
         Row(children: [
-          Expanded(flex: 4, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.success, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), onPressed: () {}, child: const FittedBox(fit: BoxFit.scaleDown, child: Text('APPROVE & ISSUE ID', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800))))),
+          Expanded(child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.success, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), onPressed: () {}, child: const Text('APPROVE', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800)))),
           const SizedBox(width: 8),
           Expanded(child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), onPressed: () {}, child: const Text('REJECT', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800)))),
           const SizedBox(width: 8),
-          Expanded(child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.inputGrey, foregroundColor: AppColors.textPrimary, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), onPressed: () {}, child: const Text('REQUEST MORE INFO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700)))),
+          Expanded(child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.inputGrey, foregroundColor: AppColors.textPrimary, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), onPressed: () {}, child: const Text('REQUEST INFO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700)))),
         ]),
         const SizedBox(height: 30),
       ]),
