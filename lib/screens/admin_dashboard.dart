@@ -59,6 +59,17 @@ class AdminDashboard extends StatelessWidget {
         const SizedBox(height: 10),
         _ReportCard('#RPT-0018', 'Investigate', AppColors.warning, 'Collector no-show for #PKP-0035', 'Maria S. · June 29'),
         _ReportCard('#RPT-0017', 'Resolved', AppColors.success, 'Wrong items collected', 'Jose R. · June 28'),
+        const SizedBox(height: 20),
+        // Paper Table 12: AuditLogs — NFR 2.2.3.1.13 Transaction Monitoring
+        Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('TRANSACTION MONITORING', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
+          const SizedBox(height: 10),
+          _Audit('admin@kilotap', 'verify_collector', 'Pedro Reyes', 'pending → verified', '2h ago'),
+          const Divider(height: 12),
+          _Audit('admin@kilotap', 'resolve_dispute', '#RPT-0017', 'investigate → resolved', '1d ago'),
+          const Divider(height: 12),
+          _Audit('system', 'suspend_user', 'User #A3X92', 'active → suspended', '2d ago'),
+        ])),
         const SizedBox(height: 30),
       ]),
     );
