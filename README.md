@@ -1,6 +1,6 @@
 # KiloTap — Flutter Mobile App Prototype
 
-> **"Tap the App. Trade the Scrap."**
+> **"Your Scrap , Their Livelihood, One Tap Away."**
 
 KiloTap is a two-sided recyclable scrap marketplace connecting:
 - 🟢 **Sellers** (Households & Small Businesses) — book scrap pickups
