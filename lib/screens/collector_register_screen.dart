@@ -71,8 +71,8 @@ class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
           _Field('Email', 'collector@email.com', controller: _emailCtrl),
           _Field('Password', 'Create password', controller: _passCtrl, obscure: true),
           const SizedBox(height: 20),
-          _Dropdown('Vehicle Type', DavaoData.vehicleTypes, (v) => _vehicleType = v ?? ''),
-          _Dropdown('Usual Route Areas', DavaoData.barangays, (v) => _area = v ?? ''),
+          
+          
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity, height: 50,
