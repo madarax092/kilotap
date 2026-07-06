@@ -29,22 +29,20 @@ class AppConstants {
     'Single Motorcycle',
   ];
 
-  // ─── Firestore Collections ─────────────────────────────────────────────────
-  static const String colSellers = 'sellers';
-  static const String colCollectors = 'collectors';
+  // ─── Firestore Collections (Tables 6-13) ───────────────────────────────────
   static const String colBookings = 'bookings';
   static const String colBookingItems = 'bookingItems';
   static const String colRatings = 'ratings';
   static const String colNotifications = 'notifications';
   static const String colAuditLogs = 'auditLogs';
+  // UserAccount, ScrapSeller, ScrapCollector use subcollection pattern — see auth_service.dart
 
   // ─── Audit Action Types ────────────────────────────────────────────────────
   static const String auditVerifyCollector = 'VERIFY_COLLECTOR';
   static const String auditSuspendUser = 'SUSPEND_USER';
   static const String auditResolveReport = 'RESOLVE_REPORT';
 
-  // ─── Omega Thresholds ──────────────────────────────────────────────────────
-  static const double omegaLight = 0.20;
-  static const double omegaMedium = 0.50;
-  // Omega ≤ 0.20 → Pushcart | 0.20–0.50 → Tricycle | > 0.50 → Truck
+  // ─── Spatial Area Ratio Threshold (Paper §2.3.1.3, τ = 0.50) ──────────────
+  static const double spatialAreaThreshold = 0.50;
+  // ≤ 0.50 → Tricycle Sidecar | > 0.50 → Heavy Hauling Truck
 }

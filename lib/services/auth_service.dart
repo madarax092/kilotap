@@ -69,7 +69,11 @@ class AuthService {
           'VehicleType': '',
           'VehicleCapacityKg': 0,
           'VerificationStatus': 'Pending',
-          'VerificationDocs': '',
+          'VerificationDocs': [
+            {'type': 'Valid ID', 'url': '', 'status': 'pending'},
+            {'type': 'Vehicle Photo', 'url': '', 'status': 'pending'},
+            {'type': 'Profile Photo Match', 'url': '', 'status': 'pending'},
+          ],
           'DigitalBadgeURL': '',
           'OnlineStatus': false,
           'CurrentGPS': null,
