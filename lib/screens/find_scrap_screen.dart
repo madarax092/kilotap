@@ -17,9 +17,9 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
     super.initState();
     _markers.addAll({
       Marker(markerId: MarkerId('you'), position: _davaoCenter, icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen), infoWindow: InfoWindow(title: 'You are here')),
-      Marker(markerId: MarkerId('p1'), position: LatLng(7.0735, 125.6110), infoWindow: InfoWindow(title: '25 kg · Scrap Iron'), icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed)),
-      Marker(markerId: MarkerId('p2'), position: LatLng(7.0715, 125.6140), infoWindow: InfoWindow(title: '3.2 kg · Plastic'), icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue)),
-      Marker(markerId: MarkerId('p3'), position: LatLng(7.0695, 125.6105), infoWindow: InfoWindow(title: '12 kg · Mixed'), icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange)),
+      Marker(markerId: MarkerId('p1'), position: LatLng(7.0735, 125.6110), infoWindow: InfoWindow(title: 'Metal 5 pcs (Large)'), icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed)),
+      Marker(markerId: MarkerId('p2'), position: LatLng(7.0715, 125.6140), infoWindow: InfoWindow(title: 'Plastic 12 pcs (Small)'), icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue)),
+      Marker(markerId: MarkerId('p3'), position: LatLng(7.0695, 125.6105), infoWindow: InfoWindow(title: 'E-Waste 3 pcs (Medium)'), icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange)),
     });
   }
 
