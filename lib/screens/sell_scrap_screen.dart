@@ -48,7 +48,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
           _AnalysisRow('E-Waste', '~1.5 kg'),
           _AnalysisRow('Metal', '~4.0 kg'),
           const Divider(),
-          const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Est. Total', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary)), Text('~8.7 kg', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.success))]),
+          const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Volume', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary)), Text('Medium', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.sellerGreen))]),
           const SizedBox(height: 10),
           // Recommended vehicle
           Container(
