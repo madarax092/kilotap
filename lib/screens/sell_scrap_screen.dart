@@ -7,8 +7,8 @@ class SellScrapScreen extends StatefulWidget {
 }
 
 class _SellScrapScreenState extends State<SellScrapScreen> {
-  String _selectedVehicle = 'Tricycle';
-  final _recommendedVehicle = 'Tricycle';
+  String _selectedVehicle = 'Multicab';
+  final _recommendedVehicle = 'Multicab';
   final _vehicles = ['Pushcart', 'Tricycle', 'Multicab', 'Truck'];
 
   @override Widget build(BuildContext context) {
@@ -44,11 +44,11 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
         _Card(children: [
           const Text('AI ANALYSIS', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
           const SizedBox(height: 8),
-          _AnalysisRow('Plastic', '~3.2 kg'),
-          _AnalysisRow('E-Waste', '~1.5 kg'),
-          _AnalysisRow('Metal', '~4.0 kg'),
+          _AnalysisRow('Plastic', '12 pcs (Small)'),
+          _AnalysisRow('E-Waste', '3 pcs (Medium)'),
+          _AnalysisRow('Metal', '5 pcs (Large)'),
           const Divider(),
-          const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Volume', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary)), Text('Medium', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.sellerGreen))]),
+          const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Volume', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary)), Text('Large', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.sellerGreen))]),
           const SizedBox(height: 10),
           // Recommended vehicle
           Container(
@@ -59,7 +59,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
               SizedBox(width: 8),
               Text('Recommended Vehicle:', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
               SizedBox(width: 6),
-              Text('Tricycle', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.sellerGreen)),
+              Text('Multicab', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.sellerGreen)),
             ]),
           ),
         ]),
