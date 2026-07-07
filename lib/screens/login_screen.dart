@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 16),
               const Text('KiloTap', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
-              const Text('Your Scrap , Their Livelihood, One Tap Away.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              const Text('Tap the app, trade the scrap.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
               const SizedBox(height: 50),
               TextField(
                 controller: _emailCtrl,
