@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 
-class SellScrapScreen extends StatelessWidget {
+class SellScrapScreen extends StatefulWidget {
   const SellScrapScreen({super.key});
+  @override State<SellScrapScreen> createState() => _SellScrapScreenState();
+}
+
+class _SellScrapScreenState extends State<SellScrapScreen> {
+  String _selectedVehicle = 'Tricycle';
+  final _recommendedVehicle = 'Tricycle';
+  final _vehicles = ['Pushcart', 'Tricycle', 'Multicab', 'Truck'];
+
   @override Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.canvas,
@@ -36,27 +44,66 @@ class SellScrapScreen extends StatelessWidget {
         _Card(children: [
           const Text('AI ANALYSIS', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
           const SizedBox(height: 8),
-          _AnalysisRow('Plastic Bottles', '12 pcs'),
-          _AnalysisRow('Cardboard Boxes', '3 pcs'),
-          _AnalysisRow('Scrap Iron', '2 pcs'),
+          _AnalysisRow('Plastic', '~3.2 kg'),
+          _AnalysisRow('E-Waste', '~1.5 kg'),
+          _AnalysisRow('Metal', '~4.0 kg'),
           const Divider(),
-          const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Est. Total', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary)), Text('~8.5 kg', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.success))]),
+          const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Est. Total', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary)), Text('~8.7 kg', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.success))]),
+          const SizedBox(height: 10),
+          // Recommended vehicle
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: AppColors.sellerGreen.withOpacity(0.06), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.sellerGreen.withOpacity(0.15))),
+            child: const Row(children: [
+              Icon(Icons.local_shipping, size: 18, color: AppColors.sellerGreen),
+              SizedBox(width: 8),
+              Text('Recommended Vehicle:', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              SizedBox(width: 6),
+              Text('Tricycle', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.sellerGreen)),
+            ]),
+          ),
         ]),
         const SizedBox(height: 16),
         // Pickup options
         const Text('PICKUP TYPE', style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
         const SizedBox(height: 8),
         Row(children: [_Chip('ASAP', true), const SizedBox(width: 8), _Chip('Schedule', false)]),
-        const SizedBox(height: 12),
-        const Text('TIME WINDOW', style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
+        const SizedBox(height: 16),
+        // Vehicle dropdown with Recommended button
+        const Text('VEHICLE', style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
         const SizedBox(height: 8),
-        Row(children: [_Chip('Morning 8-12', true), const SizedBox(width: 8), _Chip('Afternoon 1-5', false)]),
+        Row(children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(color: AppColors.inputGrey, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider)),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedVehicle,
+                  isExpanded: true,
+                  dropdownColor: AppColors.pureWhite,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  items: _vehicles.map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
+                  onChanged: (v) => setState(() => _selectedVehicle = v!),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.sellerGreen.withOpacity(0.08),
+              foregroundColor: AppColors.sellerGreen,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: AppColors.sellerGreen.withOpacity(0.3))),
+            ),
+            onPressed: () => setState(() => _selectedVehicle = _recommendedVehicle),
+            child: const Text('Recommended', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+          ),
+        ]),
         const SizedBox(height: 12),
         TextField(decoration: InputDecoration(hintText: 'Notes: Gate code, instructions...', filled: true, fillColor: AppColors.inputGrey, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.divider)), enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.divider))), maxLines: 2),
-        const SizedBox(height: 16),
-        const Text('SELECT COLLECTOR', style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
-        const SizedBox(height: 8),
-        _CollectorOpt('Auto-match nearest', 'Best available collector', true),
         const SizedBox(height: 24),
         SizedBox(width: double.infinity, height: 50, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.sellerGreen, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), onPressed: () {}, child: const Text('SUBMIT PICKUP REQUEST', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)))),
         const SizedBox(height: 30),
@@ -101,16 +148,4 @@ class _AnalysisRow extends StatelessWidget {
 class _Chip extends StatelessWidget {
   final String label; final bool active; const _Chip(this.label, this.active);
   @override Widget build(BuildContext context) => Expanded(child: Container(padding: const EdgeInsets.symmetric(vertical: 10), decoration: BoxDecoration(color: active ? AppColors.sellerGreen.withOpacity(0.08) : AppColors.inputGrey, borderRadius: BorderRadius.circular(10), border: Border.all(color: active ? AppColors.sellerGreen : AppColors.divider)), child: Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: active ? AppColors.sellerGreen : AppColors.textSecondary))));
-}
-
-class _CollectorOpt extends StatelessWidget {
-  final String name, sub; final bool selected; const _CollectorOpt(this.name, this.sub, this.selected);
-  @override Widget build(BuildContext context) => Container(
-    margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(color: selected ? AppColors.sellerGreen.withOpacity(0.04) : AppColors.pureWhite, borderRadius: BorderRadius.circular(10), border: Border.all(color: selected ? AppColors.sellerGreen : AppColors.divider)),
-    child: Row(children: [
-      Radio<bool>(value: selected, groupValue: true, activeColor: AppColors.sellerGreen, onChanged: (_) {}),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary)), Text(sub, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))])),
-    ]),
-  );
 }
