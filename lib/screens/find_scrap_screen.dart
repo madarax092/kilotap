@@ -28,7 +28,7 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
       backgroundColor: AppColors.canvas,
       appBar: AppBar(automaticallyImplyLeading: false, backgroundColor: AppColors.canvas, elevation: 0, title: const Text('Find Scrap', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800))),
       body: Column(children: [
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 28), child: SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [_Filt('All', true), _Filt('<1 km', false), _Filt('<3 km', false), _Filt('Heavy', false), _Filt('ASAP', false), _Filt('Metal', false)]))),
+        Padding(padding: const EdgeInsets.symmetric(horizontal: 28), child: SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [_Filt('All', true), _Filt('<1 km', false), _Filt('<3 km', false), _Filt('Small', false), _Filt('Medium', false), _Filt('Large', false), _Filt('Heavy', false)]))),
         const SizedBox(height: 12),
         // Google Maps
         Container(height: 260, margin: const EdgeInsets.symmetric(horizontal: 28), decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)), clipBehavior: Clip.antiAlias, child: GoogleMap(
@@ -41,7 +41,7 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
         if (!_accepted) Container(margin: const EdgeInsets.symmetric(horizontal: 28), padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.buyerBlue.withOpacity(0.3), width: 1.5)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Maria Santos', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary)), const Text('Maa · 0.3 km', style: TextStyle(fontSize: 10, color: AppColors.textSecondary))]),
           const SizedBox(height: 8),
-          Row(children: [const _Det('3.2 kg', 'Load'), const _Det('0.35', 'Volume'), const _Det('ASAP', '')].map((d) => Padding(padding: const EdgeInsets.only(right: 16), child: d)).toList()),
+          Row(children: [const _Det('12 pcs', 'Plastic'), const _Det('Medium', 'Volume'), const _Det('ASAP', '')].map((d) => Padding(padding: const EdgeInsets.only(right: 16), child: d)).toList()),
           const SizedBox(height: 10),
           Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.canvas, borderRadius: BorderRadius.circular(8)), child: const Text('"Gate code #1234, ring bell"', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
           const SizedBox(height: 10),

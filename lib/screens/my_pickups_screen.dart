@@ -33,7 +33,7 @@ class MyPickupsScreen extends StatelessWidget {
             statusColor: AppColors.buyerBlue,
             initials: 'JD',
             name: 'Juan Dela Cruz',
-            items: 'Plastic, Cardboard ~3.2 kg \u00b7 Tricycle',
+            items: 'Plastic 12 pcs (S), Cardboard 3 pcs (M) · Tricycle',
             meta: 'ETA 5 min',
             stars: '\u2605 4.8',
             actions: [
@@ -47,7 +47,7 @@ class MyPickupsScreen extends StatelessWidget {
             statusColor: AppColors.buyerBlue,
             initials: 'MS',
             name: 'Maria Santos',
-            items: 'Scrap Iron, Appliance ~25 kg \u00b7 Multicab',
+            items: 'Metal 5 pcs (L), Appliance 1 pc (H) · Multicab',
             meta: 'Tomorrow 9-12PM',
             stars: '\u2605 4.9',
             actions: [
@@ -61,7 +61,7 @@ class MyPickupsScreen extends StatelessWidget {
             statusColor: AppColors.success,
             initials: 'PR',
             name: 'Pedro Reyes',
-            items: 'Plastic Bottles 5.2 kg',
+            items: 'Plastic Bottles (S) 5.2 kg',
             meta: 'June 28, 2026',
             stars: '\u2605 4.5',
             actions: [

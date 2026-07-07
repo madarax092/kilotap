@@ -78,8 +78,8 @@ class CollectorDashboard extends StatelessWidget {
           const Text('Nearby Requests', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
           TextButton(onPressed: () {}, child: const Text('See all →', style: TextStyle(color: AppColors.buyerBlue, fontWeight: FontWeight.w600))),
         ]),
-        _RequestCard(name: 'Maria Santos', area: 'Maa · 0.3 km', items: 'Plastic, Cardboard ~3.2 kg', type: 'ASAP', urgent: true),
-        _RequestCard(name: 'Jose Ramirez', area: 'Matina · 1.1 km', items: 'Scrap Iron ~25 kg', type: 'Tomorrow 9AM', urgent: false),
+        _RequestCard(name: 'Maria Santos', area: 'Maa · 0.3 km', items: 'Plastic 12 pcs (Small), Cardboard 3 pcs (Medium)', type: 'ASAP', urgent: true),
+        _RequestCard(name: 'Jose Ramirez', area: 'Matina · 1.1 km', items: 'Metal 5 pcs (Large) ~25 kg', type: 'Tomorrow 9AM', urgent: false),
         const SizedBox(height: 40),
       ]),
       floatingActionButton: FloatingActionButton(
