@@ -23,10 +23,10 @@ class AppConstants {
 
   // ─── Vehicle Types ─────────────────────────────────────────────────────────
   static const List<String> vehicleTypes = [
-    'Pushcart (Kariton)',
-    'Tricycle / Sidecar',
-    'Multicab / Truck',
-    'Single Motorcycle',
+    'Pushcart',
+    'Tricycle',
+    'Multicab',
+    'Truck',
   ];
 
   // ─── Firestore Collections (Tables 6-13) ───────────────────────────────────
