@@ -5,191 +5,266 @@ import '../services/impact_tracker.dart';
 class HouseholdDashboard extends StatelessWidget {
   const HouseholdDashboard({super.key});
 
-  // Hardcoded demo impact data (replace with Firestore query later)
   static const double _demoTotalKg = 245.7;
 
-  @override Widget build(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      appBar: AppBar(automaticallyImplyLeading: false, 
-        backgroundColor: AppColors.canvas, elevation: 0,
-        titleSpacing: 0,
-        title: Container(
-          height: 48,
-          margin: const EdgeInsets.only(left: 16),
-          decoration: BoxDecoration(
-            color: AppColors.sellerGreen.withOpacity(0.06),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.sellerGreen.withOpacity(0.15)),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: Row(children: [
-            Container(width: 4, height: 20,
-              decoration: BoxDecoration(color: AppColors.sellerGreen, borderRadius: BorderRadius.circular(2)),
-            ),
-            const SizedBox(width: 10),
-            const Text('Kumusta, Maria', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
-            const Spacer(),
-            Container(width: 1, height: 22,
-              decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(1)),
-            ),
-            const SizedBox(width: 10),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // ── Green header band (Grab-style) ──
             Container(
-              width: 36, height: 36,
-              decoration: BoxDecoration(color: AppColors.sellerGreen, shape: BoxShape.circle,
-                border: Border.all(color: AppColors.buyerBlue.withOpacity(0.3), width: 3)),
-              child: const Center(child: Text('MS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14))),
-            ),
-          ]),
-        ),
-        actions: const [],
-      ),
-      body: ListView(padding: const EdgeInsets.symmetric(horizontal: 28), children: [
-        const SizedBox(height: 4),
-        // Location header card
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: AppColors.buyerBlue.withOpacity(0.04),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.buyerBlue.withOpacity(0.12)),
-          ),
-          child: Row(children: [
-            Container(
-              width: 42, height: 42,
-              decoration: BoxDecoration(
-                color: AppColors.buyerBlue.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(10),
+              padding: const EdgeInsets.fromLTRB(20, 12, 16, 20),
+              decoration: const BoxDecoration(
+                color: AppColors.sellerGreen,
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
               ),
-              child: const Center(child: Icon(Icons.location_on, color: AppColors.buyerBlue, size: 22)),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('Barangay Maa, Davao City',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary)),
-                SizedBox(height: 2),
-                Text('District 1 \u00b7 Pickup zone active',
-                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-              ]),
-            ),
-          ]),
-        ),
-        const SizedBox(height: 16),
-        // Recycling impact tracker
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.pureWhite,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.sellerGreen.withOpacity(0.15)),
-          ),
-          child: Row(children: [
-            Container(
-              width: 48, height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.sellerGreen.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Kumusta, Maria',
+                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white)),
+                          SizedBox(height: 2),
+                          Text('📍 Barangay Maa, Davao City',
+                              style: TextStyle(fontSize: 12, color: Color(0xFFB9E4C0))),
+                        ],
+                      ),
+                      Container(
+                        width: 44, height: 44,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white.withOpacity(0.4), width: 2),
+                        ),
+                        child: const Center(
+                          child: Text('MS',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  // Search bar style quick-action
+                  Container(
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: const [BoxShadow(color: Color(0x1A000000), blurRadius: 8, offset: Offset(0, 2))],
+                    ),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 14),
+                        const Icon(Icons.search, color: Color(0xFF999999), size: 20),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text('Find scrap pickup...',
+                              style: TextStyle(fontSize: 14, color: Color(0xFF999999))),
+                        ),
+                        Container(width: 1, height: 24, color: const Color(0xFFE8E8E8)),
+                        const SizedBox(width: 10),
+                        const Icon(Icons.qr_code_scanner, color: AppColors.sellerGreen, size: 20),
+                        const SizedBox(width: 14),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              child: const Center(child: Text('', style: TextStyle(fontSize: 22))),
             ),
-            const SizedBox(width: 12),
+
+            // ── Body ──
             Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('${RecyclingImpactTracker.getImpactSummary(_demoTotalKg)} Trees Saved',
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
-                const SizedBox(height: 2),
-                Text(RecyclingImpactTracker.getImpactDescription(_demoTotalKg),
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              ]),
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                children: [
+                  // Impact card
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 2))],
+                    ),
+                    child: Row(children: [
+                      Container(
+                        width: 44, height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.sellerGreen.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.eco, color: AppColors.sellerGreen, size: 24),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text('${RecyclingImpactTracker.getImpactSummary(_demoTotalKg)} Trees Saved',
+                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                          const SizedBox(height: 2),
+                          Text('${_demoTotalKg.toStringAsFixed(1)} kg recycled this month',
+                              style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
+                        ]),
+                      ),
+                      const Icon(Icons.chevron_right, color: Color(0xFFCCCCCC)),
+                    ]),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Stat cards
+                  Row(children: [
+                    _StatCard(label: 'Pending', value: '2'),
+                    const SizedBox(width: 12),
+                    _StatCard(label: 'Completed', value: '14', highlight: true),
+                  ]),
+                  const SizedBox(height: 16),
+
+                  // Active pickup
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 2))],
+                      border: Border.all(color: AppColors.sellerGreen.withOpacity(0.15)),
+                    ),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Row(children: [
+                        Container(
+                          width: 8, height: 8,
+                          decoration: const BoxDecoration(color: Color(0xFF34C759), shape: BoxShape.circle),
+                        ),
+                        const SizedBox(width: 6),
+                        const Text('ACTIVE PICKUP',
+                            style: TextStyle(fontSize: 10, color: AppColors.sellerGreen, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                      ]),
+                      const SizedBox(height: 12),
+                      Row(children: [
+                        Container(
+                          width: 44, height: 44,
+                          decoration: BoxDecoration(
+                            color: AppColors.buyerBlue.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Center(
+                            child: Text('JD', style: TextStyle(color: AppColors.buyerBlue, fontWeight: FontWeight.w700, fontSize: 16)),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text('Juan Dela Cruz', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                            Text('Tricycle · #PKP-0042', style: TextStyle(fontSize: 12, color: Color(0xFF888888))),
+                          ]),
+                        ),
+                        const Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                          Text('★ 4.8', style: TextStyle(color: Color(0xFFF9A825), fontWeight: FontWeight.w700, fontSize: 14)),
+                          SizedBox(height: 2),
+                          Text('ETA 5 min', style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
+                        ]),
+                      ]),
+                      const SizedBox(height: 12),
+                      Row(children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.sellerGreen,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            onPressed: () {},
+                            child: const Text('Track', style: TextStyle(fontWeight: FontWeight.w600)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFF5F5F5),
+                              foregroundColor: AppColors.textPrimary,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            onPressed: () {},
+                            child: const Text('Chat', style: TextStyle(fontWeight: FontWeight.w600)),
+                          ),
+                        ),
+                      ]),
+                    ]),
+                  ),
+                ],
+              ),
             ),
-          ]),
+          ],
         ),
-        const SizedBox(height: 20),
-        // Stat cards
-        Row(children: [
-          _StatCard(label: 'Pending', value: '2', accent: false),
-          const SizedBox(width: 12),
-          _StatCard(label: 'Completed', value: '14', accent: true),
-        ]),
-        const SizedBox(height: 20),
-        // Active pickup
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.sellerGreen.withOpacity(0.2))),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('● ACTIVE PICKUP', style: TextStyle(fontSize: 10, color: AppColors.sellerGreen, fontWeight: FontWeight.w700, letterSpacing: 1)),
-            const SizedBox(height: 10),
-            Row(children: [
-              Container(width: 44, height: 44, decoration: const BoxDecoration(color: AppColors.buyerBlue, shape: BoxShape.circle), child: const Center(child: Text('JD', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)))),
-              const SizedBox(width: 12),
-              const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('Juan Dela Cruz', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
-                Text('Tricycle · #PKP-0042', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              ])),
-              const Text('★ 4.8', style: TextStyle(color: AppColors.star, fontWeight: FontWeight.w700)),
-            ]),
-            const SizedBox(height: 12),
-            Row(children: [
-              Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.success, shape: BoxShape.circle)),
-              const SizedBox(width: 8),
-              const Text('On the way', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.w600, fontSize: 13)),
-              const Spacer(),
-              const Text('ETA 5 min', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-            ]),
-            const SizedBox(height: 12),
-            Row(children: [
-              Expanded(child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.sellerGreen, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), onPressed: () {}, child: const Text('Track'))),
-              const SizedBox(width: 8),
-              Expanded(child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.inputGrey, foregroundColor: AppColors.textPrimary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), onPressed: () {}, child: const Text('Chat'))),
-            ]),
-          ]),
+      ),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          boxShadow: [BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, -2))],
         ),
-        const SizedBox(height: 40),
-      ]),
-      bottomNavigationBar: _BottomNav(current: 0, color: AppColors.sellerGreen),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: BottomNavigationBar(
+              currentIndex: 0,
+              selectedItemColor: AppColors.sellerGreen,
+              unselectedItemColor: const Color(0xFFBBBBBB),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              type: BottomNavigationBarType.fixed,
+              onTap: (i) {
+                if (i == 1) Navigator.pushNamed(context, '/sell');
+                if (i == 2) Navigator.pushNamed(context, '/pickups');
+                if (i == 3) Navigator.pushNamed(context, '/profile');
+              },
+              items: const [
+                BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
+                BottomNavigationBarItem(icon: Icon(Icons.camera_alt_outlined), label: 'Sell'),
+                BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Pickups'),
+                BottomNavigationBarItem(icon: Icon(Icons.person_outline_rounded), label: 'Profile'),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
 
 class _StatCard extends StatelessWidget {
-  final String label, value; final bool accent;
-  const _StatCard({required this.label, required this.value, required this.accent});
-  @override Widget build(BuildContext context) {
+  final String label, value;
+  final bool highlight;
+  const _StatCard({required this.label, required this.value, this.highlight = false});
+
+  @override
+  Widget build(BuildContext context) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 2))],
+        ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(value, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
-          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, letterSpacing: 0.5)),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 28, fontWeight: FontWeight.w800,
+                  color: highlight ? AppColors.sellerGreen : AppColors.textPrimary)),
+          const SizedBox(height: 2),
+          Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
         ]),
       ),
-    );
-  }
-}
-
-class _BottomNav extends StatelessWidget {
-  final int current; final Color color;
-  const _BottomNav({required this.current, required this.color});
-  @override Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: current,
-      selectedItemColor: color,
-      unselectedItemColor: AppColors.textMuted,
-      backgroundColor: AppColors.canvas,
-      type: BottomNavigationBarType.fixed,
-      onTap: (i) {
-        if (i == 1) Navigator.pushNamed(context, '/sell');
-        if (i == 2) Navigator.pushNamed(context, '/pickups');
-        if (i == 3) Navigator.pushNamed(context, '/profile');
-      },
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Sell'),
-        BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Pickups'),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-      ],
     );
   }
 }
