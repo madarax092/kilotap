@@ -81,7 +81,7 @@ class MyPickupsScreen extends StatelessWidget {
             items: 'Plastic Bottles (S) 5.2 kg',
             meta: 'June 28, 2026',
             stars: '\u2605 4.5',
-            actions: const [
+            actions: [
               ('Rate Collector', AppColors.sellerGreen, Colors.white),
               ('Report', AppColors.error.withOpacity(0.05), AppColors.error),
             ],
