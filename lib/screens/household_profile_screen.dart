@@ -12,13 +12,11 @@ class HouseholdProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      body: SafeArea(
-        top: true, bottom: false, left: false, right: false,
-        child: Column(
+      body: Column(
           children: [
-            // ── Green header band ──
+            // ── Green header band EDGE TO EDGE ──
             Container(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 16, left: 20, right: 20, bottom: 24),
               decoration: const BoxDecoration(
                 color: AppColors.sellerGreen,
                 borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
@@ -95,7 +93,6 @@ class HouseholdProfileScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
