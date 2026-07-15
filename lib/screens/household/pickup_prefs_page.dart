@@ -41,17 +41,13 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
               color: const Color(0xFFF5F5F5),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: ListTile(
-              leading: const Icon(Icons.schedule_outlined, color: AppColors.textSecondary, size: 22),
+            child: SwitchListTile(
+              secondary: const Icon(Icons.schedule_outlined, color: AppColors.textSecondary, size: 22),
               title: const Text('Default Pickup Type', style: TextStyle(fontSize: 14, color: AppColors.textPrimary)),
-              trailing: SwitchListTile(
-                value: _asap,
-                onChanged: (v) => setState(() => _asap = v),
-                title: Text(_asap ? 'ASAP' : 'Scheduled',
-                    style: TextStyle(fontSize: 12, color: _asap ? AppColors.sellerGreen : AppColors.textSecondary)),
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-              ),
+              subtitle: Text(_asap ? 'ASAP' : 'Scheduled',
+                  style: TextStyle(fontSize: 12, color: _asap ? AppColors.sellerGreen : AppColors.textSecondary)),
+              value: _asap,
+              onChanged: (v) => setState(() => _asap = v),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             ),
           ),
