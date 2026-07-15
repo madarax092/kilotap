@@ -11,7 +11,7 @@ db = firestore.Client.from_service_account_json(
 
 # ════ DELETE ════
 print('Wiping Firestore...')
-for col in ['UserAccount', 'bookings', 'ratings', 'notifications', 'auditLogs', 'scrapWeights']:
+for col in ['UserAccount', 'bookings', 'bookingItems', 'ratings', 'notifications', 'auditLogs', 'scrapWeights']:
     for d in list(db.collection(col).stream()):
         for sub in d.reference.collections():
             for sd in list(sub.stream()):
