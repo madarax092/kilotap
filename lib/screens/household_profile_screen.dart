@@ -146,13 +146,9 @@ class _MenuCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.transparent,
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Column(
+      color: const Color(0xFFF5F5F5),
+      borderRadius: BorderRadius.circular(14),
+      child: Column(
           children: items.asMap().entries.map((e) {
             final item = e.value;
             final isLast = e.key == items.length - 1;
@@ -180,7 +176,6 @@ class _MenuCard extends StatelessWidget {
               ],
             );
           }).toList(),
-        ),
       ),
     );
   }
