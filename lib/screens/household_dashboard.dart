@@ -11,7 +11,7 @@ class HouseholdDashboard extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F4F3),
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(MediaQuery.of(context).padding.top + 136),
+        preferredSize: Size.fromHeight(MediaQuery.of(context).padding.top + 160),
         child: Container(
           padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 16, left: 24, right: 24, bottom: 20),
           decoration: const BoxDecoration(

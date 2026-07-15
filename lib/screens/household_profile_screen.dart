@@ -13,7 +13,7 @@ class HouseholdProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(MediaQuery.of(context).padding.top + 76),
+        preferredSize: Size.fromHeight(MediaQuery.of(context).padding.top + 90),
         child: Container(
           padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 12, left: 20, right: 20, bottom: 20),
           decoration: const BoxDecoration(
