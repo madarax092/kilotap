@@ -10,30 +10,21 @@ class HouseholdProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final top = MediaQuery.of(context).padding.top;
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(MediaQuery.of(context).padding.top + 90),
-        child: Container(
-          padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 12, left: 20, right: 20, bottom: 20),
-          decoration: const BoxDecoration(
-            color: AppColors.sellerGreen,
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-          ),
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text('Profile',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white)),
-              SizedBox(height: 4),
-              Text('Maria Santos · Maa, Davao City',
-                  style: TextStyle(fontSize: 13, color: Color(0xFFA5D6A7))),
-            ],
-          ),
+      body: Column(children: [
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.only(top: top + 12, left: 20, right: 20, bottom: 20),
+          decoration: const BoxDecoration(color: AppColors.sellerGreen, borderRadius: BorderRadius.vertical(bottom: Radius.circular(24))),
+          child: const Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            Text('Profile', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white)),
+            SizedBox(height: 4),
+            Text('Maria Santos · Maa, Davao City', style: TextStyle(fontSize: 13, color: Color(0xFFA5D6A7))),
+          ]),
         ),
-      ),
-      body: ListView(
+        Expanded(child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
         children: [
           const Text('Account',
@@ -87,6 +78,8 @@ class HouseholdProfileScreen extends StatelessWidget {
           const SizedBox(height: 40),
         ],
       ),
+        ),
+      ]),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
