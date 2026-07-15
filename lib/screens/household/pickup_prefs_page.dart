@@ -36,7 +36,9 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
               style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
           const SizedBox(height: 20),
           // Default type
-          Container(
+          Material(
+            color: Colors.transparent,
+            child: Container(
             decoration: BoxDecoration(
               color: const Color(0xFFF5F5F5),
               borderRadius: BorderRadius.circular(12),
@@ -51,9 +53,12 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             ),
           ),
+            ),
           if (!_asap) ...[
             const SizedBox(height: 10),
-            Container(
+            Material(
+              color: Colors.transparent,
+              child: Container(
               decoration: BoxDecoration(
                 color: const Color(0xFFF5F5F5),
                 borderRadius: BorderRadius.circular(12),
@@ -81,9 +86,12 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
               ),
             ),
+              ),
           ],
           const SizedBox(height: 10),
-          Container(
+          Material(
+            color: Colors.transparent,
+            child: Container(
             decoration: BoxDecoration(
               color: const Color(0xFFF5F5F5),
               borderRadius: BorderRadius.circular(12),
@@ -112,6 +120,7 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
               ],
             ),
           ),
+            ),
           const SizedBox(height: 30),
           SizedBox(
             width: double.infinity, height: 48,
