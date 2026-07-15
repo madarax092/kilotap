@@ -11,43 +11,22 @@ class HouseholdDashboard extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F4F3),
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(MediaQuery.of(context).padding.top + 160),
+        preferredSize: Size.fromHeight(MediaQuery.of(context).padding.top + 60),
         child: Container(
-          padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 16, left: 24, right: 24, bottom: 20),
+          padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 16, left: 24, right: 24, bottom: 16),
           decoration: const BoxDecoration(
             color: AppColors.sellerGreen,
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
           ),
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              const Text('Kumusta, Maria',
+              Text('Kumusta, Maria',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white)),
-              const SizedBox(height: 4),
-              const Text('Barangay Maa, Davao City',
+              SizedBox(height: 4),
+              Text('Barangay Maa, Davao City',
                   style: TextStyle(fontSize: 13, color: Color(0xFFB9E4C0))),
-              const SizedBox(height: 16),
-              // Impact card inside header
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(children: [
-                  const Icon(Icons.eco, color: Colors.white, size: 24),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('${RecyclingImpactTracker.getImpactSummary(_demoKg)} Trees Saved',
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
-                      const SizedBox(height: 2),
-                      Text('${_demoKg.toStringAsFixed(1)} kg recycled this month',
-                          style: const TextStyle(fontSize: 12, color: Color(0xFFB9E4C0))),
-                    ]),
-                  ),
-                ]),
-              ),
             ],
           ),
         ),
@@ -55,6 +34,37 @@ class HouseholdDashboard extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
         children: [
+          // Impact card — white card below green app bar
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: const [BoxShadow(color: Color(0x08000000), blurRadius: 10, offset: Offset(0, 3))],
+            ),
+            child: Row(children: [
+              Container(
+                width: 44, height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.sellerGreen.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Icons.eco, color: AppColors.sellerGreen, size: 24),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('${RecyclingImpactTracker.getImpactSummary(_demoKg)} Trees Saved',
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                  const SizedBox(height: 2),
+                  Text('${_demoKg.toStringAsFixed(1)} kg recycled this month',
+                      style: const TextStyle(fontSize: 13, color: Color(0xFF888888))),
+                ]),
+              ),
+            ]),
+          ),
+          const SizedBox(height: 16),
+
           // Stats
           Row(children: [
             _StatCard(label: 'Pending', value: '2'),
