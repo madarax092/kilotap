@@ -21,6 +21,7 @@ class ScrapCollector {
   final List<VerificationDoc> verificationDocs;
   final String digitalBadgeUrl;
   final bool onlineStatus;
+  final List<String> preferredMaterials;
   final GeoPoint? currentGps;
   final double avgRating;
 
@@ -29,6 +30,7 @@ class ScrapCollector {
     required this.vehicleType, required this.vehicleCapacityKg,
     this.verificationStatus = 'Pending', this.verificationDocs = const [],
     this.digitalBadgeUrl = '', this.onlineStatus = false,
+    this.preferredMaterials = const [],
     this.currentGps, this.avgRating = 0.0,
   });
 
@@ -43,6 +45,7 @@ class ScrapCollector {
         .map((v) => VerificationDoc.fromMap(v as Map<String, dynamic>)).toList(),
     digitalBadgeUrl: m['DigitalBadgeURL'] ?? '',
     onlineStatus: m['OnlineStatus'] ?? false,
+    preferredMaterials: List<String>.from(m['PreferredMaterials'] ?? []),
     currentGps: m['CurrentGPS'] as GeoPoint?,
     avgRating: (m['AvgRating'] ?? 0).toDouble(),
   );

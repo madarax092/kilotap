@@ -83,6 +83,8 @@ class BookingSummaryScreen extends StatelessWidget {
                     const Text('Driver Max', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
                     const SizedBox(height: 2),
                     Text('$selectedVehicle \u00b7 Verified', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    const SizedBox(height: 2),
+                    const Text('Buys: Metal, Appliances', style: TextStyle(fontSize: 11, color: AppColors.buyerBlue, fontWeight: FontWeight.w600)),
                   ]),
                 ),
                 const Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
