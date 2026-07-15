@@ -1,24 +1,30 @@
-/// Table 10: BookingItem
+/// Table 11: BookingItem (subcollection of Booking)
 class BookingItem {
   final String itemId;
   final String bookingId;
-  final String materialType;
-  final double confidenceScore;
-  final String bbox;
+  final String itemName;
+  final int quantity;
+  final String sizeClass;
   final double estimatedWeightKg;
-  final double actualWeightKg;
+  final String scrapClass;
 
-  const BookingItem({required this.itemId, required this.bookingId,
-      required this.materialType, this.confidenceScore = 0.0,
-      this.bbox = '', this.estimatedWeightKg = 0.0, this.actualWeightKg = 0.0});
+  const BookingItem({
+    required this.itemId,
+    required this.bookingId,
+    required this.itemName,
+    this.quantity = 1,
+    this.sizeClass = 'Small',
+    this.estimatedWeightKg = 0.0,
+    this.scrapClass = '',
+  });
 
   factory BookingItem.fromMap(String id, Map<String, dynamic> m) => BookingItem(
     itemId: m['Item_ID'] ?? id,
     bookingId: m['Booking_ID'] ?? '',
-    materialType: m['MaterialType'] ?? '',
-    confidenceScore: (m['ConfidenceScore'] ?? 0).toDouble(),
-    bbox: m['BBox'] ?? '',
+    itemName: m['ItemName'] ?? '',
+    quantity: m['Quantity'] ?? 1,
+    sizeClass: m['SizeClass'] ?? 'Small',
     estimatedWeightKg: (m['EstimatedWeightKg'] ?? 0).toDouble(),
-    actualWeightKg: (m['ActualWeightKg'] ?? 0).toDouble(),
+    scrapClass: m['ScrapClass'] ?? '',
   );
 }

@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'auth_state.dart';
 
-/// Firebase Auth + Firestore — matches ACM Paper Data Dictionary (Tables 6-8)
+/// Firebase Auth + Firestore — matches ACM Paper Data Dictionary (Tables 7-9)
 class AuthService {
   static final AuthService _instance = AuthService._();
   static AuthService get instance => _instance;
@@ -40,44 +40,50 @@ class AuthService {
       final cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
       final uid = cred.user!.uid;
 
-      // Table 6: UserAccount
+      // Table 7: UserAccount
       await _firestore.collection(colAccount).doc(uid).set({
         'Account_Id': uid,
         'Auth_UID': uid,
+        'Display_Name': fullName,
         'Email': email,
         'Phone': phone,
         'Role': role,
         'Created_At': FieldValue.serverTimestamp(),
       });
 
-      // Table 7: ScrapSeller (subcollection)
+      // Table 8: ScrapSeller (subcollection)
       if (role == 'Household') {
         await _firestore.collection(colAccount).doc(uid).collection(colSeller).doc(uid).set({
           'Seller_Id': uid,
           'Account_Id': uid,
-          'FullName': fullName,
+          'Full_Name': fullName,
           'Address': address,
+          'Housing_Type': '',
+          'Preferred_Schedule': 'ASAP',
+          'Created_At': FieldValue.serverTimestamp(),
         });
       }
 
-      // Table 8: ScrapCollector (subcollection)
+      // Table 9: ScrapCollector (subcollection)
       if (role == 'Collector') {
         await _firestore.collection(colAccount).doc(uid).collection(colCollector).doc(uid).set({
           'Collector_ID': uid,
           'Account_Id': uid,
-          'FullName': fullName,
-          'VehicleType': '',
-          'VehicleCapacityKg': 0,
-          'VerificationStatus': 'Pending',
-          'VerificationDocs': [
+          'Full_Name': fullName,
+          'Vehicle_Type': '',
+          'Vehicle_Capacity_Kg': 0,
+          'Preferred_Materials': [],
+          'Verification_Status': 'Pending',
+          'Verification_Docs': [
             {'type': 'Valid ID', 'url': '', 'status': 'pending'},
             {'type': 'Vehicle Photo', 'url': '', 'status': 'pending'},
             {'type': 'Profile Photo Match', 'url': '', 'status': 'pending'},
           ],
-          'DigitalBadgeURL': '',
-          'OnlineStatus': false,
-          'CurrentGPS': null,
-          'AvgRating': 0.0,
+          'Digital_Badge_URL': '',
+          'Avg_Rating': 0.0,
+          'Current_Latitude': 0.0,
+          'Current_Longitude': 0.0,
+          'Online_Status': false,
         });
       }
 
@@ -91,15 +97,9 @@ class AuthService {
   Future<Map<String, dynamic>?> getProfile(String? uid) async {
     if (uid == null) return null;
     final role = AuthState.instance.role;
-    if (role == 'Household') {
-      final doc = await _firestore.collection(colAccount).doc(uid).collection(colSeller).doc(uid).get();
-      return doc.data();
-    }
-    if (role == 'Collector') {
-      final doc = await _firestore.collection(colAccount).doc(uid).collection(colCollector).doc(uid).get();
-      return doc.data();
-    }
-    return null;
+    final col = role == 'Household' ? colSeller : colCollector;
+    final doc = await _firestore.collection(colAccount).doc(uid).collection(col).doc(uid).get();
+    return doc.data();
   }
 
   Future<void> signOut() async {
