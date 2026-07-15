@@ -12,6 +12,7 @@ class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
   final _phoneCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
+  final _addrCtrl = TextEditingController();
   bool _loading = false;
 
   Future<void> _register() async {
@@ -19,21 +20,17 @@ class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
     final pass = _passCtrl.text.trim();
     final name = _nameCtrl.text.trim();
     final phone = _phoneCtrl.text.trim();
-
+    final addr = _addrCtrl.text.trim();
     if (email.isEmpty || pass.isEmpty || name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill in all required fields')));
       return;
     }
-
     setState(() => _loading = true);
-
     final role = await AuthService.instance.register(
-      email: email, password: pass, fullName: name, phone: phone, role: 'Collector', address: 'Davao City',
+      email: email, password: pass, fullName: name, phone: phone, role: 'Collector', address: addr.isNotEmpty ? addr : 'Davao City',
     );
-
     if (!mounted) return;
     setState(() => _loading = false);
-
     if (role != null) {
       Navigator.pushNamedAndRemoveUntil(context, '/collector', (r) => false);
     } else {
@@ -41,38 +38,30 @@ class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
     }
   }
 
-  @override void dispose() { _nameCtrl.dispose(); _phoneCtrl.dispose(); _emailCtrl.dispose(); _passCtrl.dispose(); super.dispose(); }
+  @override void dispose() { _nameCtrl.dispose(); _phoneCtrl.dispose(); _emailCtrl.dispose(); _passCtrl.dispose(); _addrCtrl.dispose(); super.dispose(); }
 
   @override Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: AppColors.canvas, elevation: 0,
+        backgroundColor: Colors.white, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary), onPressed: () => Navigator.pop(context)),
-        title: const Text('Register as Collector', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
+        title: const Text('Register as Collector', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 18)),
       ),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 28),
+        padding: const EdgeInsets.symmetric(horizontal: 24),
         children: [
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: AppColors.buyerBlue.withOpacity(0.06), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.buyerBlue.withOpacity(0.2))),
-            child: const Row(children: [
-              Icon(Icons.delivery_dining, color: AppColors.buyerBlue, size: 20),
-              SizedBox(width: 8),
-              Expanded(child: Text('Collector — Sign up now. Verify later to start accepting pickups.', style: TextStyle(color: AppColors.buyerBlue, fontWeight: FontWeight.w600, fontSize: 12))),
-            ]),
-          ),
-          const SizedBox(height: 24),
-          _Field('Full Name', 'Juan Dela Cruz', controller: _nameCtrl),
-          _Field('Phone Number', '+63 9XX XXX XXXX', controller: _phoneCtrl),
-          _Field('Email', 'collector@email.com', controller: _emailCtrl),
-          _Field('Password', 'Create password', controller: _passCtrl, obscure: true),
           const SizedBox(height: 20),
-          
-          
-          const SizedBox(height: 24),
+          const Text('ACCOUNT DETAILS', style: TextStyle(fontSize: 11, color: AppColors.buyerBlue, fontWeight: FontWeight.w700, letterSpacing: 1)),
+          const SizedBox(height: 14),
+          _Field(label: 'Full Name', hint: 'Juan Dela Cruz', controller: _nameCtrl),
+          _Field(label: 'Phone Number', hint: '+63 9XX XXX XXXX', controller: _phoneCtrl),
+          _Field(label: 'Email Address', hint: 'collector@email.com', controller: _emailCtrl),
+          _Field(label: 'Password', hint: 'Create password', controller: _passCtrl, obscure: true),
+          _Field(label: 'Address', hint: 'Barangay, City', controller: _addrCtrl),
+          const SizedBox(height: 8),
+          const Center(child: Text('Vehicle details and documents can be set up\nin your Profile after registration.', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Color(0xFFBBBBBB)))),
+          const SizedBox(height: 28),
           SizedBox(
             width: double.infinity, height: 50,
             child: ElevatedButton(
@@ -81,8 +70,6 @@ class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
               child: _loading ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('CREATE ACCOUNT', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
             ),
           ),
-          const SizedBox(height: 16),
-          const Center(child: Text('Documents can be submitted later\nin your Profile to unlock full access.', textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: AppColors.textMuted))),
           const SizedBox(height: 30),
         ],
       ),
@@ -94,17 +81,26 @@ class _Field extends StatelessWidget {
   final String label, hint;
   final TextEditingController? controller;
   final bool obscure;
-  const _Field(this.label, this.hint, {this.controller, this.obscure = false});
+  const _Field({required this.label, required this.hint, this.controller, this.obscure = false});
+
   @override Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(label.toUpperCase(), style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
-        const SizedBox(height: 4),
-        Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12), decoration: BoxDecoration(color: AppColors.inputGrey, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider)), child: TextField(controller: controller, obscureText: obscure, decoration: InputDecoration.collapsed(hintText: hint, hintStyle: const TextStyle(fontSize: 14, color: AppColors.textMuted)), style: const TextStyle(fontSize: 14, color: AppColors.textPrimary))),
+        Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 6),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(12)),
+          child: TextField(
+            controller: controller,
+            obscureText: obscure,
+            decoration: InputDecoration.collapsed(hintText: hint, hintStyle: const TextStyle(fontSize: 15, color: Color(0xFFBBBBBB))),
+            style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+          ),
+        ),
       ]),
     );
   }
 }
-
-// Dropdown with search — for barangay list (18+ items)

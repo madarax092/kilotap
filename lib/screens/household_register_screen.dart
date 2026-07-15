@@ -12,6 +12,7 @@ class _HouseholdRegisterScreenState extends State<HouseholdRegisterScreen> {
   final _phoneCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
+  final _addrCtrl = TextEditingController();
   bool _loading = false;
 
   Future<void> _register() async {
@@ -19,12 +20,13 @@ class _HouseholdRegisterScreenState extends State<HouseholdRegisterScreen> {
     final pass = _passCtrl.text.trim();
     final name = _nameCtrl.text.trim();
     final phone = _phoneCtrl.text.trim();
+    final addr = _addrCtrl.text.trim();
     if (email.isEmpty || pass.isEmpty || name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill in all required fields')));
       return;
     }
     setState(() => _loading = true);
-    final role = await AuthService.instance.register(email: email, password: pass, fullName: name, phone: phone, role: 'Household', address: 'Maa, Davao City');
+    final role = await AuthService.instance.register(email: email, password: pass, fullName: name, phone: phone, role: 'Household', address: addr.isNotEmpty ? addr : 'Maa, Davao City');
     if (!mounted) return;
     setState(() => _loading = false);
     if (role != null) {
@@ -34,46 +36,67 @@ class _HouseholdRegisterScreenState extends State<HouseholdRegisterScreen> {
     }
   }
 
-  @override void dispose() { _nameCtrl.dispose(); _phoneCtrl.dispose(); _emailCtrl.dispose(); _passCtrl.dispose(); super.dispose(); }
+  @override void dispose() { _nameCtrl.dispose(); _phoneCtrl.dispose(); _emailCtrl.dispose(); _passCtrl.dispose(); _addrCtrl.dispose(); super.dispose(); }
 
   @override Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.canvas,
-      appBar: AppBar(backgroundColor: AppColors.canvas, elevation: 0, leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary), onPressed: () => Navigator.pop(context)), title: const Text('Register as Household', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800))),
-      body: ListView(padding: const EdgeInsets.symmetric(horizontal: 28), children: [
-        const SizedBox(height: 8),
-        Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: AppColors.sellerGreen.withOpacity(0.06), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.sellerGreen.withOpacity(0.2))), child: const Row(children: [Icon(Icons.home, color: AppColors.sellerGreen, size: 20), SizedBox(width: 8), Text('Household — Sell your scrap', style: TextStyle(color: AppColors.sellerGreen, fontWeight: FontWeight.w700, fontSize: 13))])),
-        const SizedBox(height: 24),
-        _Step('STEP 1 OF 2 — VERIFY PHONE', AppColors.sellerGreen),
-        _Field('Phone Number', '+63 9XX XXX XXXX', controller: _phoneCtrl, action: 'SEND OTP'),
-        _Field('OTP Code', 'Enter 6-digit code'),
-        const SizedBox(height: 20),
-        _Step('STEP 2 OF 2 — PROFILE', AppColors.sellerGreen),
-        _Field('Full Name', 'Juan Dela Cruz', controller: _nameCtrl),
-        _Field('Email', 'household@email.com', controller: _emailCtrl),
-        _Field('Password', 'Create password', controller: _passCtrl, obscure: true),
-        _Field('Address', 'Block/Lot/Street'),
-        const SizedBox(height: 24),
-        SizedBox(width: double.infinity, height: 50, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.sellerGreen, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), onPressed: _loading ? null : _register, child: _loading ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('CREATE ACCOUNT', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)))),
-        const SizedBox(height: 30),
-      ]),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary), onPressed: () => Navigator.pop(context)),
+        title: const Text('Register as Household', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 18)),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        children: [
+          const SizedBox(height: 20),
+          const Text('ACCOUNT DETAILS', style: TextStyle(fontSize: 11, color: AppColors.sellerGreen, fontWeight: FontWeight.w700, letterSpacing: 1)),
+          const SizedBox(height: 14),
+          _Field(label: 'Full Name', hint: 'Juan Dela Cruz', controller: _nameCtrl),
+          _Field(label: 'Phone Number', hint: '+63 9XX XXX XXXX', controller: _phoneCtrl),
+          _Field(label: 'Email Address', hint: 'household@email.com', controller: _emailCtrl),
+          _Field(label: 'Password', hint: 'Create password', controller: _passCtrl, obscure: true),
+          _Field(label: 'Address', hint: 'Block/Lot/Street, Barangay, City', controller: _addrCtrl),
+          const SizedBox(height: 28),
+          SizedBox(
+            width: double.infinity, height: 50,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.sellerGreen, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              onPressed: _loading ? null : _register,
+              child: _loading ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('CREATE ACCOUNT', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+            ),
+          ),
+          const SizedBox(height: 30),
+        ],
+      ),
     );
   }
 }
 
-class _Step extends StatelessWidget { final String label; final Color color; const _Step(this.label, this.color); @override Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(bottom: 16), child: Text(label, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w700))); }
-
 class _Field extends StatelessWidget {
-  final String label, hint; final TextEditingController? controller; final String? action; final bool obscure;
-  const _Field(this.label, this.hint, {this.controller, this.action, this.obscure = false});
-  @override Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(bottom: 14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Text(label.toUpperCase(), style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
-    const SizedBox(height: 4),
-    action != null ? Row(children: [
-      Expanded(child: Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12), decoration: BoxDecoration(color: AppColors.inputGrey, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider)), child: TextField(controller: controller, decoration: InputDecoration.collapsed(hintText: hint, hintStyle: const TextStyle(fontSize: 14, color: AppColors.textMuted)), style: const TextStyle(fontSize: 14, color: AppColors.textPrimary)))),
-      const SizedBox(width: 8),
-      ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.sellerGreen, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), onPressed: () {}, child: Text(action!, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700))),
-    ]) : Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12), decoration: BoxDecoration(color: AppColors.inputGrey, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider)), child: TextField(controller: controller, obscureText: obscure, decoration: InputDecoration.collapsed(hintText: hint, hintStyle: const TextStyle(fontSize: 14, color: AppColors.textMuted)), style: const TextStyle(fontSize: 14, color: AppColors.textPrimary))),
-  ]));
-}
+  final String label, hint;
+  final TextEditingController? controller;
+  final bool obscure;
+  const _Field({required this.label, required this.hint, this.controller, this.obscure = false});
 
+  @override Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 6),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(12)),
+          child: TextField(
+            controller: controller,
+            obscureText: obscure,
+            decoration: InputDecoration.collapsed(hintText: hint, hintStyle: const TextStyle(fontSize: 15, color: Color(0xFFBBBBBB))),
+            style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+          ),
+        ),
+      ]),
+    );
+  }
+}
