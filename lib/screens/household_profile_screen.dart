@@ -12,91 +12,81 @@ class HouseholdProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      body: MediaQuery.removePadding(
-        context: context,
-        removeTop: true,
-        child: Column(
-          children: [
-            // ── Green header band EDGE TO EDGE ──
-            Container(
-              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 16, left: 20, right: 20, bottom: 24),
-              decoration: const BoxDecoration(
-                color: AppColors.sellerGreen,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Profile',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white)),
-                  SizedBox(height: 4),
-                  Text('Maria Santos · Maa, Davao City',
-                      style: TextStyle(fontSize: 13, color: Color(0xFFA5D6A7))),
-                ],
-              ),
-            ),
-
-            // ── Body ──
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                children: [
-                  const SizedBox(height: 20),
-                  const Text('Account',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-                  const SizedBox(height: 4),
-                  const Text('Update your info to keep your account secure',
-                      style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                  const SizedBox(height: 16),
-                  _MenuCard(items: [
-                    const _MenuItem(
-                      icon: Icons.person_outline,
-                      label: 'Personal Info',
-                      pageBuilder: HouseholdPersonalInfoPage.new,
-                    ),
-                    const _MenuItem(
-                      icon: Icons.schedule_outlined,
-                      label: 'Pickup Preferences',
-                      pageBuilder: PickupPrefsPage.new,
-                    ),
-                    const _MenuItem(
-                      icon: Icons.eco_outlined,
-                      label: 'Recycling Impact',
-                      pageBuilder: ImpactPage.new,
-                    ),
-                  ]),
-                  const SizedBox(height: 28),
-                  const Text('Support',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-                  const SizedBox(height: 4),
-                  const Text('Help resources and account actions',
-                      style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                  const SizedBox(height: 16),
-                  _MenuCard(items: [
-                    const _MenuItem(
-                      icon: Icons.help_outline,
-                      label: 'Help & Support',
-                      subtitle: 'FAQs and contact',
-                    ),
-                    const _MenuItem(
-                      icon: Icons.description_outlined,
-                      label: 'Terms of Service',
-                      subtitle: 'View our terms',
-                    ),
-                    _MenuItem(
-                      icon: Icons.logout,
-                      label: 'Log Out',
-                      isDestructive: true,
-                      onTap: () => HouseholdProfileScreen.confirmLogout(context),
-                    ),
-                  ]),
-                  const SizedBox(height: 40),
-                ],
-              ),
-            ),
-          ],
-        ),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(MediaQuery.of(context).padding.top + 76),
+        child: Container(
+          padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 12, left: 20, right: 20, bottom: 20),
+          decoration: const BoxDecoration(
+            color: AppColors.sellerGreen,
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
           ),
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text('Profile',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white)),
+              SizedBox(height: 4),
+              Text('Maria Santos · Maa, Davao City',
+                  style: TextStyle(fontSize: 13, color: Color(0xFFA5D6A7))),
+            ],
+          ),
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+        children: [
+          const Text('Account',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          const SizedBox(height: 4),
+          const Text('Update your info to keep your account secure',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          const SizedBox(height: 16),
+          _MenuCard(items: [
+            const _MenuItem(
+              icon: Icons.person_outline,
+              label: 'Personal Info',
+              pageBuilder: HouseholdPersonalInfoPage.new,
+            ),
+            const _MenuItem(
+              icon: Icons.schedule_outlined,
+              label: 'Pickup Preferences',
+              pageBuilder: PickupPrefsPage.new,
+            ),
+            const _MenuItem(
+              icon: Icons.eco_outlined,
+              label: 'Recycling Impact',
+              pageBuilder: ImpactPage.new,
+            ),
+          ]),
+          const SizedBox(height: 28),
+          const Text('Support',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          const SizedBox(height: 4),
+          const Text('Help resources and account actions',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          const SizedBox(height: 16),
+          _MenuCard(items: [
+            const _MenuItem(
+              icon: Icons.help_outline,
+              label: 'Help & Support',
+              subtitle: 'FAQs and contact',
+            ),
+            const _MenuItem(
+              icon: Icons.description_outlined,
+              label: 'Terms of Service',
+              subtitle: 'View our terms',
+            ),
+            _MenuItem(
+              icon: Icons.logout,
+              label: 'Log Out',
+              isDestructive: true,
+              onTap: () => HouseholdProfileScreen.confirmLogout(context),
+            ),
+          ]),
+          const SizedBox(height: 40),
+        ],
+      ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Colors.white,

@@ -13,104 +13,94 @@ class CollectorProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      body: MediaQuery.removePadding(
-        context: context,
-        removeTop: true,
-        child: Column(
-          children: [
-            // ── Blue header band ──
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-              decoration: const BoxDecoration(
-                color: AppColors.buyerBlue,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Profile',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white)),
-                  SizedBox(height: 4),
-                  Text('Juan Dela Cruz · Tricycle Operator',
-                      style: TextStyle(fontSize: 13, color: Color(0xFF90CAF9))),
-                ],
-              ),
-            ),
-
-            // ── Body ──
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                children: [
-                  const SizedBox(height: 20),
-                  const Text('Account',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-                  const SizedBox(height: 4),
-                  const Text('Manage your collector profile and vehicle details',
-                      style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                  const SizedBox(height: 16),
-                  _MenuCard(items: [
-                    _MenuItem(
-                      icon: Icons.person_outline,
-                      label: 'Personal Info',
-                      onTap: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const CollectorPersonalInfoPage())),
-                    ),
-                    _MenuItem(
-                      icon: Icons.local_shipping_outlined,
-                      label: 'Vehicle Details',
-                      onTap: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const VehicleDetailsPage())),
-                    ),
-                    _MenuItem(
-                      icon: Icons.category_outlined,
-                      label: 'Material Preferences',
-                      onTap: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const PreferencesPage())),
-                    ),
-                    _MenuItem(
-                      icon: Icons.verified_outlined,
-                      label: 'Verification Documents',
-                      onTap: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const DocumentsPage())),
-                    ),
-                    _MenuItem(
-                      icon: Icons.badge_outlined,
-                      label: 'Digital ID Card',
-                      onTap: () => Navigator.pushNamed(context, '/idcard'),
-                    ),
-                  ]),
-                  const SizedBox(height: 28),
-                  const Text('Support',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-                  const SizedBox(height: 4),
-                  const Text('Help resources and account actions',
-                      style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                  const SizedBox(height: 16),
-                  _MenuCard(items: [
-                    const _MenuItem(
-                      icon: Icons.help_outline,
-                      label: 'Help & Support',
-                      subtitle: 'FAQs and contact',
-                    ),
-                    const _MenuItem(
-                      icon: Icons.description_outlined,
-                      label: 'Terms of Service',
-                      subtitle: 'View our terms',
-                    ),
-                    _MenuItem(
-                      icon: Icons.logout,
-                      label: 'Log Out',
-                      isDestructive: true,
-                      onTap: () => _confirmLogout(context),
-                    ),
-                  ]),
-                  const SizedBox(height: 40),
-                ],
-              ),
-            ),
-          ],
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(MediaQuery.of(context).padding.top + 76),
+        child: Container(
+          padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 12, left: 20, right: 20, bottom: 20),
+          decoration: const BoxDecoration(
+            color: AppColors.buyerBlue,
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+          ),
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text('Profile',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white)),
+              SizedBox(height: 4),
+              Text('Juan Dela Cruz · Tricycle Operator',
+                  style: TextStyle(fontSize: 13, color: Color(0xFF90CAF9))),
+            ],
+          ),
         ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+        children: [
+          const Text('Account',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          const SizedBox(height: 4),
+          const Text('Manage your collector profile and vehicle details',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          const SizedBox(height: 16),
+          _MenuCard(items: [
+            _MenuItem(
+              icon: Icons.person_outline,
+              label: 'Personal Info',
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const CollectorPersonalInfoPage())),
+            ),
+            _MenuItem(
+              icon: Icons.local_shipping_outlined,
+              label: 'Vehicle Details',
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const VehicleDetailsPage())),
+            ),
+            _MenuItem(
+              icon: Icons.category_outlined,
+              label: 'Material Preferences',
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const PreferencesPage())),
+            ),
+            _MenuItem(
+              icon: Icons.verified_outlined,
+              label: 'Verification Documents',
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const DocumentsPage())),
+            ),
+            _MenuItem(
+              icon: Icons.badge_outlined,
+              label: 'Digital ID Card',
+              onTap: () => Navigator.pushNamed(context, '/idcard'),
+            ),
+          ]),
+          const SizedBox(height: 28),
+          const Text('Support',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          const SizedBox(height: 4),
+          const Text('Help resources and account actions',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          const SizedBox(height: 16),
+          _MenuCard(items: [
+            const _MenuItem(
+              icon: Icons.help_outline,
+              label: 'Help & Support',
+              subtitle: 'FAQs and contact',
+            ),
+            const _MenuItem(
+              icon: Icons.description_outlined,
+              label: 'Terms of Service',
+              subtitle: 'View our terms',
+            ),
+            _MenuItem(
+              icon: Icons.logout,
+              label: 'Log Out',
+              isDestructive: true,
+              onTap: () => _confirmLogout(context),
+            ),
+          ]),
+          const SizedBox(height: 40),
+        ],
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
