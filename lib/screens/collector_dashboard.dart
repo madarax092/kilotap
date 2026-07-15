@@ -29,7 +29,36 @@ class CollectorDashboard extends StatelessWidget {
         ],
       ),
       body: ListView(padding: const EdgeInsets.symmetric(horizontal: 28), children: [
-        const Text('Tricycle Operator · ★ 4.8 (42 ratings)', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+        const SizedBox(height: 4),
+        // Status header card
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.buyerBlue.withOpacity(0.04),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.buyerBlue.withOpacity(0.12)),
+          ),
+          child: Row(children: [
+            Container(
+              width: 42, height: 42,
+              decoration: BoxDecoration(
+                color: AppColors.buyerBlue.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Center(child: Icon(Icons.groups, color: AppColors.buyerBlue, size: 22)),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Tricycle Operator',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary)),
+                SizedBox(height: 2),
+                Text('Active since June 2026 \u00b7 \u2605 4.8 (42 ratings)',
+                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+              ]),
+            ),
+          ]),
+        ),
         const SizedBox(height: 16),
         // Stat cards
         Row(children: [
