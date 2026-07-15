@@ -35,17 +35,15 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
           const Text('Set your default pickup preferences',
               style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
           const SizedBox(height: 20),
+
           // Default type
           Material(
-            color: Colors.transparent,
-            child: Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(12),
-            ),
+            color: const Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(12),
             child: SwitchListTile(
               secondary: const Icon(Icons.schedule_outlined, color: AppColors.textSecondary, size: 22),
-              title: const Text('Default Pickup Type', style: TextStyle(fontSize: 14, color: AppColors.textPrimary)),
+              title: const Text('Default Pickup Type',
+                  style: TextStyle(fontSize: 14, color: AppColors.textPrimary)),
               subtitle: Text(_asap ? 'ASAP' : 'Scheduled',
                   style: TextStyle(fontSize: 12, color: _asap ? AppColors.sellerGreen : AppColors.textSecondary)),
               value: _asap,
@@ -53,16 +51,13 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             ),
           ),
-            ),
+
+          // Time window
           if (!_asap) ...[
             const SizedBox(height: 10),
             Material(
-              color: Colors.transparent,
-              child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(12),
-              ),
+              color: const Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(12),
               child: ListTile(
                 leading: const Icon(Icons.access_time, color: AppColors.textSecondary, size: 22),
                 title: const Text('Preferred Time Window',
@@ -86,24 +81,23 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
               ),
             ),
-              ),
           ],
+
           const SizedBox(height: 10),
+
+          // Notifications
           Material(
-            color: Colors.transparent,
-            child: Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(12),
-            ),
+            color: const Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(12),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 SwitchListTile(
                   value: _pushNotifications,
                   onChanged: (v) => setState(() => _pushNotifications = v),
                   title: const Text('Push Notifications',
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                  subtitle: const Text('Receive alerts when a collector accepts your booking',
+                  subtitle: const Text('Receive alerts when a collector accepts',
                       style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
@@ -113,14 +107,14 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
                   onChanged: (v) => setState(() => _smsNotifications = v),
                   title: const Text('SMS Notifications',
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                  subtitle: const Text('Receive text messages for booking updates',
+                  subtitle: const Text('Receive text messages for updates',
                       style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
               ],
             ),
           ),
-            ),
+
           const SizedBox(height: 30),
           SizedBox(
             width: double.infinity, height: 48,
