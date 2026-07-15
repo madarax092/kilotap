@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../services/auth_service.dart';
+import 'collector/personal_info_page.dart';
+import 'collector/vehicle_details_page.dart';
+import 'collector/preferences_page.dart';
+import 'collector/documents_page.dart';
 
 class CollectorProfileScreen extends StatelessWidget {
   const CollectorProfileScreen({super.key});
@@ -31,31 +35,30 @@ class CollectorProfileScreen extends StatelessWidget {
             _MenuItem(
               icon: Icons.person_outline,
               label: 'Personal Info',
-              subtitle: 'Juan Dela Cruz \u00b7 +63927XXXXXXX',
-              onTap: () {},
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const CollectorPersonalInfoPage())),
             ),
             _MenuItem(
               icon: Icons.local_shipping_outlined,
               label: 'Vehicle Details',
-              subtitle: 'Tricycle \u00b7 200 kg capacity',
-              onTap: () {},
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const VehicleDetailsPage())),
             ),
             _MenuItem(
               icon: Icons.category_outlined,
               label: 'Material Preferences',
-              subtitle: 'Metal, Appliances',
-              onTap: () {},
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const PreferencesPage())),
             ),
             _MenuItem(
               icon: Icons.verified_outlined,
               label: 'Verification Documents',
-              subtitle: '3 documents verified',
-              onTap: () {},
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const DocumentsPage())),
             ),
             _MenuItem(
               icon: Icons.badge_outlined,
               label: 'Digital ID Card',
-              subtitle: 'Tap to view',
               onTap: () => Navigator.pushNamed(context, '/idcard'),
             ),
           ]),

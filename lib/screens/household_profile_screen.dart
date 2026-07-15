@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../services/auth_service.dart';
-import '../services/impact_tracker.dart';
+import 'household/personal_info_page.dart';
+import 'household/pickup_prefs_page.dart';
+import 'household/impact_page.dart';
 
 class HouseholdProfileScreen extends StatelessWidget {
   const HouseholdProfileScreen({super.key});
-
-  static const double _demoTotalKg = 245.7;
 
   @override
   Widget build(BuildContext context) {
@@ -34,42 +34,20 @@ class HouseholdProfileScreen extends StatelessWidget {
             const _MenuItem(
               icon: Icons.person_outline,
               label: 'Personal Info',
-              subtitle: 'Maria Santos \u00b7 +63917XXXXXXX',
-            ),
-            const _MenuItem(
-              icon: Icons.location_on_outlined,
-              label: 'Address',
-              subtitle: 'Block 5, Lot 12, Barangay Maa, Davao City',
+              onTap: null,
+              navigateTo: HouseholdPersonalInfoPage(),
             ),
             const _MenuItem(
               icon: Icons.schedule_outlined,
               label: 'Pickup Preferences',
-              subtitle: 'ASAP \u00b7 Morning 8-12 PM \u00b7 Push + SMS',
+              onTap: null,
+              navigateTo: PickupPrefsPage(),
             ),
             const _MenuItem(
-              icon: Icons.language_outlined,
-              label: 'Language',
-              subtitle: 'Bisaya / English',
-            ),
-          ]),
-          const SizedBox(height: 28),
-          // Environment section
-          const Text('Environment',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-          const SizedBox(height: 4),
-          const Text('Your recycling contribution',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-          const SizedBox(height: 16),
-          _MenuCard(items: [
-            _MenuItem(
               icon: Icons.eco_outlined,
               label: 'Recycling Impact',
-              subtitle: RecyclingImpactTracker.getImpactDescription(_demoTotalKg),
-            ),
-            const _MenuItem(
-              icon: Icons.history_outlined,
-              label: 'Pickup History',
-              subtitle: '16 pickups \u00b7 87.3 kg total',
+              onTap: null,
+              navigateTo: ImpactPage(),
             ),
           ]),
           const SizedBox(height: 28),
@@ -148,6 +126,7 @@ class _MenuItem {
   final String label;
   final String subtitle;
   final VoidCallback? onTap;
+  final Widget? navigateTo;
   final bool isDestructive;
 
   const _MenuItem({
@@ -155,6 +134,7 @@ class _MenuItem {
     required this.label,
     this.subtitle = '',
     this.onTap,
+    this.navigateTo,
     this.isDestructive = false,
   });
 }
@@ -188,7 +168,10 @@ class _MenuCard extends StatelessWidget {
                     : null,
                 trailing: Icon(Icons.chevron_right,
                     color: item.isDestructive ? AppColors.error : AppColors.textMuted, size: 20),
-                onTap: item.onTap,
+                onTap: item.onTap ?? (item.navigateTo != null
+                    ? () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => item.navigateTo!))
+                    : null),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
               ),
               if (!isLast) const Divider(height: 1, indent: 56, endIndent: 16),
