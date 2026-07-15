@@ -11,8 +11,9 @@ class HouseholdDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      body: SafeArea(
-        top: true, bottom: false, left: false, right: false,
+      body: MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
         child: Column(
           children: [
             // ── Green header ──

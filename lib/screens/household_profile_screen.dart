@@ -12,7 +12,10 @@ class HouseholdProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      body: Column(
+      body: MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
+        child: Column(
           children: [
             // ── Green header band EDGE TO EDGE ──
             Container(
@@ -93,6 +96,7 @@ class HouseholdProfileScreen extends StatelessWidget {
             ),
           ],
         ),
+          ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
