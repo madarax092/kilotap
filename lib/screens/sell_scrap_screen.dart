@@ -9,7 +9,7 @@ class SellScrapScreen extends StatefulWidget {
 }
 
 class _SellScrapScreenState extends State<SellScrapScreen> {
-  String _selectedVehicle = 'Tricycle';
+  late String _selectedVehicle;
 
   // Hardcoded demo detections (replace with YOLO output later)
   static const _detections = [
@@ -24,6 +24,12 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
   double get _totalWeight => VolumeClassifier.getTotalWeight(_detections);
   String get _recommendedVehicle => VolumeClassifier.getRecommendedVehicle(_totalVolume);
   List<String> get _availableVehicles => VolumeClassifier.getAvailableVehicles(_totalVolume);
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedVehicle = _recommendedVehicle;
+  }
 
   @override Widget build(BuildContext context) {
     return Scaffold(
