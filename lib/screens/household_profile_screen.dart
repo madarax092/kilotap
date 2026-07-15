@@ -34,20 +34,17 @@ class HouseholdProfileScreen extends StatelessWidget {
             const _MenuItem(
               icon: Icons.person_outline,
               label: 'Personal Info',
-              onTap: null,
-              navigateTo: HouseholdPersonalInfoPage(),
+              pageBuilder: HouseholdPersonalInfoPage.new,
             ),
             const _MenuItem(
               icon: Icons.schedule_outlined,
               label: 'Pickup Preferences',
-              onTap: null,
-              navigateTo: PickupPrefsPage(),
+              pageBuilder: PickupPrefsPage.new,
             ),
             const _MenuItem(
               icon: Icons.eco_outlined,
               label: 'Recycling Impact',
-              onTap: null,
-              navigateTo: ImpactPage(),
+              pageBuilder: ImpactPage.new,
             ),
           ]),
           const SizedBox(height: 28),
@@ -126,7 +123,7 @@ class _MenuItem {
   final String label;
   final String subtitle;
   final VoidCallback? onTap;
-  final Widget? navigateTo;
+  final Widget Function()? pageBuilder;
   final bool isDestructive;
 
   const _MenuItem({
@@ -134,7 +131,7 @@ class _MenuItem {
     required this.label,
     this.subtitle = '',
     this.onTap,
-    this.navigateTo,
+    this.pageBuilder,
     this.isDestructive = false,
   });
 }
@@ -166,9 +163,9 @@ class _MenuCard extends StatelessWidget {
                       : null,
                   trailing: Icon(Icons.chevron_right,
                       color: item.isDestructive ? AppColors.error : AppColors.textMuted, size: 20),
-                  onTap: item.onTap ?? (item.navigateTo != null
+                  onTap: item.onTap ?? (item.pageBuilder != null
                       ? () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => item.navigateTo!))
+                          MaterialPageRoute(builder: (_) => item.pageBuilder!()))
                       : null),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                 ),
