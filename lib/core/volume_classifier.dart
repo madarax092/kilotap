@@ -46,13 +46,6 @@ class VolumeClassifier {
   }
 
   static List<String> getAvailableVehicles(String totalVolume) {
-    final currentPriority = _priority[totalVolume] ?? 1;
-    return ScrapWeightService.vehicleTypes.where((vehicle) {
-      final vehiclePriority = _priority[vehicleMap.entries
-          .firstWhere((e) => e.value == vehicle,
-              orElse: () => const MapEntry('Small', 'Pushcart'))
-          .key] ?? 1;
-      return vehiclePriority >= currentPriority;
-    }).toList();
+    return ScrapWeightService.vehicleTypes;
   }
 }

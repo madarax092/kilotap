@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../services/scrap_weight_service.dart';
 import '../core/volume_classifier.dart';
+import 'booking_summary_screen.dart';
 
 class SellScrapScreen extends StatefulWidget {
   const SellScrapScreen({super.key});
@@ -10,6 +11,8 @@ class SellScrapScreen extends StatefulWidget {
 
 class _SellScrapScreenState extends State<SellScrapScreen> {
   late String _selectedVehicle;
+  bool _isAsap = true;
+  DateTime? _scheduledDate;
 
   // Hardcoded demo detections (replace with YOLO output later)
   static const _detections = [
@@ -95,7 +98,61 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
         // Pickup options
         const Text('PICKUP TYPE', style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
         const SizedBox(height: 8),
-        Row(children: [_Chip('ASAP', true), const SizedBox(width: 8), _Chip('Schedule', false)]),
+        Row(children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _isAsap = true),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: _isAsap ? AppColors.sellerGreen.withOpacity(0.08) : AppColors.inputGrey,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: _isAsap ? AppColors.sellerGreen : AppColors.divider),
+                ),
+                child: const Text('ASAP', textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.sellerGreen)),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: GestureDetector(
+              onTap: () async {
+                final now = DateTime.now();
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: now.add(const Duration(days: 1)),
+                  firstDate: now,
+                  lastDate: now.add(const Duration(days: 30)),
+                );
+                if (picked != null) {
+                  setState(() { _isAsap = false; _scheduledDate = picked; });
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: !_isAsap ? AppColors.sellerGreen.withOpacity(0.08) : AppColors.inputGrey,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: !_isAsap ? AppColors.sellerGreen : AppColors.divider),
+                ),
+                child: Text(
+                  _scheduledDate != null
+                      ? '${_scheduledDate!.day}/${_scheduledDate!.month}'
+                      : 'Schedule',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
+                      color: !_isAsap ? AppColors.sellerGreen : AppColors.textSecondary),
+                ),
+              ),
+            ),
+          ),
+        ]),
+        if (_scheduledDate != null) ...[
+          const SizedBox(height: 6),
+          Text('Scheduled: ${_scheduledDate!.day}/${_scheduledDate!.month}/${_scheduledDate!.year}',
+              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+        ],
         const SizedBox(height: 16),
         // Vehicle dropdown with Recommended button
         const Text('VEHICLE', style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
@@ -133,7 +190,13 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
         const SizedBox(height: 12),
         TextField(decoration: InputDecoration(hintText: 'Notes: Gate code, instructions...', filled: true, fillColor: AppColors.inputGrey, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.divider)), enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.divider))), maxLines: 2),
         const SizedBox(height: 24),
-        SizedBox(width: double.infinity, height: 50, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.sellerGreen, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), onPressed: () {}, child: const Text('SUBMIT PICKUP REQUEST', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)))),
+        SizedBox(width: double.infinity, height: 50, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.sellerGreen, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => BookingSummaryScreen(
+            totalVolume: _totalVolume,
+            totalWeight: _totalWeight,
+            selectedVehicle: _selectedVehicle,
+          )));
+        }, child: const Text('SUBMIT PICKUP REQUEST', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)))),
         const SizedBox(height: 30),
       ]),
       bottomNavigationBar: BottomNavigationBar(
@@ -171,9 +234,4 @@ class _MetaRow extends StatelessWidget {
 class _AnalysisRow extends StatelessWidget {
   final String label, count; const _AnalysisRow(this.label, this.count);
   @override Widget build(BuildContext context) => Padding(padding: const EdgeInsets.symmetric(vertical: 1), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textPrimary)), Text(count, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.sellerGreen))]));
-}
-
-class _Chip extends StatelessWidget {
-  final String label; final bool active; const _Chip(this.label, this.active);
-  @override Widget build(BuildContext context) => Expanded(child: Container(padding: const EdgeInsets.symmetric(vertical: 10), decoration: BoxDecoration(color: active ? AppColors.sellerGreen.withOpacity(0.08) : AppColors.inputGrey, borderRadius: BorderRadius.circular(10), border: Border.all(color: active ? AppColors.sellerGreen : AppColors.divider)), child: Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: active ? AppColors.sellerGreen : AppColors.textSecondary))));
 }
