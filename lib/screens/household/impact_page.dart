@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import '../../services/impact_tracker.dart';
 
 class ImpactPage extends StatelessWidget {
   const ImpactPage({super.key});
-
-  static const double _demoTotalKg = 245.7;
 
   @override
   Widget build(BuildContext context) {
