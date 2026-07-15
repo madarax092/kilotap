@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
-import '../widgets/pre_pickup_checklist.dart';
+import 'pickup_checklist_screen.dart';
 
 class MyPickupsScreen extends StatelessWidget {
   const MyPickupsScreen({super.key});
@@ -18,7 +18,6 @@ class MyPickupsScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 28),
         children: [
           const SizedBox(height: 4),
-          // Filter tabs
           Row(children: [
             _FilterChip('Active (2)', active: true),
             const SizedBox(width: 8),
@@ -27,41 +26,51 @@ class MyPickupsScreen extends StatelessWidget {
             _FilterChip('Cancelled'),
           ]),
           const SizedBox(height: 16),
-          // Pickup cards
           _PickupCard(
             id: '#PKP-0042',
             status: 'ON THE WAY',
             statusColor: AppColors.buyerBlue,
             initials: 'JD',
             name: 'Juan Dela Cruz',
-            items: 'Plastic 12 pcs (S), Cardboard 3 pcs (M) · Tricycle',
+            items: 'Plastic 12 pcs (S), Cardboard 3 pcs (M) \u00b7 Tricycle',
             meta: 'ETA 5 min',
             stars: '\u2605 4.8',
-            actions: [
+            actions: const [
               ('Track', AppColors.sellerGreen, Colors.white),
               ('Chat', AppColors.inputGrey, AppColors.textPrimary),
             ],
+            onTap: () => Navigator.push(context, MaterialPageRoute(
+              builder: (_) => const PickupChecklistScreen(
+                bookingId: '#PKP-0042',
+                detectedClasses: ['refrigerator_standard', 'plastic_bottle_1L', 'metal_pipe_1m'],
+                collectorName: 'Juan Dela Cruz',
+                eta: '5 min',
+                vehicle: 'Tricycle',
+              ),
+            )),
           ),
-          const SizedBox(height: 12),
-          const PrePickupChecklist(detectedClasses: [
-            'refrigerator_standard',
-            'plastic_bottle_1L',
-            'metal_pipe_1m',
-          ]),
-          const SizedBox(height: 4),
           _PickupCard(
             id: '#PKP-0041',
             status: 'CONFIRMED',
             statusColor: AppColors.buyerBlue,
             initials: 'MS',
             name: 'Maria Santos',
-            items: 'Metal 5 pcs (L), Appliance 1 pc (H) · Multicab',
+            items: 'Metal 5 pcs (L), Appliance 1 pc (H) \u00b7 Multicab',
             meta: 'Tomorrow 9-12PM',
             stars: '\u2605 4.9',
-            actions: [
+            actions: const [
               ('Chat', AppColors.inputGrey, AppColors.textPrimary),
               ('Reschedule', AppColors.inputGrey, AppColors.textPrimary),
             ],
+            onTap: () => Navigator.push(context, MaterialPageRoute(
+              builder: (_) => const PickupChecklistScreen(
+                bookingId: '#PKP-0041',
+                detectedClasses: ['metal_bolt', 'window_aircon'],
+                collectorName: 'Maria Santos',
+                eta: 'Tomorrow 9 AM',
+                vehicle: 'Multicab',
+              ),
+            )),
           ),
           _PickupCard(
             id: '#PKP-0040',
@@ -72,7 +81,7 @@ class MyPickupsScreen extends StatelessWidget {
             items: 'Plastic Bottles (S) 5.2 kg',
             meta: 'June 28, 2026',
             stars: '\u2605 4.5',
-            actions: [
+            actions: const [
               ('Rate Collector', AppColors.sellerGreen, Colors.white),
               ('Report', AppColors.error.withOpacity(0.05), AppColors.error),
             ],
@@ -127,6 +136,7 @@ class _PickupCard extends StatelessWidget {
   final String id, status, initials, name, items, meta, stars;
   final Color statusColor;
   final List<(String, Color, Color)> actions;
+  final VoidCallback? onTap;
 
   const _PickupCard({
     required this.id,
@@ -138,88 +148,88 @@ class _PickupCard extends StatelessWidget {
     required this.meta,
     required this.stars,
     required this.actions,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.pureWhite,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(id, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(status, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: statusColor)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          // Body
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(color: AppColors.buyerBlue, shape: BoxShape.circle),
-                child: Center(child: Text(initials, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14))),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary)),
-                    Text(items, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(meta, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-              Text(stars, style: const TextStyle(color: AppColors.star, fontSize: 11, fontWeight: FontWeight.w700)),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const Divider(),
-          const SizedBox(height: 4),
-          // Actions
-          Row(
-            children: actions.map((a) => Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: a.$2,
-                    foregroundColor: a.$3,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.pureWhite,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.divider),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(id, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  onPressed: () {},
-                  child: Text(a.$1, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                  child: Text(status, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: statusColor)),
                 ),
-              ),
-            )).toList(),
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Container(
+                  width: 40, height: 40,
+                  decoration: const BoxDecoration(color: AppColors.buyerBlue, shape: BoxShape.circle),
+                  child: Center(child: Text(initials, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14))),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary)),
+                      Text(items, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(meta, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                Text(stars, style: const TextStyle(color: AppColors.star, fontSize: 11, fontWeight: FontWeight.w700)),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const Divider(),
+            const SizedBox(height: 4),
+            Row(
+              children: actions.map((a) => Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: a.$2,
+                      foregroundColor: a.$3,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: () {},
+                    child: Text(a.$1, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              )).toList(),
+            ),
+          ],
+        ),
       ),
     );
   }
