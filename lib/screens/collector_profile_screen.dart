@@ -14,6 +14,7 @@ class CollectorProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       body: SafeArea(
+        top: true, bottom: false, left: false, right: false,
         child: Column(
           children: [
             // ── Blue header band ──
