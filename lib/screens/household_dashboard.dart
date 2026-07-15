@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
+import '../services/impact_tracker.dart';
 
 class HouseholdDashboard extends StatelessWidget {
   const HouseholdDashboard({super.key});
+
+  // Hardcoded demo impact data (replace with Firestore query later)
+  static const double _demoTotalKg = 245.7;
 
   @override Widget build(BuildContext context) {
     return Scaffold(
@@ -22,6 +26,36 @@ class HouseholdDashboard extends StatelessWidget {
       body: ListView(padding: const EdgeInsets.symmetric(horizontal: 28), children: [
         const Text('Barangay Maa, Davao City', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
         const SizedBox(height: 16),
+        // Recycling impact tracker
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.pureWhite,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.sellerGreen.withOpacity(0.15)),
+          ),
+          child: Row(children: [
+            Container(
+              width: 48, height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.sellerGreen.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Center(child: Text('', style: TextStyle(fontSize: 22))),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('${RecyclingImpactTracker.getImpactSummary(_demoTotalKg)} Trees Saved',
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
+                const SizedBox(height: 2),
+                Text(RecyclingImpactTracker.getImpactDescription(_demoTotalKg),
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              ]),
+            ),
+          ]),
+        ),
+        const SizedBox(height: 20),
         // Stat cards
         Row(children: [
           _StatCard(label: 'Pending', value: '2', accent: false),

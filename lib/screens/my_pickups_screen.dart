@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
+import '../widgets/pre_pickup_checklist.dart';
 
 class MyPickupsScreen extends StatelessWidget {
   const MyPickupsScreen({super.key});
@@ -41,6 +42,13 @@ class MyPickupsScreen extends StatelessWidget {
               ('Chat', AppColors.inputGrey, AppColors.textPrimary),
             ],
           ),
+          const SizedBox(height: 12),
+          const PrePickupChecklist(detectedClasses: [
+            'refrigerator_standard',
+            'plastic_bottle_1L',
+            'metal_pipe_1m',
+          ]),
+          const SizedBox(height: 4),
           _PickupCard(
             id: '#PKP-0041',
             status: 'CONFIRMED',

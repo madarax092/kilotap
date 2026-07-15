@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
+import '../services/scrap_weight_service.dart';
+import '../core/volume_classifier.dart';
+import '../widgets/loading_shimmer.dart';
 
 class SellScrapScreen extends StatefulWidget {
   const SellScrapScreen({super.key});
@@ -7,9 +10,22 @@ class SellScrapScreen extends StatefulWidget {
 }
 
 class _SellScrapScreenState extends State<SellScrapScreen> {
-  String _selectedVehicle = 'Multicab';
-  final _recommendedVehicle = 'Multicab';
-  final _vehicles = ['Pushcart', 'Tricycle', 'Multicab', 'Truck'];
+  String _selectedVehicle = 'Tricycle';
+  bool _isAnalyzing = false;
+
+  // Hardcoded demo detections (replace with YOLO output later)
+  static const _detections = [
+    'refrigerator_standard',
+    'plastic_bottle_1L',
+    'plastic_bottle_1L',
+    'plastic_bottle_1L',
+    'metal_pipe_1m',
+  ];
+
+  String get _totalVolume => VolumeClassifier.getTotalVolume(_detections);
+  double get _totalWeight => VolumeClassifier.getTotalWeight(_detections);
+  String get _recommendedVehicle => VolumeClassifier.getRecommendedVehicle(_totalVolume);
+  List<String> get _availableVehicles => VolumeClassifier.getAvailableVehicles(_totalVolume);
 
   @override Widget build(BuildContext context) {
     return Scaffold(
@@ -44,11 +60,19 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
         _Card(children: [
           const Text('AI ANALYSIS', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
           const SizedBox(height: 8),
-          _AnalysisRow('Plastic', '12 pcs (Small)'),
-          _AnalysisRow('E-Waste', '3 pcs (Medium)'),
-          _AnalysisRow('Metal', '5 pcs (Large)'),
+          _AnalysisRow('Refrigerator', '1 pc (${ScrapWeightService.instance.getSizeClass("refrigerator_standard")}, ${ScrapWeightService.instance.getWeight("refrigerator_standard")} kg)'),
+          _AnalysisRow('Plastic Bottles', '3 pcs (${ScrapWeightService.instance.getSizeClass("plastic_bottle_1L")}, ${(ScrapWeightService.instance.getWeight("plastic_bottle_1L") ?? 0) * 3} kg)'),
+          _AnalysisRow('Metal Pipe', '1 pc (${ScrapWeightService.instance.getSizeClass("metal_pipe_1m")}, ${ScrapWeightService.instance.getWeight("metal_pipe_1m")} kg)'),
           const Divider(),
-          const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Volume', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary)), Text('Large', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.sellerGreen))]),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            const Text('Volume', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text(_totalVolume, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.sellerGreen)),
+          ]),
+          const SizedBox(height: 4),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            const Text('Est. Weight', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            Text('${_totalWeight.toStringAsFixed(2)} kg', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          ]),
           const SizedBox(height: 10),
           // Recommended vehicle
           Container(
@@ -59,7 +83,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
               SizedBox(width: 8),
               Text('Recommended Vehicle:', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
               SizedBox(width: 6),
-              Text('Multicab', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.sellerGreen)),
+              Text(_recommendedVehicle, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.sellerGreen)),
             ]),
           ),
         ]),
@@ -83,7 +107,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                   isExpanded: true,
                   dropdownColor: AppColors.pureWhite,
                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                  items: _vehicles.map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
+                  items: _availableVehicles.map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
                   onChanged: (v) => setState(() => _selectedVehicle = v!),
                 ),
               ),
