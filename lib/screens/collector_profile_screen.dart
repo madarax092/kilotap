@@ -5,87 +5,91 @@ import '../services/auth_service.dart';
 class CollectorProfileScreen extends StatelessWidget {
   const CollectorProfileScreen({super.key});
 
-  @override Widget build(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.canvas,
-      appBar: AppBar(automaticallyImplyLeading: false, 
-        backgroundColor: AppColors.canvas, elevation: 0,
-        title: const Text('My Profile', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text('Profile',
+            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 22)),
       ),
-      body: ListView(padding: const EdgeInsets.symmetric(horizontal: 28), children: [
-        const SizedBox(height: 30),
-        // Profile header
-        const Center(child: Column(children: [
-          CircleAvatar(radius: 40, backgroundColor: AppColors.buyerBlue, child: Text('JD', style: TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.w900))),
-          SizedBox(height: 8),
-          Text('Juan Dela Cruz', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-          SizedBox(height: 4),
-          _Badge('VERIFIED since June 2026'),
-          SizedBox(height: 4),
-          Text('★★★★☆ 4.8 (42 ratings)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.star)),
-        ])),
-        const SizedBox(height: 30),
-        // Personal Info
-        _Section('PERSONAL INFO', [
-          ('Phone', '+63927XXXXXXX'),
-          ('Vehicle', 'Tricycle'),
-          ('Max Capacity', '200 kg'),
-          ('Areas', 'Maa, Matina, Ecoland'),
-          ('Languages', 'Bisaya, Tagalog'),
-        ]),
-        // Verification Documents
-        const Text('VERIFICATION DOCUMENTS', style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
-          child: const Column(children: [
-            _DocRow('Valid Government ID'),
-            _DocRow('Vehicle Photo'),
-            _DocRow('Profile Photo Match'),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        children: [
+          const SizedBox(height: 8),
+          // Account section
+          const Text('Account',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          const SizedBox(height: 4),
+          const Text('Manage your collector profile and vehicle details',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          const SizedBox(height: 16),
+          _MenuCard(items: [
+            _MenuItem(
+              icon: Icons.person_outline,
+              label: 'Personal Info',
+              subtitle: 'Juan Dela Cruz \u00b7 +63927XXXXXXX',
+              onTap: () {},
+            ),
+            _MenuItem(
+              icon: Icons.local_shipping_outlined,
+              label: 'Vehicle Details',
+              subtitle: 'Tricycle \u00b7 200 kg capacity',
+              onTap: () {},
+            ),
+            _MenuItem(
+              icon: Icons.category_outlined,
+              label: 'Material Preferences',
+              subtitle: 'Metal, Appliances',
+              onTap: () {},
+            ),
+            _MenuItem(
+              icon: Icons.verified_outlined,
+              label: 'Verification Documents',
+              subtitle: '3 documents verified',
+              onTap: () {},
+            ),
+            _MenuItem(
+              icon: Icons.badge_outlined,
+              label: 'Digital ID Card',
+              subtitle: 'Tap to view',
+              onTap: () => Navigator.pushNamed(context, '/idcard'),
+            ),
           ]),
-        ),
-        const SizedBox(height: 16),
-        // Statistics
-        _Section('STATISTICS', [
-          ('Total Pickups', '184'),
-          ('Total Weight', '2,145 kg'),
-          ('Avg. Rating', '★ 4.8'),
-          ('Response Rate', '94%'),
-          ('Cancellation Rate', '2%'),
-        ]),
-        const SizedBox(height: 16),
-        // Availability
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              const Text('AVAILABILITY', style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
-              Container(width: 48, height: 26, decoration: BoxDecoration(color: AppColors.success, borderRadius: BorderRadius.circular(13)), child: Align(alignment: Alignment.centerRight, child: Container(margin: const EdgeInsets.only(right: 2), width: 22, height: 22, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)))),
-            ]),
-            const SizedBox(height: 12),
-            _AvailRow('Status', '● ONLINE', Colors.green),
-            _AvailRow('Active Hours', '7AM - 5PM', null),
-            _AvailRow('Max Distance', '5 km', null),
-            _AvailRow('Max Load/Day', '200 kg', null),
+          const SizedBox(height: 28),
+          // Support section
+          const Text('Support',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          const SizedBox(height: 4),
+          const Text('Help resources and account actions',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          const SizedBox(height: 16),
+          _MenuCard(items: [
+            _MenuItem(
+              icon: Icons.help_outline,
+              label: 'Help & Support',
+              subtitle: 'FAQs and contact',
+              onTap: () {},
+            ),
+            _MenuItem(
+              icon: Icons.description_outlined,
+              label: 'Terms of Service',
+              subtitle: 'View our terms',
+              onTap: () {},
+            ),
+            _MenuItem(
+              icon: Icons.logout,
+              label: 'Log Out',
+              isDestructive: true,
+              onTap: () => _confirmLogout(context),
+            ),
           ]),
-        ),
-        const SizedBox(height: 20),
-        // Log Out — neutral, at bottom
-        OutlinedButton(
-          style: OutlinedButton.styleFrom(foregroundColor: AppColors.textPrimary, side: const BorderSide(color: AppColors.divider), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), padding: const EdgeInsets.symmetric(vertical: 14)),
-          onPressed: () => _confirmLogout(context),
-          child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.logout, size: 16), SizedBox(width: 8), Text('Log Out')]),
-        ),
-        const SizedBox(height: 8),
-        // Delete
-        OutlinedButton(
-          style: OutlinedButton.styleFrom(foregroundColor: AppColors.error, side: const BorderSide(color: AppColors.error), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), padding: const EdgeInsets.symmetric(vertical: 14)),
-          onPressed: () {},
-          child: const Text('Delete Account'),
-        ),
-        const SizedBox(height: 30),
-      ]),
+          const SizedBox(height: 40),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 4,
         onTap: (i) {
@@ -94,13 +98,15 @@ class CollectorProfileScreen extends StatelessWidget {
           if (i == 2) Navigator.pushNamed(context, '/idcard');
           if (i == 3) Navigator.pushNamed(context, '/earnings');
         },
-        selectedItemColor: AppColors.buyerBlue, unselectedItemColor: AppColors.textMuted,
-        backgroundColor: AppColors.canvas, type: BottomNavigationBarType.fixed,
+        selectedItemColor: AppColors.buyerBlue,
+        unselectedItemColor: AppColors.textMuted,
+        backgroundColor: Colors.white,
+        type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Find'),
-          BottomNavigationBarItem(icon: Icon(Icons.credit_card), label: 'ID Card'),
-          BottomNavigationBarItem(icon: Icon(Icons.payments), label: 'Earn'),
+          BottomNavigationBarItem(icon: Icon(Icons.credit_card_outlined), label: 'ID'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'Earn'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
@@ -109,66 +115,78 @@ class CollectorProfileScreen extends StatelessWidget {
 }
 
 void _confirmLogout(BuildContext context) {
-  showDialog(context: context, builder: (ctx) => AlertDialog(
-    title: const Text('Log Out'),
-    content: const Text('Are you sure you want to log out?'),
-    actions: [
-      TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-      TextButton(onPressed: () { AuthService.instance.signOut(); Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false); }, child: const Text('Log Out', style: TextStyle(color: AppColors.error))),
-    ],
-  ));
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Log Out'),
+      content: const Text('Are you sure you want to log out?'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () {
+            AuthService.instance.signOut();
+            Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false);
+          },
+          child: const Text('Log Out', style: TextStyle(color: AppColors.error)),
+        ),
+      ],
+    ),
+  );
 }
 
-class _Badge extends StatelessWidget {
-  final String text; const _Badge(this.text);
-  @override Widget build(BuildContext context) => Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.08), borderRadius: BorderRadius.circular(12)), child: Text(text, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.success)));
+class _MenuItem {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final VoidCallback? onTap;
+  final bool isDestructive;
+
+  const _MenuItem({
+    required this.icon,
+    required this.label,
+    this.subtitle = '',
+    this.onTap,
+    this.isDestructive = false,
+  });
 }
 
-class _Section extends StatelessWidget {
-  final String title; final List<(String, String)> rows;
-  const _Section(this.title, this.rows);
-  @override Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 16),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
-      const SizedBox(height: 8),
-      Container(
-        decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
-        child: Column(children: rows.asMap().entries.map((e) => Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: e.key < rows.length - 1 ? const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.divider))) : null,
-          child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(e.value.$1, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-            Text(e.value.$2, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-          ]),
-        )).toList()),
+class _MenuCard extends StatelessWidget {
+  final List<_MenuItem> items;
+  const _MenuCard({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(14),
       ),
-    ]),
-  );
-}
-
-class _DocRow extends StatelessWidget {
-  final String label; const _DocRow(this.label);
-  @override Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.divider))),
-    child: Row(children: [
-      Container(width: 20, height: 20, decoration: const BoxDecoration(color: AppColors.success, shape: BoxShape.circle), child: const Icon(Icons.check, size: 12, color: Colors.white)),
-      const SizedBox(width: 8),
-      Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary))),
-      const Text('View', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.buyerBlue)),
-    ]),
-  );
-}
-
-class _AvailRow extends StatelessWidget {
-  final String label, value; final Color? valueColor;
-  const _AvailRow(this.label, this.value, this.valueColor);
-  @override Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-      Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: valueColor ?? AppColors.textPrimary)),
-    ]),
-  );
+      child: Column(
+        children: items.asMap().entries.map((e) {
+          final item = e.value;
+          final isLast = e.key == items.length - 1;
+          return Column(
+            children: [
+              ListTile(
+                leading: Icon(item.icon,
+                    color: item.isDestructive ? AppColors.error : AppColors.textSecondary, size: 22),
+                title: Text(item.label,
+                    style: TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w600,
+                        color: item.isDestructive ? AppColors.error : AppColors.textPrimary)),
+                subtitle: item.subtitle.isNotEmpty
+                    ? Text(item.subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))
+                    : null,
+                trailing: Icon(Icons.chevron_right,
+                    color: item.isDestructive ? AppColors.error : AppColors.textMuted, size: 20),
+                onTap: item.onTap,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+              ),
+              if (!isLast) const Divider(height: 1, indent: 56, endIndent: 16),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
 }
