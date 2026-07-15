@@ -145,39 +145,42 @@ class _MenuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        children: items.asMap().entries.map((e) {
-          final item = e.value;
-          final isLast = e.key == items.length - 1;
-          return Column(
-            children: [
-              ListTile(
-                leading: Icon(item.icon,
-                    color: item.isDestructive ? AppColors.error : AppColors.textSecondary, size: 22),
-                title: Text(item.label,
-                    style: TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w600,
-                        color: item.isDestructive ? AppColors.error : AppColors.textPrimary)),
-                subtitle: item.subtitle.isNotEmpty
-                    ? Text(item.subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))
-                    : null,
-                trailing: Icon(Icons.chevron_right,
-                    color: item.isDestructive ? AppColors.error : AppColors.textMuted, size: 20),
-                onTap: item.onTap ?? (item.navigateTo != null
-                    ? () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => item.navigateTo!))
-                    : null),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-              ),
-              if (!isLast) const Divider(height: 1, indent: 56, endIndent: 16),
-            ],
-          );
-        }).toList(),
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          children: items.asMap().entries.map((e) {
+            final item = e.value;
+            final isLast = e.key == items.length - 1;
+            return Column(
+              children: [
+                ListTile(
+                  leading: Icon(item.icon,
+                      color: item.isDestructive ? AppColors.error : AppColors.textSecondary, size: 22),
+                  title: Text(item.label,
+                      style: TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w600,
+                          color: item.isDestructive ? AppColors.error : AppColors.textPrimary)),
+                  subtitle: item.subtitle.isNotEmpty
+                      ? Text(item.subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))
+                      : null,
+                  trailing: Icon(Icons.chevron_right,
+                      color: item.isDestructive ? AppColors.error : AppColors.textMuted, size: 20),
+                  onTap: item.onTap ?? (item.navigateTo != null
+                      ? () => Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => item.navigateTo!))
+                      : null),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                ),
+                if (!isLast) const Divider(height: 1, indent: 56, endIndent: 16),
+              ],
+            );
+          }).toList(),
+        ),
       ),
     );
   }
