@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../services/scrap_weight_service.dart';
 import '../core/volume_classifier.dart';
-import '../widgets/loading_shimmer.dart';
 
 class SellScrapScreen extends StatefulWidget {
   const SellScrapScreen({super.key});
@@ -11,7 +10,6 @@ class SellScrapScreen extends StatefulWidget {
 
 class _SellScrapScreenState extends State<SellScrapScreen> {
   String _selectedVehicle = 'Tricycle';
-  bool _isAnalyzing = false;
 
   // Hardcoded demo detections (replace with YOLO output later)
   static const _detections = [
@@ -78,7 +76,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(color: AppColors.sellerGreen.withOpacity(0.06), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.sellerGreen.withOpacity(0.15))),
-            child: const Row(children: [
+            child: Row(children: [
               Icon(Icons.local_shipping, size: 18, color: AppColors.sellerGreen),
               SizedBox(width: 8),
               Text('Recommended Vehicle:', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
