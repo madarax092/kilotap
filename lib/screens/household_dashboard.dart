@@ -13,12 +13,28 @@ class HouseholdDashboard extends StatelessWidget {
       backgroundColor: AppColors.canvas,
       appBar: AppBar(automaticallyImplyLeading: false, 
         backgroundColor: AppColors.canvas, elevation: 0,
-        title: const Text('Kumusta, Maria', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
+        title: Row(children: [
+          Container(
+            width: 4, height: 24,
+            decoration: BoxDecoration(
+              color: AppColors.sellerGreen,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Text('Kumusta, Maria', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
+        ]),
         actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 4),
+            width: 1, height: 28,
+            decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(1)),
+          ),
+          const SizedBox(width: 4),
           Container(
             margin: const EdgeInsets.only(right: 16),
             width: 42, height: 42,
-            decoration: const BoxDecoration(color: AppColors.sellerGreen, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: AppColors.sellerGreen, shape: BoxShape.circle, border: Border.all(color: AppColors.sellerGreen.withOpacity(0.3), width: 4)),
             child: const Center(child: Text('MS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700))),
           ),
         ],
