@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../core/theme/app_colors.dart';
 
 class PrePickupChecklist extends StatefulWidget {
   final List<String> detectedClasses;
+  final VoidCallback? onClose;
 
-  const PrePickupChecklist({super.key, required this.detectedClasses});
+  const PrePickupChecklist({super.key, required this.detectedClasses, this.onClose});
 
   @override
   State<PrePickupChecklist> createState() => _PrePickupChecklistState();
@@ -79,6 +81,8 @@ class _PrePickupChecklistState extends State<PrePickupChecklist> {
     return items.toSet().toList();
   }
 
+  int get _checkedCount => _checked.values.where((v) => v).length;
+
   @override
   void initState() {
     super.initState();
@@ -109,6 +113,26 @@ class _PrePickupChecklistState extends State<PrePickupChecklist> {
               'Complete these steps before the collector arrives.',
               style: TextStyle(fontSize: 13, color: Color(0xFF666666)),
             ),
+            const SizedBox(height: 10),
+            // Optional note — aligns with survey finding
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.buyerBlue.withOpacity(0.04),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.buyerBlue.withOpacity(0.1)),
+              ),
+              child: Row(children: [
+                const Icon(Icons.info_outline, color: AppColors.buyerBlue, size: 18),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Optional — your collector can help with segregation on arrival.',
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  ),
+                ),
+              ]),
+            ),
             const SizedBox(height: 12),
             ...items.map((item) {
               return CheckboxListTile(
@@ -128,11 +152,16 @@ class _PrePickupChecklistState extends State<PrePickupChecklist> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _checked.values.every((v) => v) ? () {} : null,
+                onPressed: widget.onClose,
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.sellerGreen,
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                child: const Text('All Done'),
+                child: Text(_checkedCount > 0
+                    ? 'Done ($_checkedCount of ${items.length} checked)'
+                    : 'Close'),
               ),
             ),
           ],
