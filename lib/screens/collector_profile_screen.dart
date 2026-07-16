@@ -59,11 +59,6 @@ class CollectorProfileScreen extends StatelessWidget {
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const DocumentsPage())),
             ),
-            _MenuItem(
-              icon: Icons.badge_outlined,
-              label: 'Digital ID Card',
-              onTap: () => Navigator.pushNamed(context, '/idcard'),
-            ),
           ]),
           const SizedBox(height: 28),
           const Text('Support',
