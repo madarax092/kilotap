@@ -4,6 +4,8 @@ import '../services/auth_service.dart';
 import 'household/personal_info_page.dart';
 import 'household/pickup_prefs_page.dart';
 import 'household/impact_page.dart';
+import 'help_support_screen.dart';
+import 'terms_service_screen.dart';
 
 class HouseholdProfileScreen extends StatelessWidget {
   const HouseholdProfileScreen({super.key});
@@ -16,84 +18,132 @@ class HouseholdProfileScreen extends StatelessWidget {
       body: Column(children: [
         Container(
           width: double.infinity,
-          padding: EdgeInsets.only(top: top + 12, left: 20, right: 20, bottom: 20),
-          decoration: const BoxDecoration(color: AppColors.sellerGreen, borderRadius: BorderRadius.vertical(bottom: Radius.circular(24))),
-          child: const Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text('Profile', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white)),
-            SizedBox(height: 4),
-            Text('Maria Santos · Maa, Davao City', style: TextStyle(fontSize: 13, color: Color(0xFFA5D6A7))),
-          ]),
+          padding:
+              EdgeInsets.only(top: top + 24, left: 24, right: 24, bottom: 20),
+          decoration: const BoxDecoration(
+            color: Color(0xFFF9FAFB),
+            border:
+                Border(bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: const BoxDecoration(
+                    color: Color(0xFFE5E7EB), shape: BoxShape.circle),
+                child: const Center(
+                    child:
+                        Icon(Icons.person, color: Color(0xFF1A85C8), size: 33)),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Maria Santos',
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF111827))),
+                    SizedBox(height: 2),
+                    Text('maria.santos@gmail.com',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF6B7280),
+                            fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-        Expanded(child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-        children: [
-          const Text('Account',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-          const SizedBox(height: 4),
-          const Text('Update your info to keep your account secure',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-          const SizedBox(height: 16),
-          _MenuCard(items: [
-            const _MenuItem(
-              icon: Icons.person_outline,
-              label: 'Personal Info',
-              pageBuilder: HouseholdPersonalInfoPage.new,
-            ),
-            const _MenuItem(
-              icon: Icons.schedule_outlined,
-              label: 'Pickup Preferences',
-              pageBuilder: PickupPrefsPage.new,
-            ),
-            const _MenuItem(
-              icon: Icons.eco_outlined,
-              label: 'Recycling Impact',
-              pageBuilder: ImpactPage.new,
-            ),
-          ]),
-          const SizedBox(height: 28),
-          const Text('Support',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-          const SizedBox(height: 4),
-          const Text('Help resources and account actions',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-          const SizedBox(height: 16),
-          _MenuCard(items: [
-            const _MenuItem(
-              icon: Icons.help_outline,
-              label: 'Help & Support',
-              subtitle: 'FAQs and contact',
-            ),
-            const _MenuItem(
-              icon: Icons.description_outlined,
-              label: 'Terms of Service',
-              subtitle: 'View our terms',
-            ),
-            _MenuItem(
-              icon: Icons.logout,
-              label: 'Log Out',
-              isDestructive: true,
-              onTap: () => HouseholdProfileScreen.confirmLogout(context),
-            ),
-          ]),
-          const SizedBox(height: 40),
-        ],
-      ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            children: [
+              const Text('Account',
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary)),
+              const SizedBox(height: 4),
+              const Text('Update your information to keep your account secure',
+                  style:
+                      TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              const SizedBox(height: 16),
+              _MenuCard(items: [
+                const _MenuItem(
+                  icon: Icons.person_outline,
+                  label: 'Personal Information',
+                  pageBuilder: HouseholdPersonalInfoPage.new,
+                ),
+                const _MenuItem(
+                  icon: Icons.schedule_outlined,
+                  label: 'Pickup Preferences',
+                  pageBuilder: PickupPrefsPage.new,
+                ),
+                const _MenuItem(
+                  icon: Icons.eco_outlined,
+                  label: 'Recycling Impact',
+                  pageBuilder: ImpactPage.new,
+                ),
+              ]),
+              const SizedBox(height: 28),
+              const Text('Support',
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary)),
+              const SizedBox(height: 4),
+              const Text('Help resources and account actions',
+                  style:
+                      TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              const SizedBox(height: 16),
+              _MenuCard(items: [
+                const _MenuItem(
+                  icon: Icons.help_outline,
+                  label: 'Help & Support',
+                  subtitle: 'FAQs and contact',
+                  pageBuilder: HelpSupportScreen.new,
+                ),
+                const _MenuItem(
+                  icon: Icons.description_outlined,
+                  label: 'Terms of Service',
+                  subtitle: 'View our terms',
+                  pageBuilder: TermsServiceScreen.new,
+                ),
+                _MenuItem(
+                  icon: Icons.logout,
+                  label: 'Log Out',
+                  isDestructive: true,
+                  onTap: () => HouseholdProfileScreen.confirmLogout(context),
+                ),
+              ]),
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ]),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
-          boxShadow: [BoxShadow(color: Color(0x06000000), blurRadius: 8, offset: Offset(0, -1))],
+          boxShadow: [
+            BoxShadow(
+                color: Color(0x06000000), blurRadius: 8, offset: Offset(0, -2))
+          ],
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(vertical: 0),
             child: BottomNavigationBar(
-              currentIndex: 3,
+              currentIndex: 4,
               onTap: (i) {
-                if (i == 0) Navigator.pushReplacementNamed(context, '/household');
-                if (i == 1) Navigator.pushNamed(context, '/sell');
-                if (i == 2) Navigator.pushNamed(context, '/pickups');
+                if (i == 0)
+                  Navigator.pushReplacementNamed(context, '/household');
+                if (i == 1) Navigator.pushReplacementNamed(context, '/sell');
+                if (i == 2) Navigator.pushReplacementNamed(context, '/pickups');
+                if (i == 3) Navigator.pushReplacementNamed(context, '/chat');
               },
               selectedItemColor: AppColors.sellerGreen,
               unselectedItemColor: const Color(0xFFBBBBBB),
@@ -101,10 +151,17 @@ class HouseholdProfileScreen extends StatelessWidget {
               elevation: 0,
               type: BottomNavigationBarType.fixed,
               items: const [
-                BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-                BottomNavigationBarItem(icon: Icon(Icons.camera_alt_outlined), label: 'Sell'),
-                BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Pickups'),
-                BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.home_rounded), label: 'Home'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.camera_alt_outlined), label: 'Sell'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.receipt_long_rounded), label: 'Pickups'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.chat_bubble_outline_rounded),
+                    label: 'Messages'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.person_outline_rounded), label: 'Profile'),
               ],
             ),
           ),
@@ -117,19 +174,29 @@ class HouseholdProfileScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Log Out'),
-        content: const Text('Are you sure you want to log out?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Log Out', style: TextStyle(fontWeight: FontWeight.w800)),
+        content: const Text('Are you sure you want to log out?', style: TextStyle(color: Color(0xFF4B5563))),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF6B7280)))
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+            ),
             onPressed: () {
               AuthService.instance.signOut();
               Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false);
             },
-            child: const Text('Log Out', style: TextStyle(color: AppColors.error)),
+            child: const Text('Log Out', style: TextStyle(fontWeight: FontWeight.w700))
           ),
         ],
-      ),
+      )
     );
   }
 }
@@ -159,8 +226,11 @@ class _MenuCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFFF5F5F5),
-      borderRadius: BorderRadius.circular(14),
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
+      ),
       child: Column(
         children: items.asMap().entries.map((e) {
           final item = e.value;
@@ -169,19 +239,33 @@ class _MenuCard extends StatelessWidget {
             children: [
               ListTile(
                 leading: Icon(item.icon,
-                    color: item.isDestructive ? AppColors.error : AppColors.textSecondary, size: 22),
+                    color: item.isDestructive
+                        ? AppColors.error
+                        : AppColors.textSecondary,
+                    size: 22),
                 title: Text(item.label,
                     style: TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w600,
-                        color: item.isDestructive ? AppColors.error : AppColors.textPrimary)),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: item.isDestructive
+                            ? AppColors.error
+                            : AppColors.textPrimary)),
                 subtitle: item.subtitle.isNotEmpty
-                    ? Text(item.subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))
+                    ? Text(item.subtitle,
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.textSecondary))
                     : null,
-                trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 20),
-                onTap: item.onTap ?? (item.pageBuilder != null
-                    ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => item.pageBuilder!()))
-                    : null),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                trailing: const Icon(Icons.chevron_right,
+                    color: AppColors.textMuted, size: 20),
+                onTap: item.onTap ??
+                    (item.pageBuilder != null
+                        ? () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => item.pageBuilder!()))
+                        : null),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
               ),
               if (!isLast) const Divider(height: 1, indent: 56, endIndent: 16),
             ],

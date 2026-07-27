@@ -20,8 +20,21 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
-      appBar: AppBar(automaticallyImplyLeading: false, backgroundColor: AppColors.canvas, elevation: 0, title: const Text('My KiloTap ID', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800))),
+      backgroundColor: const Color(0xFFF9FAFB),
+      appBar: AppBar(
+        automaticallyImplyLeading: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text('My Digital ID Card', style: TextStyle(color: Color(0xFF111827), fontWeight: FontWeight.w800, fontSize: 16)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.5),
+          child: Container(color: const Color(0xFFE5E7EB), height: 1.5),
+        ),
+      ),
       body: ListView(padding: const EdgeInsets.symmetric(horizontal: 28), children: [
         const SizedBox(height: 8),
         // ID Card — with 3D transform
@@ -95,26 +108,6 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
         ]),
         const SizedBox(height: 30),
       ]),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 2,
-        selectedItemColor: AppColors.buyerBlue,
-        unselectedItemColor: AppColors.textMuted,
-        backgroundColor: AppColors.canvas,
-        type: BottomNavigationBarType.fixed,
-        onTap: (i) {
-          if (i == 0) Navigator.pushReplacementNamed(context, '/collector');
-          if (i == 1) Navigator.pushNamed(context, '/find');
-          if (i == 3) Navigator.pushNamed(context, '/earnings');
-          if (i == 4) Navigator.pushNamed(context, '/collector_profile');
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Find'),
-          BottomNavigationBarItem(icon: Icon(Icons.credit_card), label: 'ID'),
-          BottomNavigationBarItem(icon: Icon(Icons.payments), label: 'Earn'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-      ),
     );
   }
 }
@@ -124,11 +117,11 @@ class _ModeButton extends StatelessWidget {
   const _ModeButton({required this.label, required this.active, required this.onTap});
   @override Widget build(BuildContext context) => Expanded(child: GestureDetector(
     onTap: onTap,
-    child: Container(padding: const EdgeInsets.symmetric(vertical: 10), decoration: BoxDecoration(color: active ? AppColors.buyerBlue : AppColors.inputGrey, borderRadius: BorderRadius.circular(10)), child: Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: active ? Colors.white : AppColors.textSecondary))),
+    child: Container(padding: const EdgeInsets.symmetric(vertical: 12), decoration: BoxDecoration(color: active ? AppColors.buyerBlue : Colors.white, border: Border.all(color: active ? AppColors.buyerBlue : const Color(0xFFE5E7EB), width: 1.5), borderRadius: BorderRadius.circular(12)), child: Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: active ? Colors.white : const Color(0xFF6B7280)))),
   ));
 }
 
-class _SectionTitle extends StatelessWidget { final String text; const _SectionTitle(this.text); @override Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(text, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1))); }
-class _VerifyItem extends StatelessWidget { final String label; final bool ok; const _VerifyItem(this.label, this.ok); @override Widget build(BuildContext context) => Container(margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider)), child: Row(children: [Container(width: 20, height: 20, decoration: const BoxDecoration(color: AppColors.success, shape: BoxShape.circle), child: const Center(child: Icon(Icons.check, size: 12, color: Colors.white))), const SizedBox(width: 8), Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary))), const Text('Verified', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.success))])); }
-class _ShowToItem extends StatelessWidget { final String text; const _ShowToItem(this.text); @override Widget build(BuildContext context) => Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(children: [Container(width: 6, height: 6, decoration: const BoxDecoration(color: AppColors.buyerBlue, shape: BoxShape.circle)), const SizedBox(width: 8), Text(text, style: const TextStyle(fontSize: 12, color: AppColors.textPrimary))])); }
-class _ActionBtn extends StatelessWidget { final String label; final Color bg, fg; final VoidCallback onTap; const _ActionBtn(this.label, this.bg, this.fg, this.onTap); @override Widget build(BuildContext context) => ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: bg, foregroundColor: fg, padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), side: bg == Colors.transparent ? const BorderSide(color: AppColors.divider) : null), onPressed: onTap, child: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700))); }
+class _SectionTitle extends StatelessWidget { final String text; const _SectionTitle(this.text); @override Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(bottom: 12), child: Text(text, style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280), fontWeight: FontWeight.w800, letterSpacing: 1.5))); }
+class _VerifyItem extends StatelessWidget { final String label; final bool ok; const _VerifyItem(this.label, this.ok); @override Widget build(BuildContext context) => Container(margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5)), child: Row(children: [Container(width: 24, height: 24, decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), shape: BoxShape.circle), child: const Center(child: Icon(Icons.check_circle, size: 16, color: AppColors.success))), const SizedBox(width: 12), Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Color(0xFF111827)))), const Text('Verified', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.success))])); }
+class _ShowToItem extends StatelessWidget { final String text; const _ShowToItem(this.text); @override Widget build(BuildContext context) => Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: Row(children: [Container(width: 6, height: 6, decoration: const BoxDecoration(color: AppColors.buyerBlue, shape: BoxShape.circle)), const SizedBox(width: 12), Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF4B5563)))])); }
+class _ActionBtn extends StatelessWidget { final String label; final Color bg, fg; final VoidCallback onTap; const _ActionBtn(this.label, this.bg, this.fg, this.onTap); @override Widget build(BuildContext context) => ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: bg, foregroundColor: fg, elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), side: bg == Colors.transparent ? const BorderSide(color: Color(0xFFE5E7EB), width: 1.5) : BorderSide.none), onPressed: onTap, child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.5))); }

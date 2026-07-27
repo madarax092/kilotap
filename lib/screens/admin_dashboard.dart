@@ -5,79 +5,287 @@ import '../services/auth_service.dart';
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
 
-  @override Widget build(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
+    final top = MediaQuery.of(context).padding.top;
     return Scaffold(
-      backgroundColor: AppColors.canvas,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: AppColors.canvas,
-        elevation: 0,
-        title: const Text('Admin Panel', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
-        actions: [
-          IconButton(icon: const Icon(Icons.logout, size: 20, color: AppColors.textSecondary), tooltip: 'Log Out', onPressed: () => _confirmLogout(context)),
-          const SizedBox(width: 4),
-          Container(margin: const EdgeInsets.only(right: 16), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: AppColors.adminRed.withOpacity(0.08), borderRadius: BorderRadius.circular(8)), child: const Text('ADMIN', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.adminRed, letterSpacing: 1))),
+      backgroundColor: const Color(0xFFF9FAFB),
+      body: Column(
+        children: [
+          // Header Section
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.only(top: top + 16, left: 24, right: 24, bottom: 16),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1.5)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Admin Panel',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF111827)
+                  )
+                ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.adminRed.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(8)
+                      ),
+                      child: const Text(
+                        'SUPER ADMIN',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.adminRed,
+                          letterSpacing: 1
+                        )
+                      )
+                    ),
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: () => _confirmLogout(context),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F4F6),
+                          borderRadius: BorderRadius.circular(12)
+                        ),
+                        child: const Icon(
+                          Icons.logout_rounded,
+                          color: Color(0xFF4B5563),
+                          size: 18
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              children: [
+                // Stat cards Row 1
+                Row(
+                  children: [
+                    _Stat(
+                      val: '342',
+                      label: 'Total Users',
+                      color: const Color(0xFF111827),
+                      icon: Icons.people_outline,
+                      onTap: () => Navigator.pushNamed(context, '/users')
+                    ),
+                    const SizedBox(width: 12),
+                    _Stat(
+                      val: '18',
+                      label: 'Active Pickups',
+                      color: const Color(0xFF111827),
+                      icon: Icons.local_shipping_outlined,
+                    ),
+                  ]
+                ),
+                const SizedBox(height: 12),
+                
+                // Stat cards Row 2
+                Row(
+                  children: [
+                    _Stat(
+                      val: '47',
+                      label: 'Pickups Today',
+                      color: const Color(0xFF111827),
+                      icon: Icons.today_outlined,
+                    ),
+                    const SizedBox(width: 12),
+                    _Stat(
+                      val: '5',
+                      label: 'Pending Verify',
+                      color: AppColors.adminRed,
+                      icon: Icons.verified_user_outlined,
+                      onTap: () => Navigator.pushNamed(context, '/verify')
+                    ),
+                  ]
+                ),
+                
+                const SizedBox(height: 32),
+                
+                // Last 7 Days Analytics
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+                    boxShadow: const [BoxShadow(color: Color(0x06000000), blurRadius: 10, offset: Offset(0, 4))]
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'LAST 7 DAYS',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF6B7280),
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2
+                        )
+                      ),
+                      const SizedBox(height: 20),
+                      const _Bar('Pickups', 47, 50, '47/day', AppColors.buyerBlue),
+                      const _Bar('New Users', 12, 30, '12/day', AppColors.buyerBlue),
+                      const _Bar('Reports', 3, 20, '3/week', AppColors.buyerBlue),
+                      const _Bar('Avg Rating', 4.6, 5.0, '4.6 ★', AppColors.star),
+                    ]
+                  )
+                ),
+                
+                const SizedBox(height: 32),
+                
+                // Pending Verifications
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+                    boxShadow: const [BoxShadow(color: Color(0x06000000), blurRadius: 10, offset: Offset(0, 4))]
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Text(
+                            'PENDING VERIFICATIONS',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF6B7280),
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.2
+                            )
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: const BoxDecoration(
+                              color: AppColors.adminRed,
+                              shape: BoxShape.circle
+                            ),
+                            child: const Text(
+                              '5',
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white)
+                            )
+                          ),
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () => Navigator.pushNamed(context, '/verify'),
+                            child: const Text(
+                              'View all →',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.buyerBlue)
+                            )
+                          )
+                        ]
+                      ),
+                      const SizedBox(height: 20),
+                      const _VerifyCard('Pedro Reyes', 'Tricycle · Barangay Maa', '2h ago'),
+                      const Divider(height: 24, color: Color(0xFFF3F4F6)),
+                      const _VerifyCard('Ana Lopez', 'Kariton · Barangay Ecoland', '5h ago'),
+                    ]
+                  )
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // User Complaints
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+                    boxShadow: const [BoxShadow(color: Color(0x06000000), blurRadius: 10, offset: Offset(0, 4))]
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'USER COMPLAINTS',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF6B7280),
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.2
+                            )
+                          ),
+                          GestureDetector(
+                            onTap: () => Navigator.pushNamed(context, '/reports'),
+                            child: const Text(
+                              'View all →',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.buyerBlue)
+                            )
+                          )
+                        ]
+                      ),
+                      const SizedBox(height: 20),
+                      const _ReportCard('#RPT-0018', 'Investigate', AppColors.warning, 'Collector no-show for #PKP-0035', 'Maria S. · June 29'),
+                      const Divider(height: 24, color: Color(0xFFF3F4F6)),
+                      const _ReportCard('#RPT-0017', 'Resolved', AppColors.success, 'Wrong items collected', 'Jose R. · June 28'),
+                    ]
+                  )
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Transaction Monitoring
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+                    boxShadow: const [BoxShadow(color: Color(0x06000000), blurRadius: 10, offset: Offset(0, 4))]
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text(
+                        'TRANSACTION MONITORING',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF6B7280),
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2
+                        )
+                      ),
+                      SizedBox(height: 20),
+                      _Audit('admin@kilotap', 'verify_collector', 'Pedro Reyes', 'pending → verified', '2h ago'),
+                      Divider(height: 24, color: Color(0xFFF3F4F6)),
+                      _Audit('admin@kilotap', 'resolve_dispute', '#RPT-0017', 'investigate → resolved', '1d ago'),
+                      Divider(height: 24, color: Color(0xFFF3F4F6)),
+                      _Audit('system', 'suspend_user', 'User #A3X92', 'active → suspended', '2d ago'),
+                    ]
+                  )
+                ),
+                
+                const SizedBox(height: 40),
+              ]
+            ),
+          ),
         ],
       ),
-      body: ListView(padding: const EdgeInsets.symmetric(horizontal: 20), children: [
-        const SizedBox(height: 12),
-        // Stat cards
-        Row(children: [
-          _Stat('342', 'Total Users', AppColors.textPrimary, onTap: () => Navigator.pushNamed(context, '/users')),
-          const SizedBox(width: 10),
-          _Stat('18', 'Active Pickups', AppColors.textPrimary),
-        ]),
-        const SizedBox(height: 10),
-        Row(children: [
-          _Stat('47', 'Today', AppColors.textPrimary),
-          const SizedBox(width: 10),
-          _Stat('5', 'Pending Verify', AppColors.adminRed, onTap: () => Navigator.pushNamed(context, '/verify')),
-        ]),
-        const SizedBox(height: 20),
-        // Last 7 Days
-        Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('LAST 7 DAYS', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
-          const SizedBox(height: 14),
-          _Bar('Pickups', 47, 50, '47/day', AppColors.buyerBlue),
-          _Bar('New Users', 12, 30, '12/day', AppColors.buyerBlue),
-          _Bar('Reports', 3, 20, '3/week', AppColors.buyerBlue),
-          _Bar('Avg Rating', 4.6, 5.0, '4.6 ★', AppColors.star),
-        ])),
-        const SizedBox(height: 20),
-        // Pending Verifications
-        Row(children: [
-          const Text('PENDING VERIFICATIONS', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
-          const SizedBox(width: 8),
-          Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2), decoration: const BoxDecoration(color: AppColors.adminRed, shape: BoxShape.circle), child: const Text('5', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white))),
-        ]),
-        const SizedBox(height: 10),
-        _VerifyCard('Pedro Reyes', 'Tricycle · Barangay Maa', '2h ago'),
-        _VerifyCard('Ana Lopez', 'Kariton · Barangay Ecoland', '5h ago'),
-        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-          TextButton(onPressed: () => Navigator.pushNamed(context, '/verify'), child: const Text('View all →', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.buyerBlue))),
-        ]),
-        const SizedBox(height: 20),
-        // User Complaints
-        const Text('USER COMPLAINTS', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
-        const SizedBox(height: 10),
-        _ReportCard('#RPT-0018', 'Investigate', AppColors.warning, 'Collector no-show for #PKP-0035', 'Maria S. · June 29'),
-        _ReportCard('#RPT-0017', 'Resolved', AppColors.success, 'Wrong items collected', 'Jose R. · June 28'),
-        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-          TextButton(onPressed: () => Navigator.pushNamed(context, '/reports'), child: const Text('View all →', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.buyerBlue))),
-        ]),
-        const SizedBox(height: 20),
-        // Transaction Monitoring
-        Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('TRANSACTION MONITORING', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
-          const SizedBox(height: 10),
-          _Audit('admin@kilotap', 'verify_collector', 'Pedro Reyes', 'pending → verified', '2h ago'),
-          const Divider(height: 12),
-          _Audit('admin@kilotap', 'resolve_dispute', '#RPT-0017', 'investigate → resolved', '1d ago'),
-          const Divider(height: 12),
-          _Audit('system', 'suspend_user', 'User #A3X92', 'active → suspended', '2d ago'),
-        ])),
-        const SizedBox(height: 30),
-      ]),
     );
   }
 }
@@ -85,62 +293,341 @@ class AdminDashboard extends StatelessWidget {
 class _Stat extends StatelessWidget {
   final String val, label;
   final Color color;
+  final IconData icon;
   final VoidCallback? onTap;
-  const _Stat(this.val, this.label, this.color, {this.onTap});
-  @override Widget build(BuildContext context) => Expanded(child: GestureDetector(onTap: onTap, child: Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(val, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: color)), const SizedBox(height: 2), Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary))]))));
+
+  const _Stat({
+    required this.val,
+    required this.label,
+    required this.color,
+    required this.icon,
+    this.onTap
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+            boxShadow: const [BoxShadow(color: Color(0x06000000), blurRadius: 10, offset: Offset(0, 4))]
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    val,
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      color: color,
+                      height: 1
+                    )
+                  ),
+                  Icon(icon, color: color.withOpacity(0.5), size: 20),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF6B7280),
+                  fontWeight: FontWeight.w600
+                )
+              )
+            ]
+          )
+        )
+      )
+    );
+  }
 }
 
 class _Bar extends StatelessWidget {
   final String label, right;
   final double val, max;
   final Color color;
+  
   const _Bar(this.label, this.val, this.max, this.right, this.color);
-  @override Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(bottom: 10), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textPrimary)), Text(right, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color))]), const SizedBox(height: 4), ClipRRect(borderRadius: BorderRadius.circular(4), child: LinearProgressIndicator(value: val / max, backgroundColor: AppColors.inputGrey, valueColor: AlwaysStoppedAnimation(color), minHeight: 8))]));
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF111827)
+                )
+              ),
+              Text(
+                right,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: color
+                )
+              )
+            ]
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: val / max,
+              backgroundColor: const Color(0xFFF3F4F6),
+              valueColor: AlwaysStoppedAnimation(color),
+              minHeight: 10
+            )
+          )
+        ]
+      )
+    );
+  }
 }
 
 class _VerifyCard extends StatelessWidget {
   final String name, detail, time;
   const _VerifyCard(this.name, this.detail, this.time);
-  @override Widget build(BuildContext context) => Container(margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)), child: Row(children: [
-    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Row(children: [Text(name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.textPrimary)), const Spacer(), Text(time, style: const TextStyle(fontSize: 10, color: AppColors.textMuted))]), Text(detail, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))])),
-    const SizedBox(width: 8),
-    SizedBox(width: 70, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.success, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), onPressed: () {}, child: const Text('APPROVE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700)))),
-    const SizedBox(width: 6),
-    SizedBox(width: 70, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), onPressed: () {}, child: const Text('REJECT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700)))),
-  ]));
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                        color: Color(0xFF111827)
+                      )
+                    ),
+                    const Spacer(),
+                    Text(
+                      time,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF9CA3AF),
+                        fontWeight: FontWeight.w600
+                      )
+                    )
+                  ]
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  detail,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF6B7280)
+                  )
+                )
+              ]
+            )
+          ),
+          const SizedBox(width: 16),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.success,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+            ),
+            onPressed: () {},
+            child: const Icon(Icons.check, size: 18)
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFEF2F2),
+              foregroundColor: AppColors.error,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+            ),
+            onPressed: () {},
+            child: const Icon(Icons.close, size: 18)
+          ),
+        ]
+      )
+    );
+  }
 }
 
 class _ReportCard extends StatelessWidget {
   final String id, status, issue, detail;
   final Color color;
+  
   const _ReportCard(this.id, this.status, this.color, this.issue, this.detail);
-  @override Widget build(BuildContext context) => Container(margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Row(children: [Text(id, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color)), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: color.withOpacity(0.08), borderRadius: BorderRadius.circular(6)), child: Text(status.toUpperCase(), style: TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: color)))]),
-    const SizedBox(height: 4),
-    Text(issue, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-    Text(detail, style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
-  ]));
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                id,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: color
+                )
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(8)
+                ),
+                child: Text(
+                  status.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                    letterSpacing: 0.5
+                  )
+                )
+              )
+            ]
+          ),
+          const SizedBox(height: 12),
+          Text(
+            issue,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF111827)
+            )
+          ),
+          const SizedBox(height: 4),
+          Text(
+            detail,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF6B7280)
+            )
+          ),
+        ]
+      )
+    );
+  }
 }
 
 class _Audit extends StatelessWidget {
   final String admin, action, target, change, time;
+  
   const _Audit(this.admin, this.action, this.target, this.change, this.time);
-  @override Widget build(BuildContext context) => Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(children: [
-    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('$admin · $action', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-      Text('$target: $change', style: const TextStyle(fontSize: 9, color: AppColors.textMuted)),
-    ])),
-    Text(time, style: const TextStyle(fontSize: 9, color: AppColors.textMuted)),
-  ]));
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 2, right: 12),
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD1D5DB),
+              shape: BoxShape.circle
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$admin · $action',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF111827)
+                  )
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$target: $change',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF6B7280)
+                  )
+                ),
+              ]
+            )
+          ),
+          Text(
+            time,
+            style: const TextStyle(
+              fontSize: 11,
+              color: Color(0xFF9CA3AF),
+              fontWeight: FontWeight.w600
+            )
+          ),
+        ]
+      )
+    );
+  }
 }
 
 void _confirmLogout(BuildContext context) {
-  showDialog(context: context, builder: (ctx) => AlertDialog(
-    title: const Text('Log Out'),
-    content: const Text('Are you sure you want to log out?'),
-    actions: [
-      TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-      TextButton(onPressed: () { AuthService.instance.signOut(); Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false); }, child: const Text('Log Out', style: TextStyle(color: AppColors.error))),
-    ],
-  ));
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Text('Log Out', style: TextStyle(fontWeight: FontWeight.w800)),
+      content: const Text('Are you sure you want to log out?', style: TextStyle(color: Color(0xFF4B5563))),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF6B7280)))
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.adminRed,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+          ),
+          onPressed: () {
+            AuthService.instance.signOut();
+            Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false);
+          },
+          child: const Text('Log Out', style: TextStyle(fontWeight: FontWeight.w700))
+        ),
+      ],
+    )
+  );
 }

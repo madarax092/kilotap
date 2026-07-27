@@ -16,6 +16,7 @@ import 'screens/user_management_screen.dart';
 import 'screens/verify_collector_screen.dart';
 import 'screens/reports_screen.dart';
 import 'screens/analytics_screen.dart';
+import 'screens/chat_collector_screen.dart';
 import 'screens/role_picker_screen.dart';
 import 'screens/household_register_screen.dart';
 import 'screens/collector_register_screen.dart';
@@ -36,18 +37,23 @@ class AppRouter {
       case '/register': return _page(const RolePickerScreen());
       case '/register-household': return _page(const HouseholdRegisterScreen());
       case '/register-collector': return _page(const CollectorRegisterScreen());
-      case '/household': return _page(const HouseholdDashboard());
-      case '/collector': return _page(const CollectorDashboard());
+      
+      // Bottom Nav Routes (No animation to prevent Map hanging)
+      case '/household': return _tab(const HouseholdDashboard());
+      case '/collector': return _tab(const CollectorDashboard());
+      case '/sell': return _tab(const SellScrapScreen());
+      case '/pickups': return _tab(const MyPickupsScreen());
+      case '/profile': return _tab(const HouseholdProfileScreen());
+      case '/find': return _tab(const FindScrapScreen());
+      case '/chat_collector': return _tab(const ChatCollectorScreen());
+      case '/earnings': return _tab(const MyEarningsScreen());
+      case '/collector_profile': return _tab(const CollectorProfileScreen());
+      
+      // Standard Routes
       case '/admin': return _page(const AdminDashboard());
-      case '/sell': return _page(const SellScrapScreen());
-      case '/pickups': return _page(const MyPickupsScreen());
-      case '/rate': return _page(const RateCollectorScreen());
-      case '/profile': return _page(const HouseholdProfileScreen());
-      case '/find': return _page(const FindScrapScreen());
       case '/idcard': return _page(const CollectorIDCard());
+      case '/rate': return _page(const RateCollectorScreen());
       case '/route': return _page(const MyRouteScreen());
-      case '/earnings': return _page(const MyEarningsScreen());
-      case '/collector_profile': return _page(const CollectorProfileScreen());
       case '/users': return _page(const UserManagementScreen());
       case '/verify': return _page(const VerifyCollectorScreen());
       case '/reports': return _page(const ReportsScreen());
@@ -56,5 +62,12 @@ class AppRouter {
       default: return _page(const LoginScreen());
     }
   }
+  
   static MaterialPageRoute _page(Widget child) => MaterialPageRoute(builder: (_) => child);
+  
+  static PageRouteBuilder _tab(Widget child) => PageRouteBuilder(
+    pageBuilder: (context, animation, secondaryAnimation) => child,
+    transitionDuration: Duration.zero,
+    reverseTransitionDuration: Duration.zero,
+  );
 }

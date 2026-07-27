@@ -47,6 +47,14 @@ class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
         backgroundColor: Colors.white, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary), onPressed: () => Navigator.pop(context)),
         title: const Text('Register as Collector', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 18)),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(12),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            height: 4,
+            decoration: BoxDecoration(color: const Color(0xFFF3F4F6), borderRadius: BorderRadius.circular(2)),
+          ),
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -77,29 +85,55 @@ class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
   }
 }
 
-class _Field extends StatelessWidget {
+class _Field extends StatefulWidget {
   final String label, hint;
   final TextEditingController? controller;
   final bool obscure;
-  const _Field({required this.label, required this.hint, this.controller, this.obscure = false});
+  final Color focusColor;
+  final String? subLabel;
+  const _Field({required this.label, required this.hint, this.controller, this.obscure = false, this.focusColor = AppColors.buyerBlue, this.subLabel});
+
+  @override State<_Field> createState() => _FieldState();
+}
+
+class _FieldState extends State<_Field> {
+  late bool _obscureText;
+
+  @override void initState() {
+    super.initState();
+    _obscureText = widget.obscure;
+  }
 
   @override Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 20),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 6),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(12)),
-          child: TextField(
-            controller: controller,
-            obscureText: obscure,
-            decoration: InputDecoration.collapsed(hintText: hint, hintStyle: const TextStyle(fontSize: 15, color: Color(0xFFBBBBBB))),
-            style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+        Text(widget.label, style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: widget.controller,
+          obscureText: _obscureText,
+          style: const TextStyle(fontSize: 15, color: AppColors.textPrimary, fontWeight: FontWeight.w400),
+          decoration: InputDecoration(
+            hintText: widget.hint,
+            hintStyle: const TextStyle(fontSize: 15, color: AppColors.textSecondary, fontWeight: FontWeight.w400),
+            filled: true, fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: widget.focusColor, width: 1.5)),
+            suffixIcon: widget.obscure
+                ? IconButton(
+                    icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility, color: AppColors.textSecondary),
+                    onPressed: () => setState(() => _obscureText = !_obscureText),
+                  )
+                : null,
           ),
         ),
+        if (widget.subLabel != null) ...[
+          const SizedBox(height: 6),
+          Text(widget.subLabel!, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+        ]
       ]),
     );
   }

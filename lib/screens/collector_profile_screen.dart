@@ -5,6 +5,8 @@ import 'collector/personal_info_page.dart';
 import 'collector/vehicle_details_page.dart';
 import 'collector/preferences_page.dart';
 import 'collector/documents_page.dart';
+import 'help_support_screen.dart';
+import 'terms_service_screen.dart';
 
 class CollectorProfileScreen extends StatelessWidget {
   const CollectorProfileScreen({super.key});
@@ -17,88 +19,140 @@ class CollectorProfileScreen extends StatelessWidget {
       body: Column(children: [
         Container(
           width: double.infinity,
-          padding: EdgeInsets.only(top: top + 12, left: 20, right: 20, bottom: 20),
-          decoration: const BoxDecoration(color: AppColors.buyerBlue, borderRadius: BorderRadius.vertical(bottom: Radius.circular(24))),
-          child: const Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text('Profile', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white)),
-            SizedBox(height: 4),
-            Text('Juan Dela Cruz · Tricycle Operator', style: TextStyle(fontSize: 13, color: Color(0xFF90CAF9))),
-          ]),
+          padding:
+              EdgeInsets.only(top: top + 24, left: 24, right: 24, bottom: 20),
+          decoration: const BoxDecoration(
+            color: Color(0xFFF9FAFB),
+            border:
+                Border(bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: const BoxDecoration(
+                    color: Color(0xFFE5E7EB), shape: BoxShape.circle),
+                child: const Center(
+                    child:
+                        Icon(Icons.person, color: Color(0xFF1A85C8), size: 33)),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Juan Dela Cruz',
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF111827))),
+                    SizedBox(height: 2),
+                    Text('juan.delacruz@gmail.com',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF6B7280),
+                            fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-        Expanded(child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-        children: [
-          const Text('Account',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-          const SizedBox(height: 4),
-          const Text('Manage your collector profile and vehicle details',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-          const SizedBox(height: 16),
-          _MenuCard(items: [
-            _MenuItem(
-              icon: Icons.person_outline,
-              label: 'Personal Info',
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const CollectorPersonalInfoPage())),
-            ),
-            _MenuItem(
-              icon: Icons.local_shipping_outlined,
-              label: 'Vehicle Details',
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const VehicleDetailsPage())),
-            ),
-            _MenuItem(
-              icon: Icons.category_outlined,
-              label: 'Material Preferences',
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const PreferencesPage())),
-            ),
-            _MenuItem(
-              icon: Icons.verified_outlined,
-              label: 'Verification Documents',
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const DocumentsPage())),
-            ),
-            _MenuItem(
-              icon: Icons.badge_outlined,
-              label: 'Digital ID Card',
-              onTap: () => Navigator.pushNamed(context, '/idcard'),
-            ),
-          ]),
-          const SizedBox(height: 28),
-          const Text('Support',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-          const SizedBox(height: 4),
-          const Text('Help resources and account actions',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-          const SizedBox(height: 16),
-          _MenuCard(items: [
-            const _MenuItem(
-              icon: Icons.help_outline,
-              label: 'Help & Support',
-              subtitle: 'FAQs and contact',
-            ),
-            const _MenuItem(
-              icon: Icons.description_outlined,
-              label: 'Terms of Service',
-              subtitle: 'View our terms',
-            ),
-            _MenuItem(
-              icon: Icons.logout,
-              label: 'Log Out',
-              isDestructive: true,
-              onTap: () => _confirmLogout(context),
-            ),
-          ]),
-          const SizedBox(height: 40),
-        ],
-      ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            children: [
+              const Text('Account',
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary)),
+              const SizedBox(height: 4),
+              const Text('Manage your collector profile and vehicle details',
+                  style:
+                      TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              const SizedBox(height: 16),
+              _MenuCard(items: [
+                _MenuItem(
+                  icon: Icons.person_outline,
+                  label: 'Personal Information',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const CollectorPersonalInfoPage())),
+                ),
+                _MenuItem(
+                  icon: Icons.local_shipping_outlined,
+                  label: 'Vehicle Details',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const VehicleDetailsPage())),
+                ),
+                _MenuItem(
+                  icon: Icons.category_outlined,
+                  label: 'Material Preferences',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const PreferencesPage())),
+                ),
+                _MenuItem(
+                  icon: Icons.verified_outlined,
+                  label: 'Verification Documents',
+                  onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const DocumentsPage())),
+                ),
+                _MenuItem(
+                  icon: Icons.badge_outlined,
+                  label: 'Digital ID Card',
+                  onTap: () => Navigator.pushNamed(context, '/idcard'),
+                ),
+              ]),
+              const SizedBox(height: 28),
+              const Text('Support',
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary)),
+              const SizedBox(height: 4),
+              const Text('Help resources and account actions',
+                  style:
+                      TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              const SizedBox(height: 16),
+              _MenuCard(items: [
+                _MenuItem(
+                  icon: Icons.help_outline,
+                  label: 'Help & Support',
+                  subtitle: 'FAQs and contact',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpSupportScreen(isCollector: true))),
+                ),
+                _MenuItem(
+                  icon: Icons.description_outlined,
+                  label: 'Terms of Service',
+                  subtitle: 'View our terms',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsServiceScreen())),
+                ),
+                _MenuItem(
+                  icon: Icons.logout,
+                  label: 'Log Out',
+                  isDestructive: true,
+                  onTap: () => _confirmLogout(context),
+                ),
+              ]),
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ]),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
-          boxShadow: [BoxShadow(color: Color(0x06000000), blurRadius: 8, offset: Offset(0, -1))],
+          boxShadow: [
+            BoxShadow(
+                color: Color(0x06000000), blurRadius: 8, offset: Offset(0, -1))
+          ],
         ),
         child: SafeArea(
           child: Padding(
@@ -106,10 +160,15 @@ class CollectorProfileScreen extends StatelessWidget {
             child: BottomNavigationBar(
               currentIndex: 4,
               onTap: (i) {
-                if (i == 0) Navigator.pushReplacementNamed(context, '/collector');
-                if (i == 1) Navigator.pushNamed(context, '/find');
-                if (i == 2) Navigator.pushNamed(context, '/idcard');
-                if (i == 3) Navigator.pushNamed(context, '/earnings');
+                if (i == 0)
+                  Navigator.pushReplacementNamed(context, '/collector');
+                if (i == 1) Navigator.pushReplacementNamed(context, '/find');
+                if (i == 2)
+                  Navigator.pushReplacementNamed(context, '/chat_collector');
+                if (i == 3)
+                  Navigator.pushReplacementNamed(context, '/earnings');
+                if (i == 4)
+                  Navigator.pushReplacementNamed(context, '/collector_profile');
               },
               selectedItemColor: AppColors.buyerBlue,
               unselectedItemColor: const Color(0xFFBBBBBB),
@@ -117,11 +176,17 @@ class CollectorProfileScreen extends StatelessWidget {
               elevation: 0,
               type: BottomNavigationBarType.fixed,
               items: const [
-                BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-                BottomNavigationBarItem(icon: Icon(Icons.search_rounded), label: 'Find'),
-                BottomNavigationBarItem(icon: Icon(Icons.badge_rounded), label: 'ID'),
-                BottomNavigationBarItem(icon: Icon(Icons.payments_rounded), label: 'Earn'),
-                BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.home_rounded), label: 'Home'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.search_rounded), label: 'Find'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.chat_bubble_outline_rounded),
+                    label: 'Messages'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.payments_rounded), label: 'Earn'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.person_outline_rounded), label: 'Profile'),
               ],
             ),
           ),
@@ -135,19 +200,29 @@ void _confirmLogout(BuildContext context) {
   showDialog(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text('Log Out'),
-      content: const Text('Are you sure you want to log out?'),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Text('Log Out', style: TextStyle(fontWeight: FontWeight.w800)),
+      content: const Text('Are you sure you want to log out?', style: TextStyle(color: Color(0xFF4B5563))),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
         TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF6B7280)))
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.error,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+          ),
           onPressed: () {
             AuthService.instance.signOut();
             Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false);
           },
-          child: const Text('Log Out', style: TextStyle(color: AppColors.error)),
+          child: const Text('Log Out', style: TextStyle(fontWeight: FontWeight.w700))
         ),
       ],
-    ),
+    )
   );
 }
 
@@ -174,8 +249,11 @@ class _MenuCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFFF5F5F5),
-      borderRadius: BorderRadius.circular(14),
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
+      ),
       child: Column(
         children: items.asMap().entries.map((e) {
           final item = e.value;
@@ -184,17 +262,27 @@ class _MenuCard extends StatelessWidget {
             children: [
               ListTile(
                 leading: Icon(item.icon,
-                    color: item.isDestructive ? AppColors.error : AppColors.textSecondary, size: 22),
+                    color: item.isDestructive
+                        ? AppColors.error
+                        : AppColors.textSecondary,
+                    size: 22),
                 title: Text(item.label,
                     style: TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w600,
-                        color: item.isDestructive ? AppColors.error : AppColors.textPrimary)),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: item.isDestructive
+                            ? AppColors.error
+                            : AppColors.textPrimary)),
                 subtitle: item.subtitle.isNotEmpty
-                    ? Text(item.subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))
+                    ? Text(item.subtitle,
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.textSecondary))
                     : null,
-                trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 20),
+                trailing: const Icon(Icons.chevron_right,
+                    color: AppColors.textMuted, size: 20),
                 onTap: item.onTap,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
               ),
               if (!isLast) const Divider(height: 1, indent: 56, endIndent: 16),
             ],
