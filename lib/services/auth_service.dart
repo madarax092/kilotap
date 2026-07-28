@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'auth_state.dart';
 
+// ─── Auth: Sign In / Sign Up / Sign Out (Tables 7-9) ───
+
 /// Firebase Auth + Firestore — matches ACM Paper Data Dictionary (Tables 7-9)
 class AuthService {
   static final AuthService _instance = AuthService._();
