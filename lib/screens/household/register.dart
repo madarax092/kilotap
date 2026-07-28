@@ -115,7 +115,7 @@ class _FieldState extends State<_Field> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: widget.focusColor, width: 1.5)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.sellerGreen, width: 1.5)),
             suffixIcon: widget.obscure
                 ? IconButton(
                     icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility, color: AppColors.textSecondary),
@@ -124,10 +124,6 @@ class _FieldState extends State<_Field> {
                 : null,
           ),
         ),
-        if (widget.subLabel != null) ...[
-          const SizedBox(height: 6),
-          Text(widget.subLabel!, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-        ]
       ]),
     );
   }
