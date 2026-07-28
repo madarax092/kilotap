@@ -288,11 +288,11 @@ class CollectorDashboard extends StatelessWidget {
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: const [BoxShadow(color: Color(0x06000000), blurRadius: 10, offset: Offset(0, 4))]),
               child: Column(
                 children: const [
-                  _ActivityItem(color: Colors.orange, title: 'Cardboard & Paper', area: 'Matina', date: 'Today, 10:30 AM', amount: '+₱120.00'),
+                  _ActivityItem(color: Colors.orange, title: 'Cardboard & Paper', area: 'Matina', date: 'Today, 10:30 AM', amount: '5.2 kg'),
                   Divider(height: 24, color: Color(0xFFF3F4F6)),
-                  _ActivityItem(color: Colors.blue, title: 'Mixed Plastics', area: 'Buhangin', date: 'Yesterday, 3:15 PM', amount: '+₱85.00'),
+                  _ActivityItem(color: Colors.blue, title: 'Mixed Plastics', area: 'Buhangin', date: 'Yesterday, 3:15 PM', amount: '3.8 kg'),
                   Divider(height: 24, color: Color(0xFFF3F4F6)),
-                  _ActivityItem(color: Colors.grey, title: 'Scrap Metal', area: 'Maa', date: 'Jul 25, 9:00 AM', amount: '+₱450.00'),
+                  _ActivityItem(color: Colors.grey, title: 'Scrap Metal', area: 'Maa', date: 'Jul 25, 9:00 AM', amount: '22.5 kg'),
                 ],
               ),
             ),

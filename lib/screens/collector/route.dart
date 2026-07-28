@@ -21,7 +21,7 @@ class MyRouteScreen extends StatelessWidget {
       Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)), child: Column(children: [
         Row(children: [_Sum('4.7 km', 'Distance'), _Sum('2.5 hrs', 'Est. Time')]),
         const SizedBox(height: 10),
-        Row(children: [_Sum('~30 kg', 'Total Load', accent: true), _Sum('₱85', 'Est. Fuel')]),
+        Row(children: const [_Sum('~30 kg', 'Total Load', accent: true)]),
       ])),
       const SizedBox(height: 16),
       // Stops
