@@ -130,10 +130,13 @@ class _HousingTypeDropdownState extends State<_HousingTypeDropdown> {
           const SizedBox(width: 12),
           const Text('Housing Type', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF4B5563))),
           const Spacer(),
-          DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _housingType,
-              isDense: true,
+          SizedBox(
+            width: 200,
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _housingType,
+                isDense: true,
+                isExpanded: true,
               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
               icon: const Icon(Icons.expand_more, color: Color(0xFF6B7280)),
               items: const [
@@ -146,6 +149,7 @@ class _HousingTypeDropdownState extends State<_HousingTypeDropdown> {
               ],
               onChanged: (v) => setState(() => _housingType = v!),
             ),
+          ),
           ),
         ],
       ),
