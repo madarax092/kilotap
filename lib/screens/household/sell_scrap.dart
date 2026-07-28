@@ -3,8 +3,8 @@ import '../../core/theme/app_colors.dart';
 import '../../services/scrap_weight_service.dart';
 import '../../core/volume_classifier.dart';
 import '../../models/booking_item.dart';
-import 'household/booking_summary.dart';
-import 'camera_prototype_screen.dart';
+import 'booking_summary.dart';
+import '../camera_prototype_screen.dart';
 
 class SellScrapScreen extends StatefulWidget {
   const SellScrapScreen({super.key});

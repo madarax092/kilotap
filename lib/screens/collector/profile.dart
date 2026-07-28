@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth_service.dart';
-import 'collector/personal_info_page.dart';
-import 'collector/vehicle_details_page.dart';
-import 'collector/preferences_page.dart';
-import 'collector/documents_page.dart';
-import 'help_support_screen.dart';
-import 'terms_service_screen.dart';
+import 'personal_info_page.dart';
+import 'vehicle_details_page.dart';
+import 'preferences_page.dart';
+import 'documents_page.dart';
+import '../help_support_screen.dart';
+import '../terms_service_screen.dart';
 
 class CollectorProfileScreen extends StatelessWidget {
   const CollectorProfileScreen({super.key});

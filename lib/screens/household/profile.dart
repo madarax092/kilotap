@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth_service.dart';
-import 'household/personal_info_page.dart';
-import 'household/pickup_prefs_page.dart';
-import 'household/impact_page.dart';
-import 'help_support_screen.dart';
-import 'terms_service_screen.dart';
+import 'personal_info_page.dart';
+import 'pickup_prefs_page.dart';
+import 'impact_page.dart';
+import '../help_support_screen.dart';
+import '../terms_service_screen.dart';
 
 class HouseholdProfileScreen extends StatelessWidget {
   const HouseholdProfileScreen({super.key});
