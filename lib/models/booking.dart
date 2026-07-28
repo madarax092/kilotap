@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// ─── Table 10: Booking ───
+
 /// Table 9: Booking
 class Booking {
   final String bookingId;

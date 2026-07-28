@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../services/auth_service.dart';
 
+// ─── Login Screen ───
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
   @override

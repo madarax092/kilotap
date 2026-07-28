@@ -1,4 +1,4 @@
-/// Table 11: BookingItem (subcollection of Booking)
+// ─── Table 11: BookingItem (subcollection of Booking) ───
 class BookingItem {
   final String itemId;
   final String bookingId;
@@ -13,18 +13,18 @@ class BookingItem {
     required this.bookingId,
     required this.itemName,
     this.quantity = 1,
-    this.sizeClass = 'Small',
-    this.estimatedWeightKg = 0.0,
-    this.scrapClass = '',
+    required this.sizeClass,
+    required this.estimatedWeightKg,
+    required this.scrapClass,
   });
 
-  factory BookingItem.fromMap(String id, Map<String, dynamic> m) => BookingItem(
-    itemId: m['Item_ID'] ?? id,
+  factory BookingItem.fromMap(Map<String, dynamic> m) => BookingItem(
+    itemId: m['Item_ID'] ?? '',
     bookingId: m['Booking_ID'] ?? '',
     itemName: m['ItemName'] ?? '',
     quantity: m['Quantity'] ?? 1,
     sizeClass: m['SizeClass'] ?? 'Small',
-    estimatedWeightKg: (m['EstimatedWeightKg'] ?? 0).toDouble(),
+    estimatedWeightKg: (m['EstimatedWeightKg'] ?? 0.0).toDouble(),
     scrapClass: m['ScrapClass'] ?? '',
   );
 }

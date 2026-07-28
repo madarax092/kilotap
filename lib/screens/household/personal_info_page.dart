@@ -44,6 +44,9 @@ class _HouseholdPersonalInfoPageState extends State<HouseholdPersonalInfoPage> {
               label: 'Address',
               value: 'Block 5, Lot 12, Barangay Maa, Davao City', focusColor: AppColors.sellerGreen),
           const SizedBox(height: 8),
+          // Housing Type dropdown
+          const _HousingTypeDropdown(),
+          const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
@@ -94,6 +97,58 @@ class _HouseholdPersonalInfoPageState extends State<HouseholdPersonalInfoPage> {
               child: const Text('SAVE CHANGES',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HousingTypeDropdown extends StatefulWidget {
+  const _HousingTypeDropdown();
+
+  @override
+  State<_HousingTypeDropdown> createState() => _HousingTypeDropdownState();
+}
+
+class _HousingTypeDropdownState extends State<_HousingTypeDropdown> {
+  String _housingType = 'Single-Detached House';
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.home_outlined, color: Color(0xFF9CA3AF), size: 22),
+          const SizedBox(width: 12),
+          const Text('Housing Type', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF4B5563))),
+          const Spacer(),
+          SizedBox(
+            width: 200,
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _housingType,
+                isDense: true,
+                isExpanded: true,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+              icon: const Icon(Icons.expand_more, color: Color(0xFF6B7280)),
+              items: const [
+                DropdownMenuItem(value: 'Apartment', child: Text('Apartment')),
+                DropdownMenuItem(value: 'Boarding House / Dormitory', child: Text('Boarding House / Dormitory')),
+                DropdownMenuItem(value: 'Duplex', child: Text('Duplex')),
+                DropdownMenuItem(value: 'Single-Attached House', child: Text('Single-Attached House')),
+                DropdownMenuItem(value: 'Single-Detached House', child: Text('Single-Detached House')),
+                DropdownMenuItem(value: 'Townhouse / Rowhouse', child: Text('Townhouse / Rowhouse')),
+              ],
+              onChanged: (v) => setState(() => _housingType = v!),
+            ),
+          ),
           ),
         ],
       ),

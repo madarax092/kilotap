@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 
+// ─── Role Selection Screen ───
+
 class RolePickerScreen extends StatelessWidget {
   const RolePickerScreen({super.key});
 

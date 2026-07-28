@@ -64,15 +64,15 @@ class _DocCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      decoration: BoxDecoration(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
-      ),
-      child: ListTile(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
+        ),
+        child: ListTile(
         leading: Container(
           width: 32, height: 32,
           decoration: BoxDecoration(
@@ -89,6 +89,6 @@ class _DocCard extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16),
         onTap: () {},
       ),
-    );
+    ));
   }
 }
