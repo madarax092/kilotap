@@ -65,7 +65,7 @@ class FirestoreService {
       .collection(AppConstants.colBookingItems)
       .where('Booking_ID', isEqualTo: bookingId)
       .snapshots()
-      .map((s) => s.docs.map((d) => BookingItem.fromMap(d.id, d.data())).toList());
+      .map((s) => s.docs.map((d) => BookingItem.fromMap(d.data())).toList());
 
   // ─── Ratings (Table 11) ────────────────────────────────────────
 
