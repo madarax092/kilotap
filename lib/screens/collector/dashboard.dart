@@ -400,7 +400,7 @@ class _BottomNav extends StatelessWidget {
             BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'), 
             BottomNavigationBarItem(icon: Icon(Icons.search_rounded), label: 'Find'), 
             BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline_rounded), label: 'Messages'), 
-            BottomNavigationBarItem(icon: Icon(Icons.payments_rounded), label: 'Earn'),
+            BottomNavigationBarItem(icon: Icon(Icons.scale_rounded, size: 22), label: 'Collections'),
             BottomNavigationBarItem(icon: Icon(Icons.person_outline_rounded), label: 'Profile')
           ],
         ),
