@@ -3,7 +3,6 @@ import '../../core/theme/app_colors.dart';
 import '../../services/auth_state.dart';
 import '../chat_households_screen.dart';
 import 'documents_page.dart';
-import '../../widgets/collector_bottom_nav.dart';
 
 class CollectorDashboard extends StatelessWidget {
   const CollectorDashboard({super.key});
@@ -302,10 +301,7 @@ class CollectorDashboard extends StatelessWidget {
           const SizedBox(height: 30),
         ],
       ),
-      bottomNavigationBar: const CollectorBottomNav(
-          currentIndex: 0,
-          onTap: _navTap,
-        ),
+      bottomNavigationBar: const _BottomNav(current: 0),
     );
   }
 }
