@@ -151,7 +151,7 @@ class CollectorProfileScreen extends StatelessWidget {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-                color: Color(0x06000000), blurRadius: 8, offset: Offset(0, -1))
+                color: Color(0x06000000), blurRadius: 8, offset: Offset(0, -2))
           ],
         ),
         child: SafeArea(
