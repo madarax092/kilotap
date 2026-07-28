@@ -43,14 +43,13 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
               style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
           const SizedBox(height: 24),
           // Vehicle type
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
-            ),
-            child: ListTile(
+          Material(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
+        ),
+        child: ListTile(
               leading: const Icon(Icons.local_shipping_outlined, color: Color(0xFF9CA3AF), size: 22),
               title: const Text('Vehicle Type', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
               trailing: SizedBox(
@@ -73,14 +72,13 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
           ),
           const SizedBox(height: 12),
           // Capacity
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
-            ),
-            child: ListTile(
+          Material(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
+        ),
+        child: ListTile(
               leading: const Icon(Icons.scale_outlined, color: Color(0xFF9CA3AF), size: 22),
               title: const Text('Max Capacity (kg)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
               trailing: SizedBox(
