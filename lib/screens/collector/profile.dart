@@ -156,7 +156,7 @@ class CollectorProfileScreen extends StatelessWidget {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(vertical: 0),
             child: BottomNavigationBar(
               currentIndex: 4,
               onTap: (i) {
