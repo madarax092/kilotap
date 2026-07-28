@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import 'chat_households_screen.dart';
+import '../widgets/collector_bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )ttom_nav.dart';
 
 class ChatCollectorScreen extends StatelessWidget {
   const ChatCollectorScreen({super.key});
@@ -10,17 +14,29 @@ class ChatCollectorScreen extends StatelessWidget {
     final top = MediaQuery.of(context).padding.top;
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
-      body: Column(
+      bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )dy: Column(
         children: [
           // Header
           Container(
             width: double.infinity,
             padding:
-                EdgeInsets.only(top: top + 16, left: 24, right: 24, bottom: 16),
+                EdgeInsets.only(top: top + 16, left: 24, right: 24, bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )ttom: 16),
             decoration: const BoxDecoration(
               color: Colors.white,
-              border: Border(
-                  bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
+              bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )rder: Border(
+                  bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )ttom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,7 +54,10 @@ class ChatCollectorScreen extends StatelessWidget {
                       height: 40,
                       decoration: BoxDecoration(
                           color: const Color(0xFFF3F4F6),
-                          borderRadius: BorderRadius.circular(12)),
+                          bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )rderRadius: BorderRadius.circular(12)),
                       child: const Icon(Icons.chat_bubble_outline,
                           color: Color(0xFF6B7280), size: 20),
                     ),
@@ -61,7 +80,10 @@ class ChatCollectorScreen extends StatelessWidget {
                   time: 'Just now',
                   unread: 2,
                   initials: 'AL',
-                  bookingId: '#PKP-0042',
+                  bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )okingId: '#PKP-0042',
                 ),
                 _ChatPreviewCard(
                   name: 'Roberto Cruz',
@@ -69,7 +91,10 @@ class ChatCollectorScreen extends StatelessWidget {
                   time: '2 hours ago',
                   unread: 0,
                   initials: 'RC',
-                  bookingId: '#PKP-0041',
+                  bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )okingId: '#PKP-0041',
                 ),
                 _ChatPreviewCard(
                   name: 'Elena Gomez',
@@ -77,15 +102,24 @@ class ChatCollectorScreen extends StatelessWidget {
                   time: 'Jun 28',
                   unread: 0,
                   initials: 'EG',
-                  bookingId: '#PKP-0040',
+                  bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )okingId: '#PKP-0040',
                 ),
               ],
             ),
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-          decoration: const BoxDecoration(color: Colors.white, boxShadow: [
+      bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )ttomNavigationBar: Container(
+          decoration: const BoxDecoration(color: Colors.white, bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )xShadow: [
             BoxShadow(
                 color: Color(0x06000000), blurRadius: 8, offset: Offset(0, -2))
           ]),
@@ -123,7 +157,10 @@ class ChatCollectorScreen extends StatelessWidget {
 }
 
 class _ChatPreviewCard extends StatelessWidget {
-  final String name, message, time, initials, bookingId;
+  final String name, message, time, initials, bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )okingId;
   final int unread;
   const _ChatPreviewCard(
       {required this.name,
@@ -131,7 +168,10 @@ class _ChatPreviewCard extends StatelessWidget {
       required this.time,
       required this.initials,
       required this.unread,
-      required this.bookingId});
+      required this.bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )okingId});
 
   @override
   Widget build(BuildContext context) {
@@ -140,18 +180,36 @@ class _ChatPreviewCard extends StatelessWidget {
           context,
           MaterialPageRoute(
               builder: (context) => ChatHouseholdsScreen(
-                  householdName: name, bookingId: bookingId))),
+                  householdName: name, bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )okingId: bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )okingId))),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: const EdgeInsets.only(bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )ttom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: unread > 0
+          bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )rderRadius: BorderRadius.circular(16),
+          bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )rder: unread > 0
               ? Border.all(
                   color: AppColors.buyerBlue.withOpacity(0.3), width: 1.5)
               : Border.all(color: const Color(0xFFF3F4F6)),
-          boxShadow: unread > 0
+          bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )xShadow: unread > 0
               ? [
                   BoxShadow(
                       color: AppColors.buyerBlue.withOpacity(0.05),
@@ -180,14 +238,20 @@ class _ChatPreviewCard extends StatelessWidget {
                 if (unread > 0)
                   Positioned(
                       right: 0,
-                      bottom: 0,
+                      bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )ttom: 0,
                       child: Container(
                         width: 14,
                         height: 14,
                         decoration: BoxDecoration(
                             color: AppColors.success,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2)),
+                            bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )rder: Border.all(color: Colors.white, width: 2)),
                       ))
               ],
             ),
@@ -225,8 +289,14 @@ class _ChatPreviewCard extends StatelessWidget {
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                             color: const Color(0xFFF3F4F6),
-                            borderRadius: BorderRadius.circular(4)),
-                        child: Text(bookingId,
+                            bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )rderRadius: BorderRadius.circular(4)),
+                        child: Text(bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 2,
+        onTap: (i) => chatNav(context, i),
+      )okingId,
                             style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,

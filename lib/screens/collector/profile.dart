@@ -7,6 +7,10 @@ import 'preferences_page.dart';
 import 'documents_page.dart';
 import '../help_support_screen.dart';
 import '../terms_service_screen.dart';
+import '../../widgets/collector_bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 4,
+        onTap: (i) => profileNav(context, i),
+      )ttom_nav.dart';
 
 class CollectorProfileScreen extends StatelessWidget {
   const CollectorProfileScreen({super.key});
@@ -16,15 +20,27 @@ class CollectorProfileScreen extends StatelessWidget {
     final top = MediaQuery.of(context).padding.top;
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      body: Column(children: [
+      bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 4,
+        onTap: (i) => profileNav(context, i),
+      )dy: Column(children: [
         Container(
           width: double.infinity,
           padding:
-              EdgeInsets.only(top: top + 24, left: 24, right: 24, bottom: 20),
+              EdgeInsets.only(top: top + 24, left: 24, right: 24, bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 4,
+        onTap: (i) => profileNav(context, i),
+      )ttom: 20),
           decoration: const BoxDecoration(
             color: Color(0xFFF9FAFB),
-            border:
-                Border(bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
+            bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 4,
+        onTap: (i) => profileNav(context, i),
+      )rder:
+                Border(bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 4,
+        onTap: (i) => profileNav(context, i),
+      )ttom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
           ),
           child: Row(
             children: [
@@ -146,10 +162,16 @@ class CollectorProfileScreen extends StatelessWidget {
           ),
         ),
       ]),
-      bottomNavigationBar: Container(
+      bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 4,
+        onTap: (i) => profileNav(context, i),
+      )ttomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
-          boxShadow: [
+          bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 4,
+        onTap: (i) => profileNav(context, i),
+      )xShadow: [
             BoxShadow(
                 color: Color(0x06000000), blurRadius: 8, offset: Offset(0, -1))
           ],
@@ -200,7 +222,10 @@ void _confirmLogout(BuildContext context) {
   showDialog(
     context: context,
     builder: (ctx) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 4,
+        onTap: (i) => profileNav(context, i),
+      )rderRadius: BorderRadius.circular(16)),
       title: const Text('Log Out', style: TextStyle(fontWeight: FontWeight.w800)),
       content: const Text('Are you sure you want to log out?', style: TextStyle(color: Color(0xFF4B5563))),
       actions: [
@@ -213,7 +238,10 @@ void _confirmLogout(BuildContext context) {
             backgroundColor: AppColors.error,
             foregroundColor: Colors.white,
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+            shape: RoundedRectangleBorder(bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 4,
+        onTap: (i) => profileNav(context, i),
+      )rderRadius: BorderRadius.circular(10))
           ),
           onPressed: () {
             AuthService.instance.signOut();
@@ -231,7 +259,10 @@ class _MenuItem {
   final String label;
   final String subtitle;
   final VoidCallback? onTap;
-  final bool isDestructive;
+  final bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 4,
+        onTap: (i) => profileNav(context, i),
+      )ol isDestructive;
 
   const _MenuItem({
     required this.icon,
@@ -251,7 +282,10 @@ class _MenuCard extends StatelessWidget {
     return Material(
       color: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
+        bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 4,
+        onTap: (i) => profileNav(context, i),
+      )rderRadius: BorderRadius.circular(14),
         side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
       ),
       child: Column(

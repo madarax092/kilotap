@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/pickup_request_card.dart';
+import '../../widgets/collector_bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )ttom_nav.dart';
 
 class FindScrapScreen extends StatefulWidget {
   const FindScrapScreen({super.key});
@@ -9,25 +13,43 @@ class FindScrapScreen extends StatefulWidget {
 }
 
 class _FindScrapScreenState extends State<FindScrapScreen> {
-  bool _accepted = false;
-  bool _isOnline = true;
+  bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )ol _accepted = false;
+  bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )ol _isOnline = true;
 
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
-      body: Column(
+      bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )dy: Column(
         children: [
           // Header
           Container(
             width: double.infinity,
             padding:
-                EdgeInsets.only(top: top + 16, left: 24, right: 24, bottom: 16),
+                EdgeInsets.only(top: top + 16, left: 24, right: 24, bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )ttom: 16),
             decoration: const BoxDecoration(
               color: Colors.white,
-              border: Border(
-                  bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
+              bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )rder: Border(
+                  bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )ttom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,7 +95,10 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
 
           Expanded(
             child: ListView(
-                padding: const EdgeInsets.only(top: 20, bottom: 40),
+                padding: const EdgeInsets.only(top: 20, bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )ttom: 40),
                 children: [
                   // Filter Chips
                   Padding(
@@ -100,13 +125,22 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                       width: double.infinity,
                       decoration: BoxDecoration(
                           color: const Color(0xFFE5E7EB),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+                          bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )rderRadius: BorderRadius.circular(16),
+                          bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )rder: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
                           image: const DecorationImage(
                             image: AssetImage('assets/images/davao_map.png'),
                             fit: BoxFit.cover,
                           ),
-                          boxShadow: const [
+                          bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )xShadow: const [
                             BoxShadow(
                                 color: Color(0x06000000),
                                 blurRadius: 10,
@@ -147,10 +181,16 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: Container(
+      bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )ttomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
-          boxShadow: [
+          bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )xShadow: [
             BoxShadow(
                 color: Color(0x06000000), blurRadius: 8, offset: Offset(0, -2))
           ],
@@ -199,7 +239,10 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
 
 class _FilterChip extends StatelessWidget {
   final String label;
-  final bool active;
+  final bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )ol active;
 
   const _FilterChip(this.label, this.active);
 
@@ -210,9 +253,18 @@ class _FilterChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: active ? AppColors.buyerBlue : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: active ? null : Border.all(color: const Color(0xFFE5E7EB)),
-          boxShadow: active
+          bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )rderRadius: BorderRadius.circular(20),
+          bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )rder: active ? null : Border.all(color: const Color(0xFFE5E7EB)),
+          bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 1,
+        onTap: (i) => findNav(context, i),
+      )xShadow: active
               ? [
                   BoxShadow(
                       color: AppColors.buyerBlue.withOpacity(0.3),

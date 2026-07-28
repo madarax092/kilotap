@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../widgets/collector_bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )ttom_nav.dart';
 
 // ─── Collector Collection History ───
 
@@ -11,17 +15,29 @@ class MyEarningsScreen extends StatelessWidget {
     final top = MediaQuery.of(context).padding.top;
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
-      body: Column(
+      bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )dy: Column(
         children: [
           // Header
           Container(
             width: double.infinity,
             padding:
-                EdgeInsets.only(top: top + 16, left: 24, right: 24, bottom: 16),
+                EdgeInsets.only(top: top + 16, left: 24, right: 24, bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )ttom: 16),
             decoration: const BoxDecoration(
               color: Colors.white,
-              border: Border(
-                  bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
+              bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )rder: Border(
+                  bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )ttom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,7 +55,10 @@ class MyEarningsScreen extends StatelessWidget {
                       height: 40,
                       decoration: BoxDecoration(
                           color: const Color(0xFFF3F4F6),
-                          borderRadius: BorderRadius.circular(12)),
+                          bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )rderRadius: BorderRadius.circular(12)),
                       child: const Icon(Icons.scale_outlined,
                           color: Color(0xFF4B5563), size: 22),
                     )
@@ -54,7 +73,10 @@ class MyEarningsScreen extends StatelessWidget {
 
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.only(top: 20, bottom: 40),
+              padding: const EdgeInsets.only(top: 20, bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )ttom: 40),
               children: [
                 // Week cards
                 SingleChildScrollView(
@@ -78,8 +100,14 @@ class MyEarningsScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: AppColors.buyerBlue,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
+                      bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )rderRadius: BorderRadius.circular(16),
+                      bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )xShadow: [
                         BoxShadow(
                             color: AppColors.buyerBlue.withOpacity(0.3),
                             blurRadius: 12,
@@ -121,7 +149,10 @@ class MyEarningsScreen extends StatelessWidget {
                               horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20)),
+                              bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )rderRadius: BorderRadius.circular(20)),
                           child: Row(
                             children: const [
                               Icon(Icons.trending_up,
@@ -148,9 +179,18 @@ class MyEarningsScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE5E7EB)),
-                        boxShadow: const [
+                        bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )rderRadius: BorderRadius.circular(16),
+                        bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )rder: Border.all(color: const Color(0xFFE5E7EB)),
+                        bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )xShadow: const [
                           BoxShadow(
                               color: Color(0x06000000),
                               blurRadius: 8,
@@ -202,7 +242,10 @@ class MyEarningsScreen extends StatelessWidget {
                       _Txn('Jose R.', 'Scrap Iron 25 kg', '25 kg', 'Jun 30', true),
                       _Txn('Maria S.', 'Plastic 3.2 kg', '3.2 kg', 'Jun 30', true),
                       _Txn('Pedro L.', 'Mixed 12 kg', '12 kg', 'Jun 29', true),
-                      _Txn('Ana L.', 'Cardboard 4 kg', '4 kg', 'Jun 28', true),
+                      _Txn('Ana L.', 'CardbottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )ard 4 kg', '4 kg', 'Jun 28', true),
                       _Txn('Carlos M.', 'Metal 8 kg', '8 kg', 'Jun 27', false),
                     ],
                   ),
@@ -212,10 +255,16 @@ class MyEarningsScreen extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: Container(
+      bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )ttomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
-          boxShadow: [
+          bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )xShadow: [
             BoxShadow(
                 color: Color(0x06000000), blurRadius: 8, offset: Offset(0, -2))
           ],
@@ -264,7 +313,10 @@ class MyEarningsScreen extends StatelessWidget {
 
 class _DayCard extends StatelessWidget {
   final String day, value;
-  final bool today;
+  final bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )ol today;
   const _DayCard(this.day, this.value, this.today);
 
   @override
@@ -275,9 +327,18 @@ class _DayCard extends StatelessWidget {
       width: 70,
       decoration: BoxDecoration(
         color: today ? AppColors.buyerBlue : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: today ? null : Border.all(color: const Color(0xFFE5E7EB)),
-        boxShadow: today
+        bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )rderRadius: BorderRadius.circular(16),
+        bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )rder: today ? null : Border.all(color: const Color(0xFFE5E7EB)),
+        bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )xShadow: today
             ? [
                 BoxShadow(
                     color: AppColors.buyerBlue.withOpacity(0.3),
@@ -317,7 +378,10 @@ class _StatBox extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
         decoration: BoxDecoration(
             color: const Color(0xFFF9FAFB),
-            borderRadius: BorderRadius.circular(12)),
+            bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )rderRadius: BorderRadius.circular(12)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -343,19 +407,34 @@ class _StatBox extends StatelessWidget {
 
 class _Txn extends StatelessWidget {
   final String name, detail, amount, date;
-  final bool isLatest;
+  final bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )ol isLatest;
   const _Txn(this.name, this.detail, this.amount, this.date, this.isLatest);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )ttom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF3F4F6)),
-        boxShadow: const [
+        bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )rderRadius: BorderRadius.circular(16),
+        bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )rder: Border.all(color: const Color(0xFFF3F4F6)),
+        bottomNavigationBar: CollectorBottomNav(
+        currentIndex: 3,
+        onTap: (i) => collectionNav(context, i),
+      )xShadow: const [
           BoxShadow(
               color: Color(0x04000000), blurRadius: 4, offset: Offset(0, 2))
         ],
