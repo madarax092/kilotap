@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 
+// ─── Household Pickup Preferences ───
+
 class PickupPrefsPage extends StatefulWidget {
   const PickupPrefsPage({super.key});
 
@@ -40,11 +42,11 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
           const SizedBox(height: 24),
 
           // Default type
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
+          Material(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+              side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
             ),
             child: SwitchListTile(
               secondary: const Icon(Icons.schedule_outlined, color: Color(0xFF9CA3AF), size: 22),
@@ -62,13 +64,12 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
           // Time window
           if (!_asap) ...[
             const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
+            Material(
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+                side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
               ),
-              padding: const EdgeInsets.symmetric(vertical: 4),
               child: ListTile(
                 leading: const Icon(Icons.access_time, color: Color(0xFF9CA3AF), size: 22),
                 title: const Text('Preferred Time Window',
@@ -98,11 +99,11 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
           const SizedBox(height: 12),
 
           // Notifications
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
+          Material(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+              side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -132,7 +133,6 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
             ),
           ),
 
-          const SizedBox(height: 30),
           const SizedBox(height: 32),
           SizedBox(
             width: double.infinity, height: 54,

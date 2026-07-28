@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 
+// ─── Collector Vehicle Details ───
+
 class VehicleDetailsPage extends StatefulWidget {
   const VehicleDetailsPage({super.key});
 
@@ -42,63 +44,70 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
           const Text('Vehicle information is used for capacity matching',
               style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
           const SizedBox(height: 24),
+
           // Vehicle type
-          Material(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
-        ),
-        child: ListTile(
-              leading: const Icon(Icons.local_shipping_outlined, color: Color(0xFF9CA3AF), size: 22),
-              title: const Text('Vehicle Type', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
-              trailing: SizedBox(
-                width: 140,
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _vehicleType,
-                    isDense: true,
-                    icon: const Icon(Icons.expand_more, color: Color(0xFF6B7280)),
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.buyerBlue),
-                    items: ['Pushcart', 'Tricycle', 'Multicab', 'Truck']
-                        .map((v) => DropdownMenuItem(value: v, child: Text(v)))
-                        .toList(),
-                    onChanged: (v) => setState(() => _vehicleType = v!),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Material(
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
+              ),
+              child: ListTile(
+                leading: const Icon(Icons.local_shipping_outlined, color: Color(0xFF9CA3AF), size: 22),
+                title: const Text('Vehicle Type', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
+                trailing: SizedBox(
+                  width: 140,
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _vehicleType,
+                      isDense: true,
+                      icon: const Icon(Icons.expand_more, color: Color(0xFF6B7280)),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.buyerBlue),
+                      items: ['Pushcart', 'Tricycle', 'Multicab', 'Truck']
+                          .map((v) => DropdownMenuItem(value: v, child: Text(v)))
+                          .toList(),
+                      onChanged: (v) => setState(() => _vehicleType = v!),
+                    ),
                   ),
                 ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             ),
           ),
-          const SizedBox(height: 12),
+
           // Capacity
-          Material(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
-        ),
-        child: ListTile(
-              leading: const Icon(Icons.scale_outlined, color: Color(0xFF9CA3AF), size: 22),
-              title: const Text('Max Capacity (kg)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
-              trailing: SizedBox(
-                width: 80,
-                child: TextField(
-                  controller: _capacityController,
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.end,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'kg',
-                    hintStyle: TextStyle(color: Color(0xFF9CA3AF)),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Material(
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
+              ),
+              child: ListTile(
+                leading: const Icon(Icons.scale_outlined, color: Color(0xFF9CA3AF), size: 22),
+                title: const Text('Max Capacity (kg)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
+                trailing: SizedBox(
+                  width: 80,
+                  child: TextField(
+                    controller: _capacityController,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'kg',
+                      hintStyle: TextStyle(color: Color(0xFF9CA3AF)),
+                    ),
                   ),
                 ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             ),
           ),
-          const SizedBox(height: 12),
+
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
@@ -118,7 +127,6 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
               ),
             ]),
           ),
-          const SizedBox(height: 30),
           const SizedBox(height: 32),
           SizedBox(
             width: double.infinity, height: 54,
