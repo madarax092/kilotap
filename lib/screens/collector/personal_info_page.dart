@@ -11,7 +11,6 @@ class CollectorPersonalInfoPage extends StatefulWidget {
 
 class _CollectorPersonalInfoPageState extends State<CollectorPersonalInfoPage> {
   String _language = 'Bisaya';
-  bool _editing = false;
 
   @override
   Widget build(BuildContext context) {

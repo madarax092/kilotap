@@ -89,9 +89,7 @@ class _Field extends StatefulWidget {
   final String label, hint;
   final TextEditingController? controller;
   final bool obscure;
-  final Color focusColor;
-  final String? subLabel;
-  const _Field({required this.label, required this.hint, this.controller, this.obscure = false, this.focusColor = AppColors.buyerBlue, this.subLabel});
+  const _Field({required this.label, required this.hint, this.controller, this.obscure = false});
 
   @override State<_Field> createState() => _FieldState();
 }
