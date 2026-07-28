@@ -241,7 +241,7 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                                                 backgroundColor: AppColors.success,
                                                 behavior: SnackBarBehavior.floating,
                                             ));
-                                            Navigator.pushReplacementNamed(context, '/collector');
+                                            Navigator.pushNamed(context, '/route');
                                           },
                                       )),
                                   const SizedBox(width: 10),
