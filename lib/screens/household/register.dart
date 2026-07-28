@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_colors.dart';
-import '../services/auth_service.dart';
+import '../../core/theme/app_colors.dart';
+import '../../services/auth_service.dart';
 
 class HouseholdRegisterScreen extends StatefulWidget {
   const HouseholdRegisterScreen({super.key});

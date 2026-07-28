@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_colors.dart';
-import '../widgets/pre_pickup_checklist.dart';
+import '../../core/theme/app_colors.dart';
+import '../../widgets/pre_pickup_checklist.dart';
 
 class PickupChecklistScreen extends StatelessWidget {
   final String bookingId;

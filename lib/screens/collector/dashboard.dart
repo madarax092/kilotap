@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_colors.dart';
-import '../services/auth_state.dart';
+import '../../core/theme/app_colors.dart';
+import '../../services/auth_state.dart';
 import 'chat_households_screen.dart';
 import 'collector/documents_page.dart';
 

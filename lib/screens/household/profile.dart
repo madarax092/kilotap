@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_colors.dart';
-import '../services/auth_service.dart';
+import '../../core/theme/app_colors.dart';
+import '../../services/auth_service.dart';
 import 'household/personal_info_page.dart';
 import 'household/pickup_prefs_page.dart';
 import 'household/impact_page.dart';

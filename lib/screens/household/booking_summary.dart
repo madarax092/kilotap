@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_colors.dart';
-import '../models/booking_item.dart';
+import '../../core/theme/app_colors.dart';
+import '../../models/booking_item.dart';
 
 class BookingSummaryScreen extends StatelessWidget {
   final String totalVolume;

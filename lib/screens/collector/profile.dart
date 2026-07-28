@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_colors.dart';
-import '../services/auth_service.dart';
+import '../../core/theme/app_colors.dart';
+import '../../services/auth_service.dart';
 import 'collector/personal_info_page.dart';
 import 'collector/vehicle_details_page.dart';
 import 'collector/preferences_page.dart';
