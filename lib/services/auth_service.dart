@@ -57,6 +57,8 @@ class AuthService {
           'Seller_Id': uid,
           'Account_Id': uid,
           'Full_Name': fullName,
+          'Phone': phone,
+          'Email': email,
           'Address': address,
           'Housing_Type': '',
           'Preferred_Schedule': 'ASAP',
