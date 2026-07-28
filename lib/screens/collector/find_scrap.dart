@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../widgets/pickup_request_card.dart';
 
 class FindScrapScreen extends StatefulWidget {
   const FindScrapScreen({super.key});
@@ -114,185 +115,33 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
                   // Request Card
                   if (!_accepted)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: const [
-                                BoxShadow(
-                                    color: Color(0x06000000),
-                                    blurRadius: 10,
-                                    offset: Offset(0, 4))
-                              ]),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                        width: 40,
-                                        height: 40,
-                                        decoration: const BoxDecoration(
-                                            color: Colors.green,
-                                            shape: BoxShape.circle),
-                                        child: const Center(
-                                            child: Text('MS',
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 14)))),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: const [
-                                          Text('Maria Santos',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w800,
-                                                  fontSize: 15,
-                                                  color: Color(0xFF111827))),
-                                          SizedBox(height: 2),
-                                          Text('Maa · 0.3 km away',
-                                              style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Color(0xFF6B7280))),
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                          color:
-                                              AppColors.error.withOpacity(0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(8)),
-                                      child: const Text('ASAP',
-                                          style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w700,
-                                              color: AppColors.error)),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: const [
-                                      _Det('12 pcs', 'Plastic'),
-                                      _Det('Medium', 'Volume'),
-                                      _Det('15 kg', 'Est. Weight')
-                                    ]),
-                                const SizedBox(height: 16),
-                                Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                        color: const Color(0xFFF3F4F6),
-                                        borderRadius:
-                                            BorderRadius.circular(10)),
-                                    child: Row(
-                                      children: const [
-                                        Icon(Icons.info_outline,
-                                            size: 16, color: Color(0xFF6B7280)),
-                                        SizedBox(width: 8),
-                                        Expanded(
-                                            child: Text(
-                                                '"Gate code #1234, ring bell"',
-                                                style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Color(0xFF4B5563),
-                                                    fontStyle:
-                                                        FontStyle.italic))),
-                                      ],
-                                    )),
-                                const SizedBox(height: 16),
-                                Row(children: [
-                                  Expanded(
-                                      child: ElevatedButton.icon(
-                                          icon:
-                                              const Icon(Icons.check, size: 18),
-                                          label: const Text('Accept',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w600)),
-                                          style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  AppColors.buyerBlue,
-                                              foregroundColor: Colors.white,
-                                              elevation: 0,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 12),
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10))),
-                                          onPressed: () {
-                                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                                content: Text('Pickup accepted! Starting navigation...'),
-                                                backgroundColor: AppColors.success,
-                                                behavior: SnackBarBehavior.floating,
-                                            ));
-                                            Navigator.pushNamed(context, '/route');
-                                          },
-                                      )),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                      child: OutlinedButton.icon(
-                                          icon:
-                                              const Icon(Icons.close, size: 18),
-                                          label: const Text('Decline',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w600)),
-                                          style: OutlinedButton.styleFrom(
-                                              foregroundColor:
-                                                  const Color(0xFF2C2C2C),
-                                              side: const BorderSide(
-                                                  color: Color(0xFFE5E7EB)),
-                                              padding: const EdgeInsets.symmetric(
-                                                  vertical: 12),
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10))),
-                                          onPressed: () =>
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(const SnackBar(
-                                                      content: Text('Request declined'))))),
-                                ]),
-                              ])),
-                    ),
-
-                  if (_accepted)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                              color: AppColors.success.withOpacity(0.06),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                  color: AppColors.success.withOpacity(0.3))),
-                          child: Row(children: const [
-                            Icon(Icons.check_circle,
-                                color: AppColors.success, size: 24),
-                            SizedBox(width: 12),
-                            Expanded(
-                                child: Text(
-                                    'Pickup accepted! Navigation started. ETA: 5 min',
-                                    style: TextStyle(
-                                        color: AppColors.success,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 13)))
-                          ])),
+                    PickupRequestCard(
+                      name: 'Maria Santos',
+                      initials: 'MS',
+                      location: 'Maa',
+                      distance: '0.3 km',
+                      quantity: '12 pcs',
+                      material: 'Plastic',
+                      volume: 'Medium',
+                      weight: '15 kg',
+                      note: 'Gate code #1234, ring bell',
+                      onAccept: () {
+                        setState(() => _accepted = true);
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Pickup accepted! Starting navigation...'),
+                          backgroundColor: AppColors.success,
+                          behavior: SnackBarBehavior.floating,
+                        ));
+                        Navigator.pushNamed(context, '/route');
+                      },
+                      onDecline: () {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Pickup declined.'),
+                          behavior: SnackBarBehavior.floating,
+                        ));
+                      },
                     ),
                 ]),
           ),
