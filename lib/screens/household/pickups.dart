@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
-import 'pickup_checklist_screen.dart';
+import 'household/checklist.dart';
 import 'chat_detail_screen.dart';
-import 'booking_summary_screen.dart';
-import 'tracking_screen.dart';
+import 'household/booking_summary.dart';
+import 'household/tracking.dart';
 import '../models/booking_item.dart';
 
 class MyPickupsScreen extends StatelessWidget {

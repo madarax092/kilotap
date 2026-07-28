@@ -3,7 +3,7 @@ import '../core/theme/app_colors.dart';
 import '../services/impact_tracker.dart';
 import 'household/impact_page.dart';
 import 'chat_detail_screen.dart';
-import 'tracking_screen.dart';
+import 'household/tracking.dart';
 
 class HouseholdDashboard extends StatelessWidget {
   const HouseholdDashboard({super.key});

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import '../services/auth_state.dart';
 import 'screens/login_screen.dart';
-import 'screens/household_dashboard.dart';
-import 'screens/sell_scrap_screen.dart';
-import 'screens/my_pickups_screen.dart';
-import 'screens/household_profile_screen.dart';
-import 'screens/collector_dashboard.dart';
-import 'screens/find_scrap_screen.dart';
-import 'screens/collector_id_card.dart';
-import 'screens/my_earnings_screen.dart';
-import 'screens/my_route_screen.dart';
-import 'screens/collector_profile_screen.dart';
+import 'screens/household/dashboard.dart';
+import 'screens/household/sell_scrap.dart';
+import 'screens/household/pickups.dart';
+import 'screens/household/profile.dart';
+import 'screens/collector/dashboard.dart';
+import 'screens/collector/find_scrap.dart';
+import 'screens/collector/id_card.dart';
+import 'screens/collector/earnings.dart';
+import 'screens/collector/route.dart';
+import 'screens/collector/profile.dart';
 import 'screens/admin_dashboard.dart';
 import 'screens/user_management_screen.dart';
 import 'screens/verify_collector_screen.dart';
@@ -18,10 +18,10 @@ import 'screens/reports_screen.dart';
 import 'screens/analytics_screen.dart';
 import 'screens/chat_collector_screen.dart';
 import 'screens/role_picker_screen.dart';
-import 'screens/household_register_screen.dart';
-import 'screens/collector_register_screen.dart';
+import 'screens/household/register.dart';
+import 'screens/collector/register.dart';
 import 'screens/chat_screen.dart';
-import 'screens/rate_collector_screen.dart';
+import 'screens/household/rate.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
