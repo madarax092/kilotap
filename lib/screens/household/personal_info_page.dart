@@ -45,7 +45,7 @@ class _HouseholdPersonalInfoPageState extends State<HouseholdPersonalInfoPage> {
               value: 'Block 5, Lot 12, Barangay Maa, Davao City', focusColor: AppColors.sellerGreen),
           const SizedBox(height: 8),
           // Housing Type dropdown
-          _HousingTypeDropdown(focusColor: AppColors.sellerGreen),
+          const _HousingTypeDropdown(),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -105,8 +105,7 @@ class _HouseholdPersonalInfoPageState extends State<HouseholdPersonalInfoPage> {
 }
 
 class _HousingTypeDropdown extends StatefulWidget {
-  final Color focusColor;
-  const _HousingTypeDropdown({required this.focusColor});
+  const _HousingTypeDropdown();
 
   @override
   State<_HousingTypeDropdown> createState() => _HousingTypeDropdownState();
