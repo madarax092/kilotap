@@ -9,13 +9,22 @@ class MyRouteScreen extends StatelessWidget {
     body: ListView(padding: const EdgeInsets.symmetric(horizontal: 28), children: [
       const SizedBox(height: 8),
       // Route map
-      Container(height: 220, decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)), child: Stack(children: [
-        Positioned.fill(child: CustomPaint(painter: _RGridPainter())),
-        Positioned(top: 90, left: 140, child: _RStop('1', AppColors.success, done: true)),
-        Positioned(top: 60, left: 200, child: _RStop('2', AppColors.buyerBlue, current: true)),
-        Positioned(top: 140, left: 180, child: _RStop('3', AppColors.buyerBlue)),
-        Positioned(top: 30, left: 260, child: _RStop('4', AppColors.buyerBlue)),
-      ])),
+      Container(
+          height: 220,
+          decoration: BoxDecoration(
+              color: AppColors.pureWhite,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.divider),
+              image: const DecorationImage(
+                image: AssetImage('assets/images/davao_nav_map.png'),
+                fit: BoxFit.cover,
+              )),
+          child: Stack(children: [
+            Positioned(top: 90, left: 140, child: _RStop('1', AppColors.success, done: true)),
+            Positioned(top: 60, left: 200, child: _RStop('2', AppColors.buyerBlue, current: true)),
+            Positioned(top: 140, left: 180, child: _RStop('3', AppColors.buyerBlue)),
+            Positioned(top: 30, left: 260, child: _RStop('4', AppColors.buyerBlue)),
+          ])),
       const SizedBox(height: 16),
       // Summary
       Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)), child: Column(children: [

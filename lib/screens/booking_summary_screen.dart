@@ -34,32 +34,18 @@ class BookingSummaryScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 28),
         children: [
           const SizedBox(height: 8),
-          // Confirmation banner
+          // Actual Scrap Image
           Container(
-            padding: const EdgeInsets.all(24),
+            width: double.infinity,
+            height: 180,
             decoration: BoxDecoration(
-              color: AppColors.sellerGreen.withOpacity(0.06),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.sellerGreen.withOpacity(0.15)),
-            ),
-            child: Column(children: [
-              Container(
-                width: 64, height: 64,
-                decoration: BoxDecoration(
-                  color: AppColors.sellerGreen.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Center(
-                  child: Icon(Icons.check_circle, color: AppColors.sellerGreen, size: 36),
-                ),
+              border: Border.all(color: AppColors.divider),
+              image: const DecorationImage(
+                image: AssetImage('assets/images/multiple_scrap_sample.png'),
+                fit: BoxFit.cover,
               ),
-              const SizedBox(height: 12),
-              const Text('Booking Submitted',
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: AppColors.textPrimary)),
-              const SizedBox(height: 4),
-              const Text('A collector is on the way',
-                  style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-            ]),
+            ),
           ),
           const SizedBox(height: 20),
           // Collector card

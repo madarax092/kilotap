@@ -113,7 +113,7 @@ class ChatCollectorScreen extends StatelessWidget {
                   icon: Icon(Icons.chat_bubble_outline_rounded),
                   label: 'Messages'),
               BottomNavigationBarItem(
-                  icon: Icon(Icons.payments_rounded), label: 'Earn'),
+                  icon: Icon(Icons.scale_rounded), label: 'Stats'),
               BottomNavigationBarItem(
                   icon: Icon(Icons.person_outline_rounded), label: 'Profile'),
             ],

@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../services/auth_service.dart';
-import 'collector/personal_info_page.dart';
-import 'collector/vehicle_details_page.dart';
-import 'collector/preferences_page.dart';
-import 'collector/documents_page.dart';
 import 'help_support_screen.dart';
 import 'terms_service_screen.dart';
+import '../widgets/admin_bottom_nav.dart';
 
-class CollectorProfileScreen extends StatelessWidget {
-  const CollectorProfileScreen({super.key});
+class AdminProfileScreen extends StatelessWidget {
+  const AdminProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -35,20 +32,20 @@ class CollectorProfileScreen extends StatelessWidget {
                     color: Color(0xFFE5E7EB), shape: BoxShape.circle),
                 child: const Center(
                     child:
-                        Icon(Icons.person, color: Color(0xFF1A85C8), size: 33)),
+                        Icon(Icons.admin_panel_settings, color: AppColors.adminRed, size: 33)),
               ),
               const SizedBox(width: 16),
               const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Juan Dela Cruz',
+                    Text('Super Admin',
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF111827))),
                     SizedBox(height: 2),
-                    Text('juan.delacruz@gmail.com',
+                    Text('admin@kilotap.com',
                         style: TextStyle(
                             fontSize: 12,
                             color: Color(0xFF6B7280),
@@ -63,55 +60,32 @@ class CollectorProfileScreen extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
             children: [
-              const Text('Account',
+              const Text('System Management',
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary)),
               const SizedBox(height: 4),
-              const Text('Manage your collector profile and vehicle details',
+              const Text('Manage platform settings and users',
                   style:
                       TextStyle(fontSize: 13, color: AppColors.textSecondary)),
               const SizedBox(height: 16),
               _MenuCard(items: [
                 _MenuItem(
-                  icon: Icons.person_outline,
-                  label: 'Personal Information',
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const CollectorPersonalInfoPage())),
+                  icon: Icons.people_outline,
+                  label: 'User Management',
+                  subtitle: 'Manage all accounts',
+                  onTap: () => Navigator.pushNamed(context, '/users'),
                 ),
                 _MenuItem(
-                  icon: Icons.local_shipping_outlined,
-                  label: 'Vehicle Details',
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const VehicleDetailsPage())),
-                ),
-                _MenuItem(
-                  icon: Icons.category_outlined,
-                  label: 'Material Preferences',
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const PreferencesPage())),
-                ),
-                _MenuItem(
-                  icon: Icons.verified_outlined,
-                  label: 'Verification Documents',
-                  onTap: () => Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const DocumentsPage())),
-                ),
-                _MenuItem(
-                  icon: Icons.badge_outlined,
-                  label: 'Digital ID Card',
-                  onTap: () => Navigator.pushNamed(context, '/idcard'),
+                  icon: Icons.settings_outlined,
+                  label: 'System Settings',
+                  subtitle: 'Global configurations',
+                  onTap: () {},
                 ),
               ]),
               const SizedBox(height: 28),
-              const Text('Support',
+              const Text('Support & Session',
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
@@ -126,7 +100,7 @@ class CollectorProfileScreen extends StatelessWidget {
                   icon: Icons.help_outline,
                   label: 'Help & Support',
                   subtitle: 'FAQs and contact',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpSupportScreen(isCollector: true))),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpSupportScreen(isCollector: false))),
                 ),
                 _MenuItem(
                   icon: Icons.description_outlined,
@@ -146,52 +120,7 @@ class CollectorProfileScreen extends StatelessWidget {
           ),
         ),
       ]),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-                color: Color(0x06000000), blurRadius: 8, offset: Offset(0, -1))
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: BottomNavigationBar(
-              currentIndex: 4,
-              onTap: (i) {
-                if (i == 0)
-                  Navigator.pushReplacementNamed(context, '/collector');
-                if (i == 1) Navigator.pushReplacementNamed(context, '/find');
-                if (i == 2)
-                  Navigator.pushReplacementNamed(context, '/chat_collector');
-                if (i == 3)
-                  Navigator.pushReplacementNamed(context, '/earnings');
-                if (i == 4)
-                  Navigator.pushReplacementNamed(context, '/collector_profile');
-              },
-              selectedItemColor: AppColors.buyerBlue,
-              unselectedItemColor: const Color(0xFFBBBBBB),
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              type: BottomNavigationBarType.fixed,
-              items: const [
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.home_rounded), label: 'Home'),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.search_rounded), label: 'Find'),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.chat_bubble_outline_rounded),
-                    label: 'Messages'),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.scale_rounded), label: 'Stats'),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.person_outline_rounded), label: 'Profile'),
-              ],
-            ),
-          ),
-        ),
-      ),
+      bottomNavigationBar: const AdminBottomNav(current: 4),
     );
   }
 }

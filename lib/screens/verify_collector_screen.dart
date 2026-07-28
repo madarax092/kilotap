@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
+import '../widgets/admin_bottom_nav.dart';
 
 class VerifyCollectorScreen extends StatefulWidget {
   const VerifyCollectorScreen({super.key});
@@ -13,25 +14,69 @@ class _VerifyCollectorScreenState extends State<VerifyCollectorScreen> {
   ];
 
   @override Widget build(BuildContext context) {
+    final top = MediaQuery.of(context).padding.top;
     return Scaffold(
-      backgroundColor: AppColors.canvas,
-      appBar: AppBar(backgroundColor: AppColors.canvas, elevation: 0, leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary), onPressed: () => Navigator.pop(context)), title: const Text('Verify Collectors', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800))),
-      body: ListView(padding: const EdgeInsets.symmetric(horizontal: 20), children: [
-        const SizedBox(height: 4),
-        Row(children: [
-          const Text('PENDING VERIFICATION', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
-          const SizedBox(width: 8),
-          Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2), decoration: const BoxDecoration(color: AppColors.adminRed, shape: BoxShape.circle), child: Text('${_pending.length}', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white))),
-        ]),
-        const SizedBox(height: 12),
-        ..._pending.map((c) => _VerifyTile(
-          c['name'] as String, c['vehicle'] as String, c['area'] as String,
-          c['phone'] as String, c['submitted'] as String,
-          List<String>.from(c['docs'] as List),
-          () => Navigator.push(context, MaterialPageRoute(builder: (_) => _VerifyDetail(data: c))),
-        )),
-        const SizedBox(height: 30),
-      ]),
+      backgroundColor: const Color(0xFFF9FAFB),
+      body: Column(
+        children: [
+          // Header
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.only(top: top + 16, left: 24, right: 24, bottom: 16),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Verify Collectors',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF111827))),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                            color: const Color(0xFFF3F4F6),
+                            borderRadius: BorderRadius.circular(12)),
+                        child: const Icon(Icons.close,
+                            color: Color(0xFF6B7280), size: 20),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                const Text('Review and approve collector applications',
+                    style: TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
+              ],
+            ),
+          ),
+
+          Expanded(
+            child: ListView(padding: const EdgeInsets.symmetric(horizontal: 20), children: [
+              const SizedBox(height: 24),
+              Row(children: [
+                const Text('PENDING VERIFICATION', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                const SizedBox(width: 8),
+                Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2), decoration: const BoxDecoration(color: AppColors.adminRed, shape: BoxShape.circle), child: Text('${_pending.length}', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white))),
+              ]),
+              const SizedBox(height: 12),
+              ..._pending.map((c) => _VerifyTile(
+                c['name'] as String, c['vehicle'] as String, c['area'] as String,
+                c['phone'] as String, c['submitted'] as String,
+                List<String>.from(c['docs'] as List),
+                () => Navigator.push(context, MaterialPageRoute(builder: (_) => _VerifyDetail(data: c))),
+              )),
+              const SizedBox(height: 30),
+            ]),
+          ),
+        ],
+      ),
+      bottomNavigationBar: const AdminBottomNav(current: 1),
     );
   }
 }

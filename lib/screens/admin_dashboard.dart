@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../services/auth_service.dart';
+import '../widgets/admin_bottom_nav.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
@@ -30,43 +31,6 @@ class AdminDashboard extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF111827)
                   )
-                ),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.adminRed.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(8)
-                      ),
-                      child: const Text(
-                        'SUPER ADMIN',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.adminRed,
-                          letterSpacing: 1
-                        )
-                      )
-                    ),
-                    const SizedBox(width: 12),
-                    GestureDetector(
-                      onTap: () => _confirmLogout(context),
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF3F4F6),
-                          borderRadius: BorderRadius.circular(12)
-                        ),
-                        child: const Icon(
-                          Icons.logout_rounded,
-                          color: Color(0xFF4B5563),
-                          size: 18
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
@@ -247,45 +211,13 @@ class AdminDashboard extends StatelessWidget {
                   )
                 ),
                 
-                const SizedBox(height: 24),
-                
-                // Transaction Monitoring
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
-                    boxShadow: const [BoxShadow(color: Color(0x06000000), blurRadius: 10, offset: Offset(0, 4))]
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'TRANSACTION MONITORING',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF6B7280),
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.2
-                        )
-                      ),
-                      SizedBox(height: 20),
-                      _Audit('admin@kilotap', 'verify_collector', 'Pedro Reyes', 'pending → verified', '2h ago'),
-                      Divider(height: 24, color: Color(0xFFF3F4F6)),
-                      _Audit('admin@kilotap', 'resolve_dispute', '#RPT-0017', 'investigate → resolved', '1d ago'),
-                      Divider(height: 24, color: Color(0xFFF3F4F6)),
-                      _Audit('system', 'suspend_user', 'User #A3X92', 'active → suspended', '2d ago'),
-                    ]
-                  )
-                ),
-                
                 const SizedBox(height: 40),
               ]
             ),
           ),
         ],
       ),
+      bottomNavigationBar: const AdminBottomNav(current: 0),
     );
   }
 }
@@ -544,90 +476,3 @@ class _ReportCard extends StatelessWidget {
   }
 }
 
-class _Audit extends StatelessWidget {
-  final String admin, action, target, change, time;
-  
-  const _Audit(this.admin, this.action, this.target, this.change, this.time);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 2, right: 12),
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: const Color(0xFFD1D5DB),
-              shape: BoxShape.circle
-            ),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$admin · $action',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF111827)
-                  )
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '$target: $change',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF6B7280)
-                  )
-                ),
-              ]
-            )
-          ),
-          Text(
-            time,
-            style: const TextStyle(
-              fontSize: 11,
-              color: Color(0xFF9CA3AF),
-              fontWeight: FontWeight.w600
-            )
-          ),
-        ]
-      )
-    );
-  }
-}
-
-void _confirmLogout(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text('Log Out', style: TextStyle(fontWeight: FontWeight.w800)),
-      content: const Text('Are you sure you want to log out?', style: TextStyle(color: Color(0xFF4B5563))),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx),
-          child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF6B7280)))
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.adminRed,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-          ),
-          onPressed: () {
-            AuthService.instance.signOut();
-            Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false);
-          },
-          child: const Text('Log Out', style: TextStyle(fontWeight: FontWeight.w700))
-        ),
-      ],
-    )
-  );
-}

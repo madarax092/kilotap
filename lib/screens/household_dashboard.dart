@@ -118,9 +118,12 @@ class HouseholdDashboard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text('Active Pickup', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF2C2C2C))),
-                Text('View All', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.sellerGreen)),
+              children: [
+                const Text('Active Pickup', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF2C2C2C))),
+                GestureDetector(
+                  onTap: () => Navigator.pushReplacementNamed(context, '/pickups'),
+                  child: const Text('View All', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.sellerGreen)),
+                ),
               ],
             ),
           ),
@@ -256,9 +259,12 @@ class HouseholdDashboard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text('Recent Activity', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF2C2C2C))),
-                Text('View All', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.sellerGreen)),
+              children: [
+                const Text('Recent Activity', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF2C2C2C))),
+                GestureDetector(
+                  onTap: () => Navigator.pushReplacementNamed(context, '/pickups'),
+                  child: const Text('View All', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.sellerGreen)),
+                ),
               ],
             ),
           ),

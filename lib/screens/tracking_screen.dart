@@ -36,9 +36,10 @@ class TrackingScreen extends StatelessWidget {
                   // Dummy map background
                   Positioned.fill(
                     child: Opacity(
-                      opacity: 0.3,
-                      child: CustomPaint(
-                        painter: _GridPainter(),
+                      opacity: 0.5,
+                      child: Image.asset(
+                        'assets/images/davao_nav_map.png',
+                        fit: BoxFit.cover,
                       ),
                     )
                   ),

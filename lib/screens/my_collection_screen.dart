@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 
-class MyEarningsScreen extends StatelessWidget {
-  const MyEarningsScreen({super.key});
+class MyCollectionScreen extends StatelessWidget {
+  const MyCollectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class MyEarningsScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('My Earnings',
+                    const Text('My Collections',
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
@@ -38,13 +38,13 @@ class MyEarningsScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                           color: const Color(0xFFF3F4F6),
                           borderRadius: BorderRadius.circular(12)),
-                      child: const Icon(Icons.account_balance_wallet_outlined,
+                      child: const Icon(Icons.scale_outlined,
                           color: Color(0xFF4B5563), size: 22),
                     )
                   ],
                 ),
                 const SizedBox(height: 4),
-                const Text('Track your daily income and statistics',
+                const Text('Track your daily collected weight and statistics',
                     style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
               ],
             ),
@@ -59,10 +59,10 @@ class MyEarningsScreen extends StatelessWidget {
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(children: const [
-                    _DayCard('Mon', '₱320', false),
-                    _DayCard('Tue', '₱450', false),
-                    _DayCard('Wed', '₱180', false),
-                    _DayCard('Thu', '₱450', true),
+                    _DayCard('Mon', '32 kg', false),
+                    _DayCard('Tue', '45 kg', false),
+                    _DayCard('Wed', '18 kg', false),
+                    _DayCard('Thu', '45 kg', true),
                     _DayCard('Fri', '—', false),
                     _DayCard('Sat', '—', false),
                   ]),
@@ -90,7 +90,7 @@ class MyEarningsScreen extends StatelessWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Total This Week',
+                            const Text('Est. Total CollectionThis Week',
                                 style: TextStyle(
                                     fontSize: 13,
                                     color: Color(0xFFE1F5FE),
@@ -100,17 +100,17 @@ class MyEarningsScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.baseline,
                               textBaseline: TextBaseline.alphabetic,
                               children: const [
-                                Text('₱',
+                                Text('',
                                     style: TextStyle(
                                         fontSize: 18,
                                         color: Colors.white,
                                         fontWeight: FontWeight.w600)),
-                                Text('1,400',
+                                Text('140',
                                     style: TextStyle(
                                         fontSize: 32,
                                         fontWeight: FontWeight.w800,
                                         color: Colors.white)),
-                                Text('.00',
+                                Text('.0 kg',
                                     style: TextStyle(
                                         fontSize: 18,
                                         color: Colors.white70,
@@ -202,12 +202,11 @@ class MyEarningsScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     children: const [
-                      _Txn(
-                          'Jose R.', 'Scrap Iron 25kg', '₱250', 'Jun 30', true),
-                      _Txn('Maria S.', 'Plastic 3.2kg', '₱30', 'Jun 30', true),
-                      _Txn('Pedro L.', 'Mixed 12kg', '₱120', 'Jun 29', true),
-                      _Txn('Ana L.', 'Cardboard 4kg', '₱30', 'Jun 28', true),
-                      _Txn('Carlos M.', 'Metal 8kg', '₱180', 'Jun 27', false),
+                      _Txn('Jose R.', 'Scrap Iron', '25 kg', 'Jun 30', true),
+                      _Txn('Maria S.', 'Plastic', '3.2 kg', 'Jun 30', true),
+                      _Txn('Pedro L.', 'Mixed', '12 kg', 'Jun 29', true),
+                      _Txn('Ana L.', 'Cardboard', '4 kg', 'Jun 28', true),
+                      _Txn('Carlos M.', 'Metal', '8 kg', 'Jun 27', false),
                     ],
                   ),
                 ),
@@ -254,7 +253,7 @@ class MyEarningsScreen extends StatelessWidget {
                     icon: Icon(Icons.chat_bubble_outline_rounded),
                     label: 'Messages'),
                 BottomNavigationBarItem(
-                    icon: Icon(Icons.payments_rounded), label: 'Earn'),
+                    icon: Icon(Icons.scale_rounded), label: 'Stats'),
                 BottomNavigationBarItem(
                     icon: Icon(Icons.person_outline_rounded), label: 'Profile'),
               ],
@@ -371,7 +370,7 @@ class _Txn extends StatelessWidget {
             height: 44,
             decoration: const BoxDecoration(
                 color: Color(0xFFF3F4F6), shape: BoxShape.circle),
-            child: const Icon(Icons.payments_outlined,
+            child: const Icon(Icons.scale_outlined,
                 color: Color(0xFF6B7280), size: 20),
           ),
           const SizedBox(width: 14),

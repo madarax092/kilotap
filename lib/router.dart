@@ -8,12 +8,14 @@ import 'screens/household_profile_screen.dart';
 import 'screens/collector_dashboard.dart';
 import 'screens/find_scrap_screen.dart';
 import 'screens/collector_id_card.dart';
-import 'screens/my_earnings_screen.dart';
+import 'screens/my_collection_screen.dart';
 import 'screens/my_route_screen.dart';
 import 'screens/collector_profile_screen.dart';
 import 'screens/admin_dashboard.dart';
 import 'screens/user_management_screen.dart';
 import 'screens/verify_collector_screen.dart';
+import 'screens/audit_logs_screen.dart';
+import 'screens/admin_profile_screen.dart';
 import 'screens/reports_screen.dart';
 import 'screens/analytics_screen.dart';
 import 'screens/chat_collector_screen.dart';
@@ -22,6 +24,8 @@ import 'screens/household_register_screen.dart';
 import 'screens/collector_register_screen.dart';
 import 'screens/chat_screen.dart';
 import 'screens/rate_collector_screen.dart';
+import 'screens/collector_navigation_screen.dart';
+import 'screens/request_details_screen.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -46,7 +50,7 @@ class AppRouter {
       case '/profile': return _tab(const HouseholdProfileScreen());
       case '/find': return _tab(const FindScrapScreen());
       case '/chat_collector': return _tab(const ChatCollectorScreen());
-      case '/earnings': return _tab(const MyEarningsScreen());
+      case '/earnings': return _tab(const MyCollectionScreen());
       case '/collector_profile': return _tab(const CollectorProfileScreen());
       
       // Standard Routes
@@ -56,18 +60,23 @@ class AppRouter {
       case '/route': return _page(const MyRouteScreen());
       case '/users': return _page(const UserManagementScreen());
       case '/verify': return _page(const VerifyCollectorScreen());
+      case '/audit': return _page(const AuditLogsScreen());
+      case '/admin_profile': return _page(const AdminProfileScreen());
       case '/reports': return _page(const ReportsScreen());
       case '/analytics': return _page(const AnalyticsScreen());
       case '/chat': return _page(const ChatScreen());
+      case '/collector_nav': return _page(const CollectorNavigationScreen(), settings);
+      case '/request_details': return _page(const RequestDetailsScreen(), settings);
       default: return _page(const LoginScreen());
     }
   }
   
-  static MaterialPageRoute _page(Widget child) => MaterialPageRoute(builder: (_) => child);
+  static MaterialPageRoute _page(Widget child, [RouteSettings? settings]) => MaterialPageRoute(builder: (_) => child, settings: settings);
   
-  static PageRouteBuilder _tab(Widget child) => PageRouteBuilder(
+  static PageRouteBuilder _tab(Widget child, [RouteSettings? settings]) => PageRouteBuilder(
     pageBuilder: (context, animation, secondaryAnimation) => child,
     transitionDuration: Duration.zero,
     reverseTransitionDuration: Duration.zero,
+    settings: settings,
   );
 }
