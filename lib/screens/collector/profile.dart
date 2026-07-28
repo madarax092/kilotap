@@ -184,7 +184,7 @@ class CollectorProfileScreen extends StatelessWidget {
                     icon: Icon(Icons.chat_bubble_outline_rounded),
                     label: 'Messages'),
                 BottomNavigationBarItem(
-                    icon: const Icon(Icons.scale_rounded, size: 22), label: 'Collections'),
+                    icon: const Icon(Icons.scale_rounded), label: 'Collections'),
                 BottomNavigationBarItem(
                     icon: Icon(Icons.person_outline_rounded), label: 'Profile'),
               ],
