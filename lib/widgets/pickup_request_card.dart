@@ -114,17 +114,11 @@ class PickupRequestCard extends StatelessWidget {
             // ── Scrap Photo ──
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Container(
+              child: Image.asset(
+                'assets/images/sample_scrap.jpg',
                 height: 160,
                 width: double.infinity,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4F6),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: CustomPaint(
-                  painter: _ScrapPhotoPainter(),
-                  size: const Size(double.infinity, 160),
-                ),
+                fit: BoxFit.cover,
               ),
             ),
 
@@ -252,111 +246,4 @@ class _DetailColumn extends StatelessWidget {
       ],
     );
   }
-}
-
-// ─── Scrap Photo Painter (placeholder with recyclables) ───
-
-class _ScrapPhotoPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Background (floor/ground)
-    canvas.drawRect(
-        Rect.fromLTWH(0, 0, size.width, size.height),
-        Paint()..color = const Color(0xFFE8E0D8));
-
-    // Cardboard box (center)
-    final boxPaint = Paint()..color = const Color(0xFFC4A882);
-    canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(size.width * 0.25, size.height * 0.25,
-              size.width * 0.3, size.height * 0.5),
-          const Radius.circular(4),
-        ),
-        boxPaint);
-    canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(size.width * 0.25, size.height * 0.25,
-              size.width * 0.3, size.height * 0.5),
-          const Radius.circular(4),
-        ),
-        Paint()
-          ..color = const Color(0xFFB8956E)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5);
-
-    // Plastic bottle (left)
-    canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(size.width * 0.08, size.height * 0.35,
-              size.width * 0.1, size.height * 0.35),
-          const Radius.circular(6),
-        ),
-        Paint()..color = const Color(0xFF90CAF9));
-    canvas.drawCircle(
-        Offset(size.width * 0.13, size.height * 0.32),
-        size.width * 0.04,
-        Paint()..color = const Color(0xFF64B5F6));
-
-    // Aluminum can (right)
-    canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(size.width * 0.65, size.height * 0.30,
-              size.width * 0.08, size.height * 0.4),
-          const Radius.circular(3),
-        ),
-        Paint()..color = const Color(0xFFBDBDBD));
-    canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(size.width * 0.65, size.height * 0.28,
-              size.width * 0.08, size.height * 0.06),
-          const Radius.circular(2),
-        ),
-        Paint()..color = const Color(0xFF9E9E9E));
-
-    // Scrap metal piece (bottom right)
-    canvas.drawRect(
-        Rect.fromLTWH(size.width * 0.75, size.height * 0.5,
-            size.width * 0.15, size.height * 0.15),
-        Paint()..color = const Color(0xFF8D6E63));
-    canvas.drawRect(
-        Rect.fromLTWH(size.width * 0.78, size.height * 0.65,
-            size.width * 0.08, size.height * 0.2),
-        Paint()..color = const Color(0xFF795548));
-
-    // Wires (bottom left)
-    final wirePaint = Paint()
-      ..color = const Color(0xFFFF7043)
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-    canvas.drawLine(
-        Offset(size.width * 0.05, size.height * 0.75),
-        Offset(size.width * 0.2, size.height * 0.8),
-        wirePaint);
-    canvas.drawLine(
-        Offset(size.width * 0.05, size.height * 0.78),
-        Offset(size.width * 0.25, size.height * 0.72),
-        Paint()
-          ..color = const Color(0xFFF4511E)
-          ..strokeWidth = 1.5
-          ..style = PaintingStyle.stroke);
-
-    // Newspaper/paper
-    canvas.drawRect(
-        Rect.fromLTWH(size.width * 0.55, size.height * 0.55,
-            size.width * 0.15, size.height * 0.25),
-        Paint()..color = const Color(0xFFFFF8E1));
-    for (double y = size.height * 0.58;
-        y < size.height * 0.78;
-        y += size.height * 0.04) {
-      canvas.drawLine(
-          Offset(size.width * 0.56, y),
-          Offset(size.width * 0.68, y),
-          Paint()
-            ..color = const Color(0xFFE0E0E0)
-            ..strokeWidth = 0.5);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
