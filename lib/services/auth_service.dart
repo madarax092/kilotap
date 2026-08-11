@@ -62,7 +62,6 @@ class AuthService {
           'Phone': phone,
           'Email': email,
           'Address': address,
-          'Housing_Type': '',
           'Preferred_Schedule': 'ASAP',
           'Created_At': FieldValue.serverTimestamp(),
         });

@@ -6,7 +6,6 @@ class ScrapSeller {
   final String phone;
   final String email;
   final String address;
-  final String housingType;
   final String preferredSchedule;
   final DateTime? createdAt;
 
@@ -17,7 +16,6 @@ class ScrapSeller {
     this.phone = '',
     this.email = '',
     required this.address,
-    this.housingType = '',
     this.preferredSchedule = 'ASAP',
     this.createdAt,
   });
@@ -29,7 +27,6 @@ class ScrapSeller {
     phone: m['Phone'] ?? '',
     email: m['Email'] ?? '',
     address: m['Address'] ?? '',
-    housingType: m['Housing_Type'] ?? '',
     preferredSchedule: m['Preferred_Schedule'] ?? 'ASAP',
     createdAt: (m['Created_At'] as dynamic)?.toDate(),
   );
@@ -41,7 +38,6 @@ class ScrapSeller {
     'Phone': phone,
     'Email': email,
     'Address': address,
-    'Housing_Type': housingType,
     'Preferred_Schedule': preferredSchedule,
     'Created_At': createdAt,
   };
