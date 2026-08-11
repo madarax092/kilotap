@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth_service.dart';
+import '../../services/auth_state.dart';
 import 'personal_info_page.dart';
 import 'pickup_prefs_page.dart';
 import 'impact_page.dart';
@@ -41,13 +42,13 @@ class HouseholdProfileScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Maria Santos',
+                    Text(AuthState.instance.displayName.isEmpty ? 'User' : AuthState.instance.displayName,
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF111827))),
                     SizedBox(height: 2),
-                    Text('maria.santos@gmail.com',
+                    Text(AuthState.instance.email.isEmpty ? 'user@kilotap.com' : AuthState.instance.email,
                         style: TextStyle(
                             fontSize: 12,
                             color: Color(0xFF6B7280),

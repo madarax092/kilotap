@@ -22,8 +22,50 @@ class AuthService {
       final cred = await _auth.signInWithEmailAndPassword(email: email, password: password);
       final doc = await _firestore.collection(colAccount).doc(cred.user!.uid).get();
       if (!doc.exists) return null;
-      final role = doc['Role'] as String? ?? 'Household';
+      
+      final data = doc.data()!;
+      final role = data['Role'] as String? ?? 'Household';
+      
+      // Populate AuthState with UserAccount data
       AuthState.instance.login(role, cred.user!.uid);
+      AuthState.instance.setProfile(
+        displayName: data['Display_Name'] ?? '',
+        email: data['Email'] ?? '',
+        phone: data['Phone'] ?? '',
+      );
+
+      // Fetch role-specific subcollection
+      if (role == 'Household') {
+        final sellerDoc = await _firestore
+            .collection(colAccount).doc(cred.user!.uid)
+            .collection(colSeller).doc(cred.user!.uid).get();
+        if (sellerDoc.exists) {
+          final s = sellerDoc.data()!;
+          AuthState.instance.setSellerProfile(
+            address: s['Address'] ?? '',
+            preferredSchedule: s['Preferred_Schedule'] ?? 'ASAP',
+          );
+        }
+      } else if (role == 'Collector') {
+        final collectorDoc = await _firestore
+            .collection(colAccount).doc(cred.user!.uid)
+            .collection(colCollector).doc(cred.user!.uid).get();
+        if (collectorDoc.exists) {
+          final c = collectorDoc.data()!;
+          AuthState.instance.setCollectorProfile(
+            vehicleType: c['Vehicle_Type'] ?? '',
+            vehicleCapacityKg: (c['Vehicle_Capacity_Kg'] ?? 0).toDouble(),
+            preferredMaterials: List<String>.from(c['Preferred_Materials'] ?? []),
+            verificationStatus: c['Verification_Status'] ?? 'Pending',
+            digitalBadgeUrl: c['Digital_Badge_URL'] ?? '',
+            avgRating: (c['Avg_Rating'] ?? 0).toDouble(),
+            currentLatitude: (c['Current_Latitude'] ?? 0).toDouble(),
+            currentLongitude: (c['Current_Longitude'] ?? 0).toDouble(),
+            onlineStatus: c['Online_Status'] ?? false,
+          );
+        }
+      }
+
       return role;
     } on FirebaseAuthException {
       return null;
@@ -91,6 +133,16 @@ class AuthService {
       }
 
       AuthState.instance.login(role, uid);
+      AuthState.instance.setProfile(
+        displayName: fullName,
+        email: email,
+        phone: phone,
+      );
+      if (role == 'Household') {
+        AuthState.instance.setSellerProfile(address: address);
+      } else if (role == 'Collector') {
+        AuthState.instance.setCollectorProfile();
+      }
       return role;
     } on FirebaseAuthException {
       return null;

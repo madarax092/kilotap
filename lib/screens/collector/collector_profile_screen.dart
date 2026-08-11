@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth_service.dart';
+import '../../services/auth_state.dart';
 import 'personal_info_page.dart';
 import 'vehicle_details_page.dart';
 import 'preferences_page.dart';
@@ -42,13 +43,13 @@ class CollectorProfileScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Juan Dela Cruz',
+                    Text(AuthState.instance.displayName.isEmpty ? 'User' : AuthState.instance.displayName,
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF111827))),
                     SizedBox(height: 2),
-                    Text('juan.delacruz@gmail.com',
+                    Text(AuthState.instance.email.isEmpty ? 'user@kilotap.com' : AuthState.instance.email,
                         style: TextStyle(
                             fontSize: 12,
                             color: Color(0xFF6B7280),
