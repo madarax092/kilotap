@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// ─── Table 15: Notification ───
+
 /// Table 15: Notification
 class AppNotification {
   final String notificationId;

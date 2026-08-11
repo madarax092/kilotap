@@ -43,7 +43,7 @@ class ScrapWeightService {
     'tire_truck':            _ItemWeight(weightKg: 50.0, sizeClass: 'Large'),
     'metal_sheet_1sqm':      _ItemWeight(weightKg: 8.0, sizeClass: 'Medium'),
     'tire_car':              _ItemWeight(weightKg: 8.0, sizeClass: 'Medium'),
-    'metal_pipe_1m':         _ItemWeight(weightKg: 3.5, sizeClass: 'Large'),
+    'metal_pipe_1m':         _ItemWeight(weightKg: 68.0, sizeClass: 'Large'),
     'metal_rod_1m':          _ItemWeight(weightKg: 2.0, sizeClass: 'Medium'),
     'metal_bolt':            _ItemWeight(weightKg: 0.05, sizeClass: 'Small'),
 

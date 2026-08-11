@@ -3,6 +3,8 @@ class ScrapSeller {
   final String sellerId;
   final String accountId;
   final String fullName;
+  final String phone;
+  final String email;
   final String address;
   final String housingType;
   final String preferredSchedule;
@@ -12,6 +14,8 @@ class ScrapSeller {
     required this.sellerId,
     required this.accountId,
     required this.fullName,
+    this.phone = '',
+    this.email = '',
     required this.address,
     this.housingType = '',
     this.preferredSchedule = 'ASAP',
@@ -22,9 +26,23 @@ class ScrapSeller {
     sellerId: m['Seller_Id'] ?? '',
     accountId: m['Account_Id'] ?? '',
     fullName: m['Full_Name'] ?? '',
+    phone: m['Phone'] ?? '',
+    email: m['Email'] ?? '',
     address: m['Address'] ?? '',
     housingType: m['Housing_Type'] ?? '',
     preferredSchedule: m['Preferred_Schedule'] ?? 'ASAP',
     createdAt: (m['Created_At'] as dynamic)?.toDate(),
   );
+
+  Map<String, dynamic> toMap() => {
+    'Seller_Id': sellerId,
+    'Account_Id': accountId,
+    'Full_Name': fullName,
+    'Phone': phone,
+    'Email': email,
+    'Address': address,
+    'Housing_Type': housingType,
+    'Preferred_Schedule': preferredSchedule,
+    'Created_At': createdAt,
+  };
 }
