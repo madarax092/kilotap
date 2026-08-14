@@ -1,11 +1,12 @@
 import 'dart:math';
 
-/// ─── Geo Service: Haversine Distance + ETA ───
+/// ─── Geo Service: Distance + ETA ───
 ///
-/// Implements the Haversine formula (paper Table 10: HaversineDistanceKm)
-/// to calculate great-circle distance between two GPS coordinates.
+/// Primary: Google Maps API (Directions + Distance Matrix) for real
+/// road distance and ETA.
 ///
-/// Also provides ETA estimation based on vehicle speed.
+/// Fallback: Haversine formula for offline proximity filtering when
+/// no network connection is available (paper offline mode).
 
 class GeoService {
   GeoService._();
