@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/auth_state.dart';
+import '../../services/geo_service.dart';
 
 class CollectorNavigationScreen extends StatelessWidget {
   const CollectorNavigationScreen({super.key});
@@ -18,7 +20,37 @@ class CollectorNavigationScreen extends StatelessWidget {
               'time': 'ASAP',
               'imagePath': 'assets/images/multiple_scrap_sample.png',
               'mapPath': 'assets/images/davao_nav_map.png',
+              'lat': 7.0750,
+              'lon': 125.6130,
+              'phone': '+639170000000',
             };
+
+    // Household GPS (from request)
+    final householdLat = (args['lat'] as num?)?.toDouble() ?? 7.0750;
+    final householdLon = (args['lon'] as num?)?.toDouble() ?? 125.6130;
+
+    // Collector GPS (from AuthState, falls back to demo location)
+    final auth = AuthState.instance;
+    final collectorLat = auth.currentLatitude != 0
+        ? auth.currentLatitude
+        : 7.0800;
+    final collectorLon = auth.currentLongitude != 0
+        ? auth.currentLongitude
+        : 125.6050;
+
+    // Compute real distance + ETA
+    final distanceKm = GeoService.haversineKm(
+      lat1: collectorLat,
+      lon1: collectorLon,
+      lat2: householdLat,
+      lon2: householdLon,
+    );
+    final vehicleType = auth.vehicleType.isNotEmpty
+        ? auth.vehicleType
+        : 'Tricycle';
+    final etaMin = GeoService.etaMinutes(distanceKm, vehicleType);
+    final distanceStr = GeoService.formatDistance(distanceKm);
+    final etaStr = GeoService.formatEta(etaMin);
 
     return Scaffold(
       body: Stack(
@@ -132,14 +164,14 @@ class CollectorNavigationScreen extends StatelessWidget {
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text('9 min',
-                              style: TextStyle(
+                        children: [
+                          Text(etaStr,
+                              style: const TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.w900,
                                   color: AppColors.success)),
-                          Text('2.3 km · 1:45 PM',
-                              style: TextStyle(
+                          Text('$distanceStr · ${args['location']}',
+                              style: const TextStyle(
                                   fontSize: 14,
                                   color: AppColors.textSecondary,
                                   fontWeight: FontWeight.w600)),
