@@ -10,6 +10,10 @@ class CacheService {
   static const _prefsBox = 'prefs';
   static const _recentBox = 'recent_pickups';
 
+  // ─── Cache limits (3GB RAM safety) ───
+  static const int maxRecentPickups = 50;
+  static const int maxCachedRoutes = 20;
+
   Future<void> init() async {
     await Hive.initFlutter();
     await Hive.openBox(_profileBox);
@@ -52,7 +56,10 @@ class CacheService {
 
 
   Future<void> cacheRecentPickups(List<Map<String, dynamic>> pickups) async {
-    await Hive.box(_recentBox).put('data', pickups);
+    final limited = pickups.length > maxRecentPickups
+        ? pickups.sublist(0, maxRecentPickups)
+        : pickups;
+    await Hive.box(_recentBox).put('data', limited);
   }
 
   List<Map<String, dynamic>>? getCachedRecentPickups() {

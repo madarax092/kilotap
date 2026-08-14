@@ -43,6 +43,7 @@ class TrackingScreen extends StatelessWidget {
                         child: Image.asset(
                           'assets/images/davao_nav_map.png',
                           fit: BoxFit.cover,
+                          cacheWidth: 800,
                         ),
                       )),
                       Center(

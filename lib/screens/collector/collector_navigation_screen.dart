@@ -90,6 +90,7 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
             child: Image.asset(
               args['mapPath'],
               fit: BoxFit.cover,
+              cacheWidth: 800,
             ),
           ),
 

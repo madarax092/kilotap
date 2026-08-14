@@ -82,6 +82,7 @@ class DetectionResultsScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 220,
                   fit: BoxFit.cover,
+                  cacheWidth: 800,
                 ),
                 Positioned.fill(
                   child: CustomPaint(

@@ -31,7 +31,6 @@ class AuthService {
         email: data['Email'] ?? '',
         phone: data['Phone'] ?? '',
       );
-
       if (role == 'Household') {
         final sellerDoc = await _firestore
             .collection(colAccount).doc(cred.user!.uid)
