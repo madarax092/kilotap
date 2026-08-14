@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/auth_state.dart';
+import '../../services/auth_service.dart';
 
 class VehicleDetailsPage extends StatefulWidget {
   const VehicleDetailsPage({super.key});
@@ -10,12 +12,47 @@ class VehicleDetailsPage extends StatefulWidget {
 
 class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
   String _vehicleType = 'Tricycle';
-  final _capacityController = TextEditingController(text: '200');
+  late final TextEditingController _capacityController;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final auth = AuthState.instance;
+    _vehicleType = auth.vehicleType.isNotEmpty ? auth.vehicleType : 'Tricycle';
+    _capacityController = TextEditingController(
+        text: auth.vehicleCapacityKg > 0
+            ? auth.vehicleCapacityKg.toStringAsFixed(0)
+            : '200');
+  }
 
   @override
   void dispose() {
     _capacityController.dispose();
     super.dispose();
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    try {
+      await AuthService.instance.updateCollectorProfile(
+        vehicleType: _vehicleType,
+        vehicleCapacityKg: double.tryParse(_capacityController.text.trim()) ?? 0,
+      );
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Vehicle details saved successfully.'),
+        backgroundColor: AppColors.buyerBlue,
+      ));
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Failed to save. Check your connection.'),
+        backgroundColor: AppColors.error,
+      ));
+    }
   }
 
   @override
@@ -129,14 +166,14 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text('Vehicle details saved successfully.'),
-                  backgroundColor: AppColors.buyerBlue,
-                ));
-              },
-              child: const Text('SAVE VEHICLE DETAILS', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2.5))
+                  : const Text('SAVE VEHICLE DETAILS', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
             ),
           ),
         ],

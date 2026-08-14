@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth_state.dart';
+import '../../services/auth_service.dart';
 
 class CollectorPersonalInfoPage extends StatefulWidget {
   const CollectorPersonalInfoPage({super.key});
@@ -12,10 +13,53 @@ class CollectorPersonalInfoPage extends StatefulWidget {
 
 class _CollectorPersonalInfoPageState extends State<CollectorPersonalInfoPage> {
   String _language = 'Bisaya';
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _phoneCtrl;
+  late final TextEditingController _emailCtrl;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final auth = AuthState.instance;
+    _nameCtrl = TextEditingController(text: auth.displayName);
+    _phoneCtrl = TextEditingController(text: auth.phone);
+    _emailCtrl = TextEditingController(text: auth.email);
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _phoneCtrl.dispose();
+    _emailCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    try {
+      await AuthService.instance.updateUserAccount(
+        displayName: _nameCtrl.text.trim(),
+        phone: _phoneCtrl.text.trim(),
+      );
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Profile updated successfully.'),
+        backgroundColor: AppColors.buyerBlue,
+      ));
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Failed to save. Check your connection.'),
+        backgroundColor: AppColors.error,
+      ));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final auth = AuthState.instance;
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
@@ -41,35 +85,20 @@ class _CollectorPersonalInfoPageState extends State<CollectorPersonalInfoPage> {
           const Text('Update your personal information',
               style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
           const SizedBox(height: 24),
-          _Field(
-              label: 'Full Name',
-              value: auth.displayName.isEmpty ? 'Full Name' : auth.displayName,
-              focusColor: AppColors.buyerBlue),
-          _Field(
-              label: 'Phone Number',
-              value: auth.phone.isEmpty ? '+63' : auth.phone,
-              focusColor: AppColors.buyerBlue),
-          _Field(
-              label: 'Email',
-              value: auth.email.isEmpty ? 'email@example.com' : auth.email,
-              focusColor: AppColors.buyerBlue),
-          const _Field(
-              label: 'Address',
-              value: '—',
-              focusColor: AppColors.buyerBlue),
+          _Field(label: 'Full Name', controller: _nameCtrl, focusColor: AppColors.buyerBlue),
+          _Field(label: 'Phone Number', controller: _phoneCtrl, focusColor: AppColors.buyerBlue),
+          _Field(label: 'Email', controller: _emailCtrl, focusColor: AppColors.buyerBlue),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                  color: const Color(0xFFE5E7EB), width: 1.5),
+              border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
             ),
             child: Row(
               children: [
-                const Icon(Icons.language,
-                    color: Color(0xFF9CA3AF), size: 22),
+                const Icon(Icons.language, color: Color(0xFF9CA3AF), size: 22),
                 const SizedBox(width: 12),
                 const Text('Language',
                     style: TextStyle(
@@ -85,11 +114,9 @@ class _CollectorPersonalInfoPageState extends State<CollectorPersonalInfoPage> {
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF111827)),
-                    icon: const Icon(Icons.expand_more,
-                        color: Color(0xFF6B7280)),
+                    icon: const Icon(Icons.expand_more, color: Color(0xFF6B7280)),
                     items: ['Bisaya', 'Tagalog', 'English']
-                        .map((l) =>
-                            DropdownMenuItem(value: l, child: Text(l)))
+                        .map((l) => DropdownMenuItem(value: l, child: Text(l)))
                         .toList(),
                     onChanged: (v) => setState(() => _language = v!),
                   ),
@@ -109,18 +136,18 @@ class _CollectorPersonalInfoPageState extends State<CollectorPersonalInfoPage> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text('Profile updated successfully.'),
-                  backgroundColor: AppColors.buyerBlue,
-                ));
-              },
-              child: const Text('SAVE CHANGES',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5)),
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2.5))
+                  : const Text('SAVE CHANGES',
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5)),
             ),
           ),
         ],
@@ -130,10 +157,13 @@ class _CollectorPersonalInfoPageState extends State<CollectorPersonalInfoPage> {
 }
 
 class _Field extends StatelessWidget {
-  final String label, value;
+  final String label;
+  final TextEditingController controller;
   final Color focusColor;
   const _Field(
-      {required this.label, required this.value, required this.focusColor});
+      {required this.label,
+      required this.controller,
+      required this.focusColor});
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +179,7 @@ class _Field extends StatelessWidget {
                   color: Color(0xFF4B5563))),
           const SizedBox(height: 8),
           TextFormField(
-            initialValue: value,
+            controller: controller,
             style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,

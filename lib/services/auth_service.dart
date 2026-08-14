@@ -157,6 +157,63 @@ class AuthService {
     return doc.data();
   }
 
+  /// Updates UserAccount (Table 7) fields: Display_Name, Phone, Email.
+  Future<void> updateUserAccount({
+    required String displayName,
+    required String phone,
+  }) async {
+    final uid = AuthState.instance.uid;
+    if (uid == null) return;
+    await _firestore.collection(colAccount).doc(uid).update({
+      'Display_Name': displayName,
+      'Phone': phone,
+    });
+    AuthState.instance.setProfile(
+      displayName: displayName,
+      email: AuthState.instance.email,
+      phone: phone,
+    );
+  }
+
+  /// Updates ScrapSeller (Table 8) fields: Address, Preferred_Schedule.
+  Future<void> updateSellerProfile({
+    required String address,
+    String? preferredSchedule,
+  }) async {
+    final uid = AuthState.instance.uid;
+    if (uid == null) return;
+    await _firestore.collection(colAccount).doc(uid)
+        .collection(colSeller).doc(uid).update({
+      'Address': address,
+      if (preferredSchedule != null) 'Preferred_Schedule': preferredSchedule,
+    });
+    AuthState.instance.setSellerProfile(
+      address: address,
+      preferredSchedule: preferredSchedule ?? AuthState.instance.preferredSchedule,
+    );
+  }
+
+  /// Updates ScrapCollector (Table 9) fields: vehicle + materials.
+  Future<void> updateCollectorProfile({
+    String? vehicleType,
+    double? vehicleCapacityKg,
+    List<String>? preferredMaterials,
+  }) async {
+    final uid = AuthState.instance.uid;
+    if (uid == null) return;
+    await _firestore.collection(colAccount).doc(uid)
+        .collection(colCollector).doc(uid).update({
+      if (vehicleType != null) 'Vehicle_Type': vehicleType,
+      if (vehicleCapacityKg != null) 'Vehicle_Capacity_Kg': vehicleCapacityKg,
+      if (preferredMaterials != null) 'Preferred_Materials': preferredMaterials,
+    });
+    AuthState.instance.setCollectorProfile(
+      vehicleType: vehicleType ?? AuthState.instance.vehicleType,
+      vehicleCapacityKg: vehicleCapacityKg ?? AuthState.instance.vehicleCapacityKg,
+      preferredMaterials: preferredMaterials ?? AuthState.instance.preferredMaterials,
+    );
+  }
+
   Future<void> signOut() async {
     await _auth.signOut();
     AuthState.instance.logout();
