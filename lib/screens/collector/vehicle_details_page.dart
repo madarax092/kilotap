@@ -79,7 +79,6 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
           const Text('Vehicle information is used for capacity matching',
               style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
           const SizedBox(height: 24),
-          // Vehicle type
           Material(
         color: Colors.white,
         shape: RoundedRectangleBorder(
@@ -108,7 +107,6 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
             ),
           ),
           const SizedBox(height: 12),
-          // Capacity
           Material(
         color: Colors.white,
         shape: RoundedRectangleBorder(

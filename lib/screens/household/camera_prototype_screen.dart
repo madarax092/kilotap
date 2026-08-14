@@ -16,20 +16,17 @@ class _CameraPrototypeScreenState extends State<CameraPrototypeScreen> {
   @override
   void initState() {
     super.initState();
-    // Simulate camera starting up
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) {
         setState(() {
           _isAnalyzing = true;
         });
-        // Simulate YOLO processing
         Future.delayed(const Duration(milliseconds: 2000), () {
           if (mounted) {
             setState(() {
               _isAnalyzing = false;
               _showBoundingBoxes = true;
             });
-            // Auto return after showing boxes
             Future.delayed(const Duration(milliseconds: 1500), () {
               if (mounted) {
                 Navigator.pop(context, [
@@ -54,7 +51,6 @@ class _CameraPrototypeScreenState extends State<CameraPrototypeScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Simulated camera feed (just a dark grey background with some grid lines)
           Positioned.fill(
             child: Container(
               color: const Color(0xFF1F2937),
@@ -64,7 +60,6 @@ class _CameraPrototypeScreenState extends State<CameraPrototypeScreen> {
             ),
           ),
 
-          // Bounding Boxes
           if (_showBoundingBoxes) ...[
             _BoundingBox(
                 left: 40,
@@ -96,7 +91,6 @@ class _CameraPrototypeScreenState extends State<CameraPrototypeScreen> {
                 color: Colors.orange),
           ],
 
-          // Scanning Overlay
           if (_isAnalyzing)
             Positioned.fill(
               child: Container(
@@ -110,7 +104,6 @@ class _CameraPrototypeScreenState extends State<CameraPrototypeScreen> {
               ),
             ),
 
-          // Top Bar
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -149,7 +142,6 @@ class _CameraPrototypeScreenState extends State<CameraPrototypeScreen> {
             ),
           ),
 
-          // Bottom Controls
           Positioned(
             bottom: 40,
             left: 0,

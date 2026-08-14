@@ -4,16 +4,10 @@ import '../../widgets/bounding_box_painter.dart';
 import '../../widgets/scrap_item_table.dart';
 
 /// ─── Detection Results Screen ───
-///
-/// Shown after MOLO processes the scrap photo.
-/// Displays: photo with bounding boxes, summary, item table (qty only).
-///
-/// Uses mock data until MOLO model is trained (Phase 3 stubs).
 
 class DetectionResultsScreen extends StatelessWidget {
   const DetectionResultsScreen({super.key});
 
-  // Mock detections — replace with MoloPipeline output later
   static const _mockBoxes = [
     DetectionBox(
         className: 'Copper Wire',
@@ -79,7 +73,6 @@ class DetectionResultsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          // Photo with bounding boxes
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Stack(
@@ -101,7 +94,6 @@ class DetectionResultsScreen extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Summary card
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -128,12 +120,10 @@ class DetectionResultsScreen extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          // Item breakdown (qty only)
           const ScrapItemTable(items: _mockItems),
 
           const SizedBox(height: 24),
 
-          // Action buttons
           Row(
             children: [
               Expanded(

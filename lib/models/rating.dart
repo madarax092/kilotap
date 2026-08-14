@@ -1,4 +1,3 @@
-/// Table 13: Rating
 class Rating {
   final String ratingId;
   final String bookingId;

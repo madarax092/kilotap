@@ -6,7 +6,6 @@ import '../models/rating.dart';
 import '../models/notification.dart';
 import '../models/audit_log.dart';
 
-/// Firestore CRUD — Tables 9–13 (Paper Data Dictionary)
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 

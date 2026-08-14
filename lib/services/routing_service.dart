@@ -7,8 +7,6 @@ class ProximityFilter {
 
   static const double defaultRadiusKm = 5.0;
 
-  /// Returns road distance in km between collector and household.
-  /// Uses Google Maps Distance Matrix API (real road distance).
   static Future<double> distanceKm({
     required double collectorLat,
     required double collectorLon,
@@ -24,8 +22,6 @@ class ProximityFilter {
     return route?.distanceKm ?? double.infinity;
   }
 
-  /// Filters collectors within radius using Google Maps road distance.
-  /// Returns each collector with a computed `distanceKm` field.
   static Future<List<Map<String, dynamic>>> filterNearby({
     required List<Map<String, dynamic>> collectors,
     required double householdLat,
@@ -53,8 +49,6 @@ class ProximityFilter {
   }
 }
 
-/// Hardcoded demo collectors for prototype.
-/// In production, this data comes from Firestore.
 const List<Map<String, dynamic>> demoCollectors = [
   {
     'id': 'COLLECTOR-001',

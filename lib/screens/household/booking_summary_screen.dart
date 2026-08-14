@@ -36,7 +36,6 @@ class BookingSummaryScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 28),
         children: [
           const SizedBox(height: 8),
-          // Actual Scrap Image
           Container(
             width: double.infinity,
             height: 180,
@@ -50,23 +49,20 @@ class BookingSummaryScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          // Collector card
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF0F5FF), // Light blue background
+              color: const Color(0xFFF0F5FF),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.buyerBlue.withOpacity(0.15)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Left Column
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Avatar + Car
                       SizedBox(
                         width: 90,
                         height: 48,
@@ -126,7 +122,6 @@ class BookingSummaryScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Right Column
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -153,7 +148,6 @@ class BookingSummaryScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          // ETA card
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -197,7 +191,6 @@ class BookingSummaryScreen extends StatelessWidget {
             ]),
           ),
           const SizedBox(height: 20),
-          // Booking details
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -221,7 +214,6 @@ class BookingSummaryScreen extends StatelessWidget {
             ]),
           ),
           const SizedBox(height: 12),
-          // Items Breakdown
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(

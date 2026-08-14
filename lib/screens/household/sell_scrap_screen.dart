@@ -39,7 +39,6 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
       backgroundColor: const Color(0xFFF9FAFB),
       body: Column(
         children: [
-          // Header
           Container(
             width: double.infinity,
             padding:
@@ -83,7 +82,6 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                 children: [
-                  // Camera area
                   GestureDetector(
                     onTap: () async {
                       final result = await Navigator.push(
@@ -138,7 +136,6 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
 
                   const SizedBox(height: 16),
 
-                  // Disabled gallery badge
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
@@ -164,7 +161,6 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
 
                   const SizedBox(height: 24),
 
-                  // AI Analysis
                   if (_detections.isEmpty)
                     _Card(children: const [
                       Center(
@@ -197,7 +193,6 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      // Group and display detections
                       ..._buildAnalysisRows(),
                       const Padding(
                           padding: EdgeInsets.symmetric(vertical: 12),
@@ -232,7 +227,6 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                                     fontSize: 14)),
                           ]),
                       const SizedBox(height: 16),
-                      // Recommended vehicle
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -258,7 +252,6 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Metadata preview
                   _Card(children: [
                     Row(
                       children: [
@@ -295,7 +288,6 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                           letterSpacing: 1)),
                   const SizedBox(height: 12),
 
-                  // Pickup options
                   Row(children: [
                     Expanded(
                       child: GestureDetector(
@@ -393,7 +385,6 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
 
                   const SizedBox(height: 16),
 
-                  // Vehicle dropdown with Recommended button
                   Row(children: [
                     Expanded(
                       child: Container(
@@ -486,7 +477,6 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                           onPressed: _detections.isEmpty
                               ? null
                               : () {
-                                  // Generate dummy items based on detections for UI demonstration
                                   final items = <BookingItem>[
                                     BookingItem(
                                       itemId: 'ITM-001',
@@ -577,7 +567,6 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
   List<Widget> _buildAnalysisRows() {
     if (_detections.isEmpty) return [];
 
-    // Group detections by type
     final counts = <String, int>{};
     for (var d in _detections) {
       counts[d] = (counts[d] ?? 0) + 1;

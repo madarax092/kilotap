@@ -18,7 +18,6 @@ class MyRouteScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 28),
             children: [
               const SizedBox(height: 8),
-              // Route map
               Container(
                   height: 220,
                   decoration: BoxDecoration(
@@ -48,7 +47,6 @@ class MyRouteScreen extends StatelessWidget {
                         child: _RStop('4', AppColors.buyerBlue)),
                   ])),
               const SizedBox(height: 16),
-              // Summary
               Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -67,7 +65,6 @@ class MyRouteScreen extends StatelessWidget {
                     ]),
                   ])),
               const SizedBox(height: 16),
-              // Stops
               _StopCard(
                   '1', 'Maria S.', 'Maa · 3.2 kg · Plastic/Cardboard', 'DONE',
                   done: true),

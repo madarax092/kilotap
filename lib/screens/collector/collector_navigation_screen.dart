@@ -86,7 +86,6 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Full screen map background
           Positioned.fill(
             child: Image.asset(
               args['mapPath'],
@@ -94,7 +93,6 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
             ),
           ),
 
-          // Back / Exit Navigation Button
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             left: 16,
@@ -118,7 +116,6 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
             ),
           ),
 
-          // Floating Navigation Directions Panel
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             left: 80,
@@ -161,7 +158,6 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
             ),
           ),
 
-          // Bottom Navigation Info Card
           Positioned(
             bottom: 0,
             left: 0,
@@ -189,7 +185,6 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // ETA and Distance
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -238,7 +233,6 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
                   const Divider(color: AppColors.divider, height: 1),
                   const SizedBox(height: 20),
 
-                  // Household Info
                   Row(
                     children: [
                       Container(
@@ -279,7 +273,6 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Arrived Button
                   SizedBox(
                     width: double.infinity,
                     height: 54,

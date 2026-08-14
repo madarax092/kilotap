@@ -31,14 +31,12 @@ class TrackingScreen extends StatelessWidget {
         ),
         body: Column(
           children: [
-            // Mock Map Area
             Expanded(
               child: Container(
                   width: double.infinity,
                   color: const Color(0xFFE5E7EB),
                   child: Stack(
                     children: [
-                      // Dummy map background
                       Positioned.fill(
                           child: Opacity(
                         opacity: 0.5,
@@ -47,7 +45,6 @@ class TrackingScreen extends StatelessWidget {
                           fit: BoxFit.cover,
                         ),
                       )),
-                      // Mock Route
                       Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -98,7 +95,6 @@ class TrackingScreen extends StatelessWidget {
                   )),
             ),
 
-            // Bottom Info Card
             Container(
               padding: const EdgeInsets.all(24),
               decoration: const BoxDecoration(

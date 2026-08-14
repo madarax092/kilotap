@@ -35,7 +35,6 @@ class _VerifyCollectorScreenState extends State<VerifyCollectorScreen> {
       backgroundColor: const Color(0xFFF9FAFB),
       body: Column(
         children: [
-          // Header
           Container(
             width: double.infinity,
             padding:
@@ -199,7 +198,6 @@ class _VerifyDetail extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 28),
           children: [
             const SizedBox(height: 8),
-            // Document grid — 3 docs only
             Row(
                 children: docs
                     .map((d) => Expanded(child: _DTile(_docIcon(d), d)))

@@ -18,7 +18,6 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
       backgroundColor: const Color(0xFFF9FAFB),
       body: Column(
         children: [
-          // Header
           Container(
             width: double.infinity,
             padding:
@@ -76,7 +75,6 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
             child: ListView(
                 padding: const EdgeInsets.only(top: 20, bottom: 40),
                 children: [
-                  // Filter Chips
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: SingleChildScrollView(
@@ -93,7 +91,6 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Booking Requests
                   const _RequestCard(
                       'MS',
                       'Maria Santos',

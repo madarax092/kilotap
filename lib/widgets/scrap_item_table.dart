@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 /// ─── Scrap Item Table ───
-///
-/// Clean item breakdown: name + quantity only.
 
 class ScrapItem {
   final String name;
@@ -26,7 +24,6 @@ class ScrapItemTable extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Header row
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
             child: Row(
@@ -49,10 +46,8 @@ class ScrapItemTable extends StatelessWidget {
             ),
           ),
           const Divider(height: 1, color: Color(0xFFF3F4F6)),
-          // Item rows
           ...items.map((item) => _row(item.name, '${item.quantity}')),
           const Divider(height: 1, color: Color(0xFFF3F4F6)),
-          // Total row
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(

@@ -11,7 +11,6 @@ class MyCollectionScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF9FAFB),
       body: Column(
         children: [
-          // Header
           Container(
             width: double.infinity,
             padding:
@@ -54,7 +53,6 @@ class MyCollectionScreen extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.only(top: 20, bottom: 40),
               children: [
-                // Week cards
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -69,7 +67,6 @@ class MyCollectionScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Weekly total Banner
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Container(
@@ -144,7 +141,6 @@ class MyCollectionScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Monthly stats
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Container(
@@ -186,7 +182,6 @@ class MyCollectionScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 32),
 
-                // Transaction history
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24),
                   child: Text('RECENT TRANSACTIONS',

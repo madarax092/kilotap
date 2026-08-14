@@ -14,7 +14,6 @@ class ScrapWeightService {
   static final ScrapWeightService instance = ScrapWeightService._();
 
   static const Map<String, _ItemWeight> _cache = {
-    // Appliances
     'refrigerator_standard': _ItemWeight(weightKg: 100.0, sizeClass: 'Heavy Override'),
     'washing_machine':       _ItemWeight(weightKg: 65.0, sizeClass: 'Heavy Override'),
     'freezer':               _ItemWeight(weightKg: 65.0, sizeClass: 'Heavy Override'),
@@ -26,7 +25,6 @@ class ScrapWeightService {
     'microwave_oven':        _ItemWeight(weightKg: 15.0, sizeClass: 'Medium'),
     'vacuum_cleaner':        _ItemWeight(weightKg: 8.0, sizeClass: 'Small'),
 
-    // E-Waste
     'crt_television':        _ItemWeight(weightKg: 31.6, sizeClass: 'Large'),
     'microwave':             _ItemWeight(weightKg: 15.0, sizeClass: 'Medium'),
     'hi_fi_system':          _ItemWeight(weightKg: 10.0, sizeClass: 'Medium'),
@@ -38,7 +36,6 @@ class ScrapWeightService {
     'electric_drill':        _ItemWeight(weightKg: 2.0, sizeClass: 'Small'),
     'mobile_phone':          _ItemWeight(weightKg: 0.1, sizeClass: 'Small'),
 
-    // Metal & Construction
     'cast_iron_bathtub':     _ItemWeight(weightKg: 135.0, sizeClass: 'Heavy Override'),
     'tire_truck':            _ItemWeight(weightKg: 50.0, sizeClass: 'Large'),
     'metal_sheet_1sqm':      _ItemWeight(weightKg: 8.0, sizeClass: 'Medium'),
@@ -47,7 +44,6 @@ class ScrapWeightService {
     'metal_rod_1m':          _ItemWeight(weightKg: 2.0, sizeClass: 'Medium'),
     'metal_bolt':            _ItemWeight(weightKg: 0.05, sizeClass: 'Small'),
 
-    // Glass, Paper & Plastics
     'cardboard_box_large':   _ItemWeight(weightKg: 1.2, sizeClass: 'Medium'),
     'glass_bottle_1L':       _ItemWeight(weightKg: 0.65, sizeClass: 'Small'),
     'glass_bottle_330ml':    _ItemWeight(weightKg: 0.35, sizeClass: 'Small'),

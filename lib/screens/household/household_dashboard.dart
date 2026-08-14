@@ -17,7 +17,6 @@ class HouseholdDashboard extends StatelessWidget {
       body: ListView(
         padding: EdgeInsets.zero,
         children: [
-          // Header Section
           Container(
             padding:
                 EdgeInsets.only(top: top + 16, left: 24, right: 24, bottom: 24),
@@ -29,7 +28,6 @@ class HouseholdDashboard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Greeting and Icons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -78,7 +76,6 @@ class HouseholdDashboard extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // Pending / Completed Cards
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
@@ -101,7 +98,6 @@ class HouseholdDashboard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Middle Banner (Your Eco Impact)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: GestureDetector(
@@ -154,7 +150,6 @@ class HouseholdDashboard extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // Active Pickup Section
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Row(
@@ -215,7 +210,6 @@ class HouseholdDashboard extends StatelessWidget {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      // Driver Avatar
                       Stack(
                         children: [
                           Container(
@@ -362,7 +356,6 @@ class HouseholdDashboard extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // Recent Activity Section
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Row(

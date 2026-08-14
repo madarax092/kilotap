@@ -1,7 +1,4 @@
 // ─── MOLO Pipeline Orchestrator ───
-///
-/// End-to-end: image → detection → weight → capacity.
-/// See molo_architecture.dart for full documentation.
 
 import 'tflite_runner.dart';
 import 'detection_postprocess.dart';
@@ -15,7 +12,6 @@ class MoloPipeline {
   final CapacityMatcher matcher = CapacityMatcher();
 
   // TODO: Implement full pipeline
-  // PipelineResult run(Uint8List imageBytes) { ... }
 }
 
 class PipelineResult {

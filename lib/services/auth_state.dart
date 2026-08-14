@@ -1,21 +1,17 @@
 import 'role_permissions.dart';
 
-/// Tracks current user role, profile, and permissions from Firestore
 class AuthState {
   AuthState._();
   static final AuthState _instance = AuthState._();
   static AuthState get instance => _instance;
 
-  // ── Core ──
   String? _role;
   String? _uid;
 
-  // ── UserAccount (Table 7) ──
   String _displayName = '';
   String _email = '';
   String _phone = '';
 
-  // ── Getters ──
   String? get role => _role;
   String? get uid => _uid;
   String get displayName => _displayName;
@@ -26,13 +22,11 @@ class AuthState {
   bool get isCollector => _role == 'Collector';
   bool get isAdmin => _role == 'Admin';
 
-  // ── ScrapSeller (Table 8) ──
   String _sellerAddress = '';
   String _preferredSchedule = 'ASAP';
   String get address => _sellerAddress;
   String get preferredSchedule => _preferredSchedule;
 
-  // ── ScrapCollector (Table 9) ──
   String _vehicleType = '';
   double _vehicleCapacityKg = 0;
   List<String> _preferredMaterials = [];
@@ -53,7 +47,6 @@ class AuthState {
   double get currentLongitude => _currentLongitude;
   bool get onlineStatus => _onlineStatus;
 
-  // ── Login ──
   void login(String role, String uid) {
     _role = role;
     _uid = uid;

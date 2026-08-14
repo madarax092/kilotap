@@ -13,7 +13,6 @@ class AdminDashboard extends StatelessWidget {
       backgroundColor: const Color(0xFFF9FAFB),
       body: Column(
         children: [
-          // Header Section
           Container(
             width: double.infinity,
             padding:
@@ -40,7 +39,6 @@ class AdminDashboard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                 children: [
-                  // Stat cards Row 1
                   Row(children: [
                     _Stat(
                         val: '342',
@@ -58,7 +56,6 @@ class AdminDashboard extends StatelessWidget {
                   ]),
                   const SizedBox(height: 12),
 
-                  // Stat cards Row 2
                   Row(children: [
                     _Stat(
                       val: '47',
@@ -77,7 +74,6 @@ class AdminDashboard extends StatelessWidget {
 
                   const SizedBox(height: 32),
 
-                  // Last 7 Days Analytics
                   Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
@@ -113,7 +109,6 @@ class AdminDashboard extends StatelessWidget {
 
                   const SizedBox(height: 32),
 
-                  // Pending Verifications
                   Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
@@ -169,7 +164,6 @@ class AdminDashboard extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
-                  // User Complaints
                   Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(

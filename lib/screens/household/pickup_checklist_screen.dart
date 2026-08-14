@@ -37,7 +37,6 @@ class PickupChecklistScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 28),
         children: [
           const SizedBox(height: 8),
-          // Booking context
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -85,7 +84,6 @@ class PickupChecklistScreen extends StatelessWidget {
             ]),
           ),
           const SizedBox(height: 16),
-          // Checklist
           PrePickupChecklist(detectedClasses: detectedClasses),
           const SizedBox(height: 30),
         ],

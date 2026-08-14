@@ -12,7 +12,6 @@ class ChatScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF9FAFB),
       body: Column(
         children: [
-          // Header
           Container(
             width: double.infinity,
             padding:

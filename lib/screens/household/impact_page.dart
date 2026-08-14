@@ -28,7 +28,6 @@ class ImpactPage extends StatelessWidget {
           const Text('Your contribution to the environment',
               style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
           const SizedBox(height: 24),
-          // Impact stats
           Row(children: [
             Expanded(
               child: Container(

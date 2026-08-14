@@ -35,7 +35,6 @@ class RolePickerScreen extends StatelessWidget {
                   style:
                       TextStyle(fontSize: 13, color: AppColors.textSecondary)),
               const SizedBox(height: 36),
-              // Household card
               GestureDetector(
                 onTap: () =>
                     Navigator.pushNamed(context, '/register-household'),
@@ -78,7 +77,6 @@ class RolePickerScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              // Collector card
               GestureDetector(
                 onTap: () =>
                     Navigator.pushNamed(context, '/register-collector'),

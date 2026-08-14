@@ -20,8 +20,6 @@ class GoogleMapsService {
 
   static const String _baseUrl = 'https://maps.googleapis.com/maps/api/distancematrix/json';
 
-  /// Fetches real road distance + ETA from Google Maps Distance Matrix API.
-  /// Returns null on failure (offline / invalid key / quota).
   static Future<RouteInfo?> getRoute({
     required double originLat,
     required double originLon,
@@ -29,7 +27,7 @@ class GoogleMapsService {
     required double destLon,
   }) async {
     if (AppConstants.googleMapsApiKey == 'YOUR_GOOGLE_MAPS_API_KEY') {
-      return null; // No key configured — caller falls back to cache
+      return null;
     }
 
     try {
@@ -70,13 +68,11 @@ class GoogleMapsService {
     }
   }
 
-  /// Formats distance (e.g. "2.1 km" or "850 m").
   static String formatDistance(double km) {
     if (km < 1) return '${(km * 1000).round()} m';
     return '${km.toStringAsFixed(1)} km';
   }
 
-  /// Formats ETA (e.g. "6.2 min" or "1.2 hr").
   static String formatEta(double minutes) {
     if (minutes < 1) return '<1 min';
     if (minutes < 60) return '${minutes.toStringAsFixed(1)} min';

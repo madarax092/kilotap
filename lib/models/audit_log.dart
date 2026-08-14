@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 // ─── Table 14: AuditLog ───
 
-/// Table 14: AuditLog
 class AuditLog {
   final String logId;
   final String actorId;

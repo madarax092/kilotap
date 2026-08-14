@@ -1,4 +1,3 @@
-/// Table 8: Scrap Seller (subcollection of UserAccount)
 class ScrapSeller {
   final String sellerId;
   final String accountId;

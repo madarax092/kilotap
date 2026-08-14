@@ -16,7 +16,6 @@ class MyPickupsScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF9FAFB),
       body: Column(
         children: [
-          // Header
           Container(
             width: double.infinity,
             padding:
@@ -722,7 +721,7 @@ class _PickupCard extends StatelessWidget {
                   .map((a) => Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 5),
-                          child: a.$5 // isOutlined
+                          child: a.$5
                               ? OutlinedButton.icon(
                                   icon: Icon(a.$2, size: 18),
                                   label: Text(a.$1,

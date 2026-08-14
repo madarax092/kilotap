@@ -114,7 +114,6 @@ class _PrePickupChecklistState extends State<PrePickupChecklist> {
               style: TextStyle(fontSize: 13, color: Color(0xFF666666)),
             ),
             const SizedBox(height: 10),
-            // Optional note — aligns with survey finding
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(

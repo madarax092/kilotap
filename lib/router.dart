@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/auth_state.dart';
+import 'services/auth_state.dart';
 import 'screens/account/login_screen.dart';
 import 'screens/household/household_dashboard.dart';
 import 'screens/household/sell_scrap_screen.dart';
@@ -32,7 +32,6 @@ class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     final route = settings.name ?? '/';
 
-    // Route guard — redirect unauthorized roles to login
     if (!AuthState.instance.canAccess(route) && route != '/') {
       return _page(const LoginScreen());
     }
@@ -42,8 +41,7 @@ class AppRouter {
       case '/register': return _page(const RolePickerScreen());
       case '/register-household': return _page(const HouseholdRegisterScreen());
       case '/register-collector': return _page(const CollectorRegisterScreen());
-      
-      // Bottom Nav Routes (No animation to prevent Map hanging)
+
       case '/household': return _tab(const HouseholdDashboard());
       case '/collector': return _tab(const CollectorDashboard());
       case '/sell': return _tab(const SellScrapScreen());
@@ -53,8 +51,7 @@ class AppRouter {
       case '/chat_collector': return _tab(const ChatCollectorScreen());
       case '/earnings': return _tab(const MyCollectionScreen());
       case '/collector_profile': return _tab(const CollectorProfileScreen());
-      
-      // Standard Routes
+
       case '/admin': return _page(const AdminDashboard());
       case '/idcard': return _page(const CollectorIDCard());
       case '/rate': return _page(const RateCollectorScreen());
@@ -72,9 +69,9 @@ class AppRouter {
       default: return _page(const LoginScreen());
     }
   }
-  
+
   static MaterialPageRoute _page(Widget child, [RouteSettings? settings]) => MaterialPageRoute(builder: (_) => child, settings: settings);
-  
+
   static PageRouteBuilder _tab(Widget child, [RouteSettings? settings]) => PageRouteBuilder(
     pageBuilder: (context, animation, secondaryAnimation) => child,
     transitionDuration: Duration.zero,

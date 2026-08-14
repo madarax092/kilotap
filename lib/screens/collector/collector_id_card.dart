@@ -8,11 +8,10 @@ class CollectorIDCard extends StatefulWidget {
 }
 
 class _CollectorIDCardState extends State<CollectorIDCard> {
-  int _mode = 0; // 0=2D, 1=3D, 2=Share
+  int _mode = 0;
 
   @override
   Widget build(BuildContext context) {
-    // 3D rotate effect
     Matrix4 cardTransform = Matrix4.identity();
     if (_mode == 1) {
       cardTransform = Matrix4.identity()
@@ -45,7 +44,6 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
           padding: const EdgeInsets.symmetric(horizontal: 28),
           children: [
             const SizedBox(height: 8),
-            // ID Card — with 3D transform
             Transform(
                 transform: cardTransform,
                 alignment: Alignment.center,
@@ -169,7 +167,6 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
                       ]),
                 )),
             const SizedBox(height: 20),
-            // Toggle modes — actually functional now
             Row(children: [
               _ModeButton(
                   label: '2D View',

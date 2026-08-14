@@ -1,4 +1,3 @@
-/// Table 9: Scrap Collector (subcollection of UserAccount)
 class VerificationDoc {
   final String type;
   final String url;

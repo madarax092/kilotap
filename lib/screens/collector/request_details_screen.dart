@@ -46,7 +46,6 @@ class RequestDetailsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          // Map View
           Container(
             height: 180,
             width: double.infinity,
@@ -68,7 +67,6 @@ class RequestDetailsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Household Info
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -131,7 +129,6 @@ class RequestDetailsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // Scrap Sample Image
                 Container(
                   width: double.infinity,
                   height: 160,
@@ -146,7 +143,6 @@ class RequestDetailsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // Details
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -157,7 +153,6 @@ class RequestDetailsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // Note
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
@@ -186,7 +181,6 @@ class RequestDetailsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Action Buttons
           if (!isViewOnly)
             Row(
               children: [

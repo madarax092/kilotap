@@ -39,7 +39,6 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
               style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
           const SizedBox(height: 24),
 
-          // Default type
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -59,7 +58,6 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
             ),
           ),
 
-          // Time window
           if (!_asap) ...[
             const SizedBox(height: 12),
             Container(
@@ -97,7 +95,6 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
 
           const SizedBox(height: 12),
 
-          // Notifications
           Container(
             decoration: BoxDecoration(
               color: Colors.white,

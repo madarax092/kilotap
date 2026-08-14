@@ -4,7 +4,6 @@ import 'auth_state.dart';
 
 // ─── Auth: Sign In / Sign Up / Sign Out (Tables 7-9) ───
 
-/// Firebase Auth + Firestore — matches ACM Paper Data Dictionary (Tables 7-9)
 class AuthService {
   static final AuthService _instance = AuthService._();
   static AuthService get instance => _instance;
@@ -22,11 +21,10 @@ class AuthService {
       final cred = await _auth.signInWithEmailAndPassword(email: email, password: password);
       final doc = await _firestore.collection(colAccount).doc(cred.user!.uid).get();
       if (!doc.exists) return null;
-      
+
       final data = doc.data()!;
       final role = data['Role'] as String? ?? 'Household';
-      
-      // Populate AuthState with UserAccount data
+
       AuthState.instance.login(role, cred.user!.uid);
       AuthState.instance.setProfile(
         displayName: data['Display_Name'] ?? '',
@@ -34,7 +32,6 @@ class AuthService {
         phone: data['Phone'] ?? '',
       );
 
-      // Fetch role-specific subcollection
       if (role == 'Household') {
         final sellerDoc = await _firestore
             .collection(colAccount).doc(cred.user!.uid)
@@ -84,7 +81,6 @@ class AuthService {
       final cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
       final uid = cred.user!.uid;
 
-      // Table 7: UserAccount
       await _firestore.collection(colAccount).doc(uid).set({
         'Account_Id': uid,
         'Auth_UID': uid,
@@ -95,7 +91,6 @@ class AuthService {
         'Created_At': FieldValue.serverTimestamp(),
       });
 
-      // Table 8: ScrapSeller (subcollection)
       if (role == 'Household') {
         await _firestore.collection(colAccount).doc(uid).collection(colSeller).doc(uid).set({
           'Seller_Id': uid,
@@ -109,7 +104,6 @@ class AuthService {
         });
       }
 
-      // Table 9: ScrapCollector (subcollection)
       if (role == 'Collector') {
         await _firestore.collection(colAccount).doc(uid).collection(colCollector).doc(uid).set({
           'Collector_ID': uid,
@@ -157,7 +151,6 @@ class AuthService {
     return doc.data();
   }
 
-  /// Updates UserAccount (Table 7) fields: Display_Name, Phone, Email.
   Future<void> updateUserAccount({
     required String displayName,
     required String phone,
@@ -175,7 +168,6 @@ class AuthService {
     );
   }
 
-  /// Updates ScrapSeller (Table 8) fields: Address, Preferred_Schedule.
   Future<void> updateSellerProfile({
     required String address,
     String? preferredSchedule,
@@ -193,7 +185,6 @@ class AuthService {
     );
   }
 
-  /// Updates ScrapCollector (Table 9) fields: vehicle + materials.
   Future<void> updateCollectorProfile({
     String? vehicleType,
     double? vehicleCapacityKg,

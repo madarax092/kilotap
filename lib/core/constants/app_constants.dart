@@ -1,4 +1,3 @@
-/// KiloTap App Constants
 class AppConstants {
   AppConstants._();
 
@@ -35,7 +34,6 @@ class AppConstants {
   static const String colRatings = 'ratings';
   static const String colNotifications = 'notifications';
   static const String colAuditLogs = 'auditLogs';
-  // UserAccount, ScrapSeller, ScrapCollector use subcollection pattern — see auth_service.dart
 
   // ─── Audit Action Types ────────────────────────────────────────────────────
   static const String auditVerifyCollector = 'VERIFY_COLLECTOR';
@@ -44,7 +42,6 @@ class AppConstants {
 
   // ─── Spatial Area Ratio Threshold (Paper §2.3.1.3, τ = 0.50) ──────────────
   static const double spatialAreaThreshold = 0.50;
-  // ≤ 0.50 → Tricycle Sidecar | > 0.50 → Heavy Hauling Truck
 
   // ─── Google Maps API (replace with real key on your local machine) ─────────
   static const String googleMapsApiKey = 'YOUR_GOOGLE_MAPS_API_KEY';

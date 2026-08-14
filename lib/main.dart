@@ -9,12 +9,10 @@ import 'services/cache_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize local cache
   await CacheService.instance.init();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Firestore offline persistence — dual protection with Hive
   FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: true, cacheSizeBytes: 104857600);
   runApp(const KiloTapApp());
 }
