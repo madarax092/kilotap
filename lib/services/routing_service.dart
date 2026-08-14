@@ -1,66 +1,52 @@
-import 'geo_service.dart';
+import 'google_maps_service.dart';
+
+// ─── Routing: Proximity + Dispatch (Google Maps API) ───
 
 class ProximityFilter {
   ProximityFilter._();
 
   static const double defaultRadiusKm = 5.0;
 
-  /// Returns true if the collector is within the proximity radius.
-  /// Uses the Haversine formula for accurate distance.
-  static bool isNearby({
+  /// Returns road distance in km between collector and household.
+  /// Uses Google Maps Distance Matrix API (real road distance).
+  static Future<double> distanceKm({
     required double collectorLat,
     required double collectorLon,
     required double householdLat,
     required double householdLon,
-    double radiusKm = defaultRadiusKm,
-  }) {
-    final distance = GeoService.haversineKm(
-      lat1: collectorLat,
-      lon1: collectorLon,
-      lat2: householdLat,
-      lon2: householdLon,
+  }) async {
+    final route = await GoogleMapsService.getRoute(
+      originLat: collectorLat,
+      originLon: collectorLon,
+      destLat: householdLat,
+      destLon: householdLon,
     );
-    return distance <= radiusKm;
+    return route?.distanceKm ?? double.infinity;
   }
 
-  /// Returns distance in km between collector and household.
-  static double distanceKm({
-    required double collectorLat,
-    required double collectorLon,
-    required double householdLat,
-    required double householdLon,
-  }) {
-    return GeoService.haversineKm(
-      lat1: collectorLat,
-      lon1: collectorLon,
-      lat2: householdLat,
-      lon2: householdLon,
-    );
-  }
-
-  /// Filters a list of collectors to only those within radius.
+  /// Filters collectors within radius using Google Maps road distance.
   /// Returns each collector with a computed `distanceKm` field.
-  static List<Map<String, dynamic>> filterNearby({
+  static Future<List<Map<String, dynamic>>> filterNearby({
     required List<Map<String, dynamic>> collectors,
     required double householdLat,
     required double householdLon,
     double radiusKm = defaultRadiusKm,
-  }) {
+  }) async {
     final results = <Map<String, dynamic>>[];
     for (final c in collectors) {
       final cLat = (c['latitude'] as num).toDouble();
       final cLon = (c['longitude'] as num).toDouble();
-      final dist = GeoService.haversineKm(
-        lat1: cLat,
-        lon1: cLon,
-        lat2: householdLat,
-        lon2: householdLon,
+      final route = await GoogleMapsService.getRoute(
+        originLat: cLat,
+        originLon: cLon,
+        destLat: householdLat,
+        destLon: householdLon,
       );
-      if (dist <= radiusKm) {
+      final dist = route?.distanceKm;
+      if (dist != null && dist <= radiusKm) {
         results.add({...c, 'distanceKm': dist});
       }
     }
-    // Sort nearest first
     results.sort((a, b) =>
         (a['distanceKm'] as double).compareTo(b['distanceKm'] as double));
     return results;

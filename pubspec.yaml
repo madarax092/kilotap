@@ -23,6 +23,9 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
 
+  # HTTP (Google Maps Distance Matrix API)
+  http: ^1.2.0
+
   # Fonts
   google_fonts: ^6.3.1
 

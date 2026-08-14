@@ -1,10 +1,55 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth_state.dart';
-import '../../services/geo_service.dart';
+import '../../services/google_maps_service.dart';
 
-class CollectorNavigationScreen extends StatelessWidget {
+// ─── Collector Navigation Screen ───
+
+class CollectorNavigationScreen extends StatefulWidget {
   const CollectorNavigationScreen({super.key});
+
+  @override
+  State<CollectorNavigationScreen> createState() =>
+      _CollectorNavigationScreenState();
+}
+
+class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
+  RouteInfo? _route;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRoute();
+  }
+
+  Future<void> _fetchRoute() async {
+    final args = ModalRoute.of(context)?.settings.arguments
+        as Map<String, dynamic>?;
+    final householdLat = (args?['lat'] as num?)?.toDouble() ?? 7.0750;
+    final householdLon = (args?['lon'] as num?)?.toDouble() ?? 125.6130;
+
+    final auth = AuthState.instance;
+    final collectorLat = auth.currentLatitude != 0
+        ? auth.currentLatitude
+        : 7.0800;
+    final collectorLon = auth.currentLongitude != 0
+        ? auth.currentLongitude
+        : 125.6050;
+
+    final route = await GoogleMapsService.getRoute(
+      originLat: collectorLat,
+      originLon: collectorLon,
+      destLat: householdLat,
+      destLon: householdLon,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _route = route;
+      _loading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,35 +67,21 @@ class CollectorNavigationScreen extends StatelessWidget {
               'mapPath': 'assets/images/davao_nav_map.png',
               'lat': 7.0750,
               'lon': 125.6130,
-              'phone': '+639170000000',
             };
 
-    // Household GPS (from request)
-    final householdLat = (args['lat'] as num?)?.toDouble() ?? 7.0750;
-    final householdLon = (args['lon'] as num?)?.toDouble() ?? 125.6130;
-
-    // Collector GPS (from AuthState, falls back to demo location)
-    final auth = AuthState.instance;
-    final collectorLat = auth.currentLatitude != 0
-        ? auth.currentLatitude
-        : 7.0800;
-    final collectorLon = auth.currentLongitude != 0
-        ? auth.currentLongitude
-        : 125.6050;
-
-    // Compute real distance + ETA
-    final distanceKm = GeoService.haversineKm(
-      lat1: collectorLat,
-      lon1: collectorLon,
-      lat2: householdLat,
-      lon2: householdLon,
-    );
-    final vehicleType = auth.vehicleType.isNotEmpty
-        ? auth.vehicleType
-        : 'Tricycle';
-    final etaMin = GeoService.etaMinutes(distanceKm, vehicleType);
-    final distanceStr = GeoService.formatDistance(distanceKm);
-    final etaStr = GeoService.formatEta(etaMin);
+    final String etaStr;
+    final String distanceStr;
+    if (_loading) {
+      etaStr = '...';
+      distanceStr = 'Calculating route...';
+    } else if (_route != null) {
+      etaStr = GoogleMapsService.formatEta(_route!.etaMinutes);
+      distanceStr =
+          '${GoogleMapsService.formatDistance(_route!.distanceKm)} · ${args['location']}';
+    } else {
+      etaStr = '—';
+      distanceStr = 'No network — connect to get directions';
+    }
 
     return Scaffold(
       body: Stack(
@@ -162,20 +193,35 @@ class CollectorNavigationScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(etaStr,
-                              style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.success)),
-                          Text('$distanceStr · ${args['location']}',
-                              style: const TextStyle(
-                                  fontSize: 14,
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.w600)),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (_loading)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8),
+                                child: SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: AppColors.success),
+                                ),
+                              )
+                            else
+                              Text(etaStr,
+                                  style: const TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppColors.success)),
+                            const SizedBox(height: 4),
+                            Text(distanceStr,
+                                style: const TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w600)),
+                          ],
+                        ),
                       ),
                       Container(
                         padding: const EdgeInsets.all(12),
@@ -247,7 +293,6 @@ class CollectorNavigationScreen extends StatelessWidget {
                         elevation: 0,
                       ),
                       onPressed: () {
-                        // In a real app, this would update booking status
                         Navigator.pushReplacementNamed(context, '/collector');
                       },
                       child: const Text(
