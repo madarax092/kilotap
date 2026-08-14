@@ -146,7 +146,7 @@ class _VerifyTile extends StatelessWidget {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                          color: AppColors.buyerBlue.withOpacity(0.1),
+                          color: AppColors.buyerBlue.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(10)),
                       child: const Icon(Icons.person_outline,
                           color: AppColors.buyerBlue)),

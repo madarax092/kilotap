@@ -52,7 +52,7 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
               subtitle: Text(_asap ? 'ASAP' : 'Scheduled',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _asap ? AppColors.sellerGreen : const Color(0xFF6B7280))),
               value: _asap,
-              activeColor: AppColors.sellerGreen,
+              activeThumbColor: AppColors.sellerGreen,
               onChanged: (v) => setState(() => _asap = v),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             ),
@@ -106,7 +106,7 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
               children: [
                 SwitchListTile(
                   value: _pushNotifications,
-                  activeColor: AppColors.sellerGreen,
+                  activeThumbColor: AppColors.sellerGreen,
                   onChanged: (v) => setState(() => _pushNotifications = v),
                   title: const Text('Push Notifications',
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
@@ -117,7 +117,7 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
                 const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFE5E7EB)),
                 SwitchListTile(
                   value: _smsNotifications,
-                  activeColor: AppColors.sellerGreen,
+                  activeThumbColor: AppColors.sellerGreen,
                   onChanged: (v) => setState(() => _smsNotifications = v),
                   title: const Text('SMS Notifications',
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF111827))),

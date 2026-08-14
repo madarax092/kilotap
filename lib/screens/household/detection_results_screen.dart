@@ -102,7 +102,7 @@ class DetectionResultsScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                    color: AppColors.buyerBlue.withOpacity(0.3),
+                    color: AppColors.buyerBlue.withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 6)),
               ],

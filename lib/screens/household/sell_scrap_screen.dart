@@ -117,7 +117,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                                 decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: AppColors.sellerGreen
-                                        .withOpacity(0.08)),
+                                        .withValues(alpha: 0.08)),
                                 child: const Icon(Icons.camera_rounded,
                                     color: AppColors.sellerGreen, size: 32)),
                             const SizedBox(height: 16),
@@ -180,7 +180,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                               width: 32,
                               height: 32,
                               decoration: BoxDecoration(
-                                  color: AppColors.sellerGreen.withOpacity(0.1),
+                                  color: AppColors.sellerGreen.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8)),
                               child: const Icon(Icons.auto_awesome,
                                   color: AppColors.sellerGreen, size: 16)),
@@ -468,9 +468,9 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                               backgroundColor: AppColors.sellerGreen,
                               foregroundColor: Colors.white,
                               disabledBackgroundColor:
-                                  AppColors.sellerGreen.withOpacity(0.3),
+                                  AppColors.sellerGreen.withValues(alpha: 0.3),
                               disabledForegroundColor:
-                                  Colors.white.withOpacity(0.5),
+                                  Colors.white.withValues(alpha: 0.5),
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16))),

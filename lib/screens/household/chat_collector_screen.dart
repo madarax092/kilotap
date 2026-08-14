@@ -148,12 +148,12 @@ class _ChatPreviewCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: unread > 0
               ? Border.all(
-                  color: AppColors.buyerBlue.withOpacity(0.3), width: 1.5)
+                  color: AppColors.buyerBlue.withValues(alpha: 0.3), width: 1.5)
               : Border.all(color: const Color(0xFFF3F4F6)),
           boxShadow: unread > 0
               ? [
                   BoxShadow(
-                      color: AppColors.buyerBlue.withOpacity(0.05),
+                      color: AppColors.buyerBlue.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, 4))
                 ]
@@ -167,7 +167,7 @@ class _ChatPreviewCard extends StatelessWidget {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                      color: AppColors.sellerGreen.withOpacity(0.15),
+                      color: AppColors.sellerGreen.withValues(alpha: 0.15),
                       shape: BoxShape.circle),
                   child: Center(
                       child: Text(initials,

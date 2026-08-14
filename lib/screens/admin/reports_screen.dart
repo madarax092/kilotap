@@ -123,7 +123,7 @@ class _RCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.08),
+                          color: statusColor.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(8)),
                       child: Text(status,
                           style: TextStyle(
@@ -174,7 +174,7 @@ class _RCard extends StatelessWidget {
                                     style: ElevatedButton.styleFrom(
                                         backgroundColor: a.primary
                                             ? a.color
-                                            : a.color.withOpacity(0.08),
+                                            : a.color.withValues(alpha: 0.08),
                                         foregroundColor:
                                             a.primary ? Colors.white : a.color,
                                         padding: const EdgeInsets.symmetric(

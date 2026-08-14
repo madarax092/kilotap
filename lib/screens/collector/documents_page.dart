@@ -76,7 +76,7 @@ class _DocCard extends StatelessWidget {
         leading: Container(
           width: 32, height: 32,
           decoration: BoxDecoration(
-            color: statusColor.withOpacity(0.1),
+            color: statusColor.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(Icons.check_circle, size: 20, color: statusColor),

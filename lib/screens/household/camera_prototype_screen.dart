@@ -94,7 +94,7 @@ class _CameraPrototypeScreenState extends State<CameraPrototypeScreen> {
           if (_isAnalyzing)
             Positioned.fill(
               child: Container(
-                color: AppColors.sellerGreen.withOpacity(0.1),
+                color: AppColors.sellerGreen.withValues(alpha: 0.1),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
@@ -199,7 +199,7 @@ class _BoundingBox extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(color: color, width: 3),
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
         ),
         child: Align(
           alignment: Alignment.topLeft,
@@ -222,7 +222,7 @@ class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.1)
+      ..color = Colors.white.withValues(alpha: 0.1)
       ..strokeWidth = 1.0;
 
     for (double i = 0; i < size.width; i += size.width / 3) {

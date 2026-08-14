@@ -87,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   hintText: 'Enter your phone or email',
                   hintStyle: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary.withOpacity(0.5)),
+                      color: AppColors.textSecondary.withValues(alpha: 0.5)),
                   prefixIcon: const Icon(Icons.email_outlined,
                       color: AppColors.textSecondary, size: 22),
                   filled: true,
@@ -120,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   hintText: 'Enter your password',
                   hintStyle: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary.withOpacity(0.5)),
+                      color: AppColors.textSecondary.withValues(alpha: 0.5)),
                   prefixIcon: const Icon(Icons.lock_outline_rounded,
                       color: AppColors.textSecondary, size: 22),
                   filled: true,

@@ -117,9 +117,9 @@ class _PrePickupChecklistState extends State<PrePickupChecklist> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.buyerBlue.withOpacity(0.04),
+                color: AppColors.buyerBlue.withValues(alpha: 0.04),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.buyerBlue.withOpacity(0.1)),
+                border: Border.all(color: AppColors.buyerBlue.withValues(alpha: 0.1)),
               ),
               child: Row(children: [
                 const Icon(Icons.info_outline, color: AppColors.buyerBlue, size: 18),

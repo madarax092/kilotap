@@ -119,9 +119,9 @@ class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
               border: Border.all(
-                  color: AppColors.buyerBlue.withOpacity(0.3), width: 1),
+                  color: AppColors.buyerBlue.withValues(alpha: 0.3), width: 1),
               borderRadius: BorderRadius.circular(12),
-              color: AppColors.buyerBlue.withOpacity(0.05),
+              color: AppColors.buyerBlue.withValues(alpha: 0.05),
             ),
             child: const Text(
               'Vehicle details and documents can be set up\nin your Profile after registration.',

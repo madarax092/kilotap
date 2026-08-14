@@ -14,7 +14,7 @@ class RateCollectorScreen extends StatelessWidget {
               color: AppColors.pureWhite,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 40)
+                BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 40)
               ]),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             const Text('Rate Your Collector',

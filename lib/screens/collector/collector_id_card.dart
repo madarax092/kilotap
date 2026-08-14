@@ -59,7 +59,7 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
                       boxShadow: _mode == 1
                           ? [
                               BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
+                                  color: Colors.black.withValues(alpha: 0.3),
                                   blurRadius: 20,
                                   offset: const Offset(0, 10))
                             ]
@@ -193,10 +193,10 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
               Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                      color: AppColors.buyerBlue.withOpacity(0.06),
+                      color: AppColors.buyerBlue.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                          color: AppColors.buyerBlue.withOpacity(0.2))),
+                          color: AppColors.buyerBlue.withValues(alpha: 0.2))),
                   child: const Row(children: [
                     Icon(Icons.check_circle,
                         size: 16, color: AppColors.buyerBlue),
@@ -253,7 +253,7 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
               Expanded(
                   child: _ActionBtn(
                       'REPORT LOST',
-                      AppColors.error.withOpacity(0.05),
+                      AppColors.error.withValues(alpha: 0.05),
                       AppColors.error,
                       () => showDialog(
                           context: context,
@@ -343,7 +343,7 @@ class _VerifyItem extends StatelessWidget {
             width: 24,
             height: 24,
             decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
+                color: AppColors.success.withValues(alpha: 0.1),
                 shape: BoxShape.circle),
             child: const Center(
                 child: Icon(Icons.check_circle,

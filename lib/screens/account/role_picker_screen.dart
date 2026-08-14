@@ -19,7 +19,7 @@ class RolePickerScreen extends StatelessWidget {
                 width: 72,
                 height: 72,
                 decoration: BoxDecoration(
-                    color: AppColors.sellerGreen.withOpacity(0.08),
+                    color: AppColors.sellerGreen.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(20)),
                 child: const Icon(Icons.person_add,
                     size: 36, color: AppColors.sellerGreen),
@@ -44,14 +44,14 @@ class RolePickerScreen extends StatelessWidget {
                       color: AppColors.pureWhite,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                          color: AppColors.sellerGreen.withOpacity(0.3),
+                          color: AppColors.sellerGreen.withValues(alpha: 0.3),
                           width: 2)),
                   child: Row(children: [
                     Container(
                         width: 52,
                         height: 52,
                         decoration: BoxDecoration(
-                            color: AppColors.sellerGreen.withOpacity(0.1),
+                            color: AppColors.sellerGreen.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(14)),
                         child: const Icon(Icons.home,
                             color: AppColors.sellerGreen, size: 28)),
@@ -86,14 +86,14 @@ class RolePickerScreen extends StatelessWidget {
                       color: AppColors.pureWhite,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                          color: AppColors.buyerBlue.withOpacity(0.3),
+                          color: AppColors.buyerBlue.withValues(alpha: 0.3),
                           width: 2)),
                   child: Row(children: [
                     Container(
                         width: 52,
                         height: 52,
                         decoration: BoxDecoration(
-                            color: AppColors.buyerBlue.withOpacity(0.1),
+                            color: AppColors.buyerBlue.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(14)),
                         child: const Icon(Icons.delivery_dining,
                             color: AppColors.buyerBlue, size: 28)),

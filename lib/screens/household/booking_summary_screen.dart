@@ -54,7 +54,7 @@ class BookingSummaryScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFFF0F5FF),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.buyerBlue.withOpacity(0.15)),
+              border: Border.all(color: AppColors.buyerBlue.withValues(alpha: 0.15)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,7 +76,7 @@ class BookingSummaryScreen extends StatelessWidget {
                                 width: 44,
                                 height: 44,
                                 decoration: BoxDecoration(
-                                  color: AppColors.buyerBlue.withOpacity(0.15),
+                                  color: AppColors.buyerBlue.withValues(alpha: 0.15),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Center(
@@ -154,14 +154,14 @@ class BookingSummaryScreen extends StatelessWidget {
               color: AppColors.pureWhite,
               borderRadius: BorderRadius.circular(14),
               border:
-                  Border.all(color: AppColors.sellerGreen.withOpacity(0.15)),
+                  Border.all(color: AppColors.sellerGreen.withValues(alpha: 0.15)),
             ),
             child: Row(children: [
               Container(
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.sellerGreen.withOpacity(0.08),
+                  color: AppColors.sellerGreen.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Center(

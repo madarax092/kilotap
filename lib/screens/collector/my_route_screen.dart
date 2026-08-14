@@ -126,7 +126,7 @@ class _RStop extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-                color: color.withOpacity(0.4), blurRadius: current ? 12 : 6)
+                color: color.withValues(alpha: 0.4), blurRadius: current ? 12 : 6)
           ]),
       child: Center(
           child: Text(num,
@@ -169,7 +169,7 @@ class _StopCard extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
             color: done
-                ? AppColors.pureWhite.withOpacity(0.6)
+                ? AppColors.pureWhite.withValues(alpha: 0.6)
                 : AppColors.pureWhite,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(

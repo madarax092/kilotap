@@ -35,7 +35,7 @@ class HouseholdDashboard extends StatelessWidget {
                           width: 38,
                           height: 38,
                           decoration: BoxDecoration(
-                              color: AppColors.sellerGreen.withOpacity(0.15),
+                              color: AppColors.sellerGreen.withValues(alpha: 0.15),
                               shape: BoxShape.circle),
                           child: const Center(
                               child: Text('M',
@@ -83,14 +83,14 @@ class HouseholdDashboard extends StatelessWidget {
                     value: '2',
                     icon: Icons.access_time,
                     iconColor: Colors.orange,
-                    iconBg: Colors.orange.withOpacity(0.1)),
+                    iconBg: Colors.orange.withValues(alpha: 0.1)),
                 const SizedBox(width: 12),
                 _StatCard(
                     label: 'Completed',
                     value: '14',
                     icon: Icons.check_circle_outline,
                     iconColor: Colors.green,
-                    iconBg: Colors.green.withOpacity(0.1)),
+                    iconBg: Colors.green.withValues(alpha: 0.1)),
               ],
             ),
           ),
@@ -116,7 +116,7 @@ class HouseholdDashboard extends StatelessWidget {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12)),
                       child: const Icon(Icons.recycling,
                           color: Colors.white, size: 22),

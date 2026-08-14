@@ -151,7 +151,7 @@ class _URow extends StatelessWidget {
         Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-                color: badgeColor.withOpacity(0.08),
+                color: badgeColor.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8)),
             child: Text(badge,
                 style: TextStyle(

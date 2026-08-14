@@ -57,12 +57,12 @@ class _PreferencesPageState extends State<PreferencesPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? AppColors.buyerBlue.withOpacity(0.08)
+                        ? AppColors.buyerBlue.withValues(alpha: 0.08)
                         : Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isSelected
-                          ? AppColors.buyerBlue.withOpacity(0.4)
+                          ? AppColors.buyerBlue.withValues(alpha: 0.4)
                           : const Color(0xFFE5E7EB),
                       width: 1.5,
                     ),

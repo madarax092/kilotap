@@ -31,7 +31,7 @@ class ChatDetailScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: AppColors.buyerBlue.withOpacity(0.08),
+                color: AppColors.buyerBlue.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(bookingId,

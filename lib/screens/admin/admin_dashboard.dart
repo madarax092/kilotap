@@ -267,7 +267,7 @@ class _Stat extends StatelessWidget {
                                   fontWeight: FontWeight.w900,
                                   color: color,
                                   height: 1)),
-                          Icon(icon, color: color.withOpacity(0.5), size: 20),
+                          Icon(icon, color: color.withValues(alpha: 0.5), size: 20),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -393,7 +393,7 @@ class _ReportCard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                    color: color.withOpacity(0.08),
+                    color: color.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8)),
                 child: Text(status.toUpperCase(),
                     style: TextStyle(
