@@ -1,10 +1,12 @@
+import 'geo_service.dart';
+
 class ProximityFilter {
   ProximityFilter._();
 
   static const double defaultRadiusKm = 5.0;
 
   /// Returns true if the collector is within the proximity radius.
-  /// Uses coordinate delta approximation — zero API cost.
+  /// Uses the Haversine formula for accurate distance.
   static bool isNearby({
     required double collectorLat,
     required double collectorLon,
@@ -12,27 +14,56 @@ class ProximityFilter {
     required double householdLon,
     double radiusKm = defaultRadiusKm,
   }) {
-    final deltaLat = (collectorLat - householdLat).abs();
-    final deltaLon = (collectorLon - householdLon).abs();
-    return (deltaLat + deltaLon) < (radiusKm / 111.0);
+    final distance = GeoService.haversineKm(
+      lat1: collectorLat,
+      lon1: collectorLon,
+      lat2: householdLat,
+      lon2: householdLon,
+    );
+    return distance <= radiusKm;
+  }
+
+  /// Returns distance in km between collector and household.
+  static double distanceKm({
+    required double collectorLat,
+    required double collectorLon,
+    required double householdLat,
+    required double householdLon,
+  }) {
+    return GeoService.haversineKm(
+      lat1: collectorLat,
+      lon1: collectorLon,
+      lat2: householdLat,
+      lon2: householdLon,
+    );
   }
 
   /// Filters a list of collectors to only those within radius.
+  /// Returns each collector with a computed `distanceKm` field.
   static List<Map<String, dynamic>> filterNearby({
     required List<Map<String, dynamic>> collectors,
     required double householdLat,
     required double householdLon,
     double radiusKm = defaultRadiusKm,
   }) {
-    return collectors.where((c) {
-      return isNearby(
-        collectorLat: (c['latitude'] as num).toDouble(),
-        collectorLon: (c['longitude'] as num).toDouble(),
-        householdLat: householdLat,
-        householdLon: householdLon,
-        radiusKm: radiusKm,
+    final results = <Map<String, dynamic>>[];
+    for (final c in collectors) {
+      final cLat = (c['latitude'] as num).toDouble();
+      final cLon = (c['longitude'] as num).toDouble();
+      final dist = GeoService.haversineKm(
+        lat1: cLat,
+        lon1: cLon,
+        lat2: householdLat,
+        lon2: householdLon,
       );
-    }).toList();
+      if (dist <= radiusKm) {
+        results.add({...c, 'distanceKm': dist});
+      }
+    }
+    // Sort nearest first
+    results.sort((a, b) =>
+        (a['distanceKm'] as double).compareTo(b['distanceKm'] as double));
+    return results;
   }
 }
 
