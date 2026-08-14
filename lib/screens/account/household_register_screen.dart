@@ -147,15 +147,11 @@ class _Field extends StatefulWidget {
   final String label, hint;
   final TextEditingController? controller;
   final bool obscure;
-  final Color focusColor;
-  final String? subLabel;
   const _Field(
       {required this.label,
       required this.hint,
       this.controller,
-      this.obscure = false,
-      this.focusColor = AppColors.sellerGreen,
-      this.subLabel});
+      this.obscure = false});
 
   @override
   State<_Field> createState() => _FieldState();
@@ -206,7 +202,7 @@ class _FieldState extends State<_Field> {
                 borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
             focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: widget.focusColor, width: 1.5)),
+                borderSide: const BorderSide(color: AppColors.sellerGreen, width: 1.5)),
             suffixIcon: widget.obscure
                 ? IconButton(
                     icon: Icon(
@@ -221,12 +217,6 @@ class _FieldState extends State<_Field> {
                 : null,
           ),
         ),
-        if (widget.subLabel != null) ...[
-          const SizedBox(height: 6),
-          Text(widget.subLabel!,
-              style: const TextStyle(
-                  fontSize: 11, color: AppColors.textSecondary)),
-        ]
       ]),
     );
   }

@@ -136,22 +136,6 @@ class _RStop extends StatelessWidget {
                   color: Colors.white))));
 }
 
-class _RGridPainter extends CustomPainter {
-  @override
-  void paint(Canvas c, Size s) {
-    final paint = Paint()
-      ..color = AppColors.divider
-      ..strokeWidth = 0.5;
-    for (double x = 0; x < s.width; x += 40)
-      c.drawLine(Offset(x, 0), Offset(x, s.height), paint);
-    for (double y = 0; y < s.height; y += 40)
-      c.drawLine(Offset(0, y), Offset(s.width, y), paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
 class _Sum extends StatelessWidget {
   final String val, label;
   final bool accent;

@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import '../../services/impact_tracker.dart';
 import 'impact_page.dart';
 import 'chat_detail_screen.dart';
 import 'tracking_screen.dart';
 
 class HouseholdDashboard extends StatelessWidget {
   const HouseholdDashboard({super.key});
-  static const double _demoKg = 245.7;
 
   @override
   Widget build(BuildContext context) {

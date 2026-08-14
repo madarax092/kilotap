@@ -38,18 +38,18 @@ class HouseholdProfileScreen extends StatelessWidget {
                         Icon(Icons.person, color: Color(0xFF1A85C8), size: 33)),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(AuthState.instance.displayName.isEmpty ? 'User' : AuthState.instance.displayName,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF111827))),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(AuthState.instance.email.isEmpty ? 'user@kilotap.com' : AuthState.instance.email,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 12,
                             color: Color(0xFF6B7280),
                             fontWeight: FontWeight.w500)),

@@ -8,7 +8,6 @@ class FindScrapScreen extends StatefulWidget {
 }
 
 class _FindScrapScreenState extends State<FindScrapScreen> {
-  bool _accepted = false;
   bool _isOnline = true;
 
   @override

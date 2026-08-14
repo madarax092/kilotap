@@ -9,7 +9,6 @@ class MoloPipeline {
   final TfliteRunner runner = TfliteRunner();
   final DetectionPostprocess post = DetectionPostprocess();
   final WeightLookup lookup = WeightLookup();
-  final CapacityMatcher matcher = CapacityMatcher();
 
   // TODO: Implement full pipeline
 }

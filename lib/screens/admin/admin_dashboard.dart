@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import '../../services/auth_service.dart';
 import '../../widgets/admin_bottom_nav.dart';
 
 class AdminDashboard extends StatelessWidget {
