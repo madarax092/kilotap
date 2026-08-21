@@ -46,6 +46,11 @@ firebase_options.dart
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local-only (never commit — machine-specific)
+android/local.properties
+android/.gradle/
+
 .hermes/plans/
 # Agent/markdown files — local only
 **/*.md
