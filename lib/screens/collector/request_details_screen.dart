@@ -12,13 +12,13 @@ class RequestDetailsScreen extends StatelessWidget {
     final bool isViewOnly = rawArgs['isViewOnly'] == true;
 
     final args = {
-      'initials': rawArgs['initials'] ?? 'MS',
-      'name': rawArgs['name'] ?? 'Maria Santos',
-      'location': rawArgs['location'] ?? 'Maa · 0.3 km away',
-      'pcs': rawArgs['pcs'] ?? '12 pcs',
-      'material': rawArgs['material'] ?? 'Plastic',
-      'weight': rawArgs['weight'] ?? '15 kg',
-      'time': rawArgs['time'] ?? 'ASAP',
+      'initials': rawArgs['initials'] ?? '?',
+      'name': rawArgs['name'] ?? '',
+      'location': rawArgs['location'] ?? '',
+      'pcs': rawArgs['pcs'] ?? '—',
+      'material': rawArgs['material'] ?? '',
+      'weight': rawArgs['weight'] ?? '',
+      'time': rawArgs['time'] ?? '',
       'imagePath':
           rawArgs['imagePath'] ?? 'assets/images/multiple_scrap_sample.png',
       'mapPath': rawArgs['mapPath'] ?? 'assets/images/davao_nav_map.png',

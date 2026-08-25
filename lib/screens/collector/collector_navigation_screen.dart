@@ -56,14 +56,14 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
     final args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
             {
-              'initials': 'MS',
-              'name': 'Maria Santos',
-              'location': 'Maa · 0.3 km away',
-              'pcs': '12 pcs',
-              'material': 'Plastic',
-              'weight': '15 kg',
-              'time': 'ASAP',
-              'imagePath': 'assets/images/multiple_scrap_sample.png',
+              'initials': '?',
+              'name': '',
+              'location': '',
+              'pcs': '—',
+              'material': '',
+              'weight': '',
+              'time': '',
+              'imagePath': 'assets/images/sample_scrap.jpg',
               'mapPath': 'assets/images/davao_nav_map.png',
               'lat': 7.0750,
               'lon': 125.6130,

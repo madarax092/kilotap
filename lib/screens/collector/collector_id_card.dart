@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/auth_state.dart';
 
 class CollectorIDCard extends StatefulWidget {
   const CollectorIDCard({super.key});
@@ -105,12 +106,15 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
                                           fontWeight: FontWeight.w900,
                                           color: Colors.white)))),
                           const SizedBox(width: 16),
-                          const Expanded(
+                          Expanded(
                               child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                Text('Juan Dela Cruz',
-                                    style: TextStyle(
+                                Text(
+                                    AuthState.instance.displayName.isEmpty
+                                        ? 'Collector'
+                                        : AuthState.instance.displayName,
+                                    style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w800,
                                         color: Colors.white)),
