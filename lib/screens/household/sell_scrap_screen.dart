@@ -4,7 +4,7 @@ import '../../services/scrap_weight_service.dart';
 import '../../core/volume_classifier.dart';
 import '../../models/booking_item.dart';
 import 'booking_summary_screen.dart';
-import 'camera_prototype_screen.dart';
+import 'camera_screen.dart';
 
 class SellScrapScreen extends StatefulWidget {
   const SellScrapScreen({super.key});
@@ -87,7 +87,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                       final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const CameraPrototypeScreen()));
+                              builder: (_) => const CameraScreen()));
                       if (result != null && result is List<String>) {
                         setState(() {
                           _detections = result;
