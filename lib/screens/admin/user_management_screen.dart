@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-
+import '../../services/firestore_service.dart';
 import '../../widgets/admin_bottom_nav.dart';
 
 class UserManagementScreen extends StatelessWidget {
@@ -67,21 +67,39 @@ class UserManagementScreen extends StatelessWidget {
                   ]))),
 
           Expanded(
-              child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  children: [
-                _URow('JD', 'Juan Dela Cruz', 'Collector · Maa · Tricycle',
-                    'VERIFIED', AppColors.success, '★4.8', AppColors.buyerBlue),
-                _URow('PR', 'Pedro Reyes', 'Collector · Matina · Tricycle',
-                    'PENDING', AppColors.warning, null, AppColors.buyerBlue),
-                _URow('MS', 'Maria Santos', 'Household · Maa · House', 'ACTIVE',
-                    AppColors.success, null, AppColors.sellerGreen),
-                _URow('RT', 'Ramon Torres', 'Collector · Toril · Kariton',
-                    'SUSPENDED', AppColors.error, '★2.1', AppColors.buyerBlue),
-                _URow('JR', 'Jose Ramirez', 'Household · Ecoland · House',
-                    'ACTIVE', AppColors.success, null, AppColors.sellerGreen),
-                const SizedBox(height: 30),
-              ])),
+              child: StreamBuilder<List<Map<String, dynamic>>>(
+                  stream: FirestoreService().listUsers(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                          child: CircularProgressIndicator(
+                              color: AppColors.buyerBlue));
+                    }
+                    final users = snapshot.data ?? [];
+                    if (users.isEmpty) {
+                      return const Center(
+                          child: Text('No accounts yet',
+                              style:
+                                  TextStyle(color: AppColors.textSecondary)));
+                    }
+                    return ListView(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        children: [
+                          for (final u in users)
+                            _URow(
+                              u['initials'],
+                              u['name'],
+                              u['role'],
+                              'ACTIVE',
+                              AppColors.success,
+                              null,
+                              u['role'] == 'Collector'
+                                  ? AppColors.buyerBlue
+                                  : AppColors.sellerGreen,
+                            ),
+                          const SizedBox(height: 30),
+                        ]);
+                  })),
         ],
       ),
       bottomNavigationBar: const AdminBottomNav(current: 4),

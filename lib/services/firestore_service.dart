@@ -144,6 +144,23 @@ class FirestoreService {
   Stream<List<Map<String, dynamic>>> sellerBookingsDetailed(String sellerId) =>
       _joinNames(sellerBookings(sellerId), (b) => b.collectorId);
 
+  // ─── Admin: list accounts ─────────────────────────────────────────
+
+  Stream<List<Map<String, dynamic>>> listUsers() => _db
+      .collection(AppConstants.colAccount)
+      .snapshots()
+      .map((s) => s.docs.map((d) {
+            final m = d.data();
+            final name = m['Display_Name'] ?? 'Unknown';
+            return {
+              'uid': d.id,
+              'name': name,
+              'email': m['Email'] ?? '',
+              'role': m['Role'] ?? '',
+              'initials': _initials(name),
+            };
+          }).toList());
+
   static String _initials(String name) {
     final parts = name.trim().split(RegExp(r'\s+'));
     if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
