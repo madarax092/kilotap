@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/firestore_service.dart';
+import '../../models/booking.dart';
 
 class FindScrapScreen extends StatefulWidget {
   const FindScrapScreen({super.key});
@@ -90,46 +92,46 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  const _RequestCard(
-                      'MS',
-                      'Maria Santos',
-                      'Maa · 0.3 km away',
-                      '12 pcs',
-                      'Plastic',
-                      '15 kg',
-                      'ASAP',
-                      'assets/images/multiple_scrap_sample.png',
-                      'assets/images/davao_nav_map.png'),
-                  const _RequestCard(
-                      'JR',
-                      'Jose Reyes',
-                      'Matina · 1.2 km away',
-                      '5 pcs',
-                      'Scrap Metal',
-                      '25 kg',
-                      'ASAP',
-                      'assets/images/scrap2.jpg',
-                      'assets/images/map2.png'),
-                  const _RequestCard(
-                      'AL',
-                      'Ana Lim',
-                      'Ecoland · 2.5 km away',
-                      '20 pcs',
-                      'Cardboard',
-                      '8 kg',
-                      'In 2 hrs',
-                      'assets/images/scrap3.jpg',
-                      'assets/images/map3.png'),
-                  const _RequestCard(
-                      'CM',
-                      'Carlos Mendoza',
-                      'Buhangin · 4.1 km away',
-                      '8 pcs',
-                      'Mixed',
-                      '12 kg',
-                      'In 4 hrs',
-                      'assets/images/scrap4.jpg',
-                      'assets/images/map4.png'),
+                  StreamBuilder<List<Map<String, dynamic>>>(
+                    stream: FirestoreService().availableBookingsDetailed(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Padding(
+                          padding: EdgeInsets.all(48),
+                          child: Center(
+                              child: CircularProgressIndicator(
+                                  color: AppColors.buyerBlue)),
+                        );
+                      }
+                      final items = snapshot.data ?? [];
+                      if (items.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(48),
+                          child: Center(
+                            child: Text('No pickup requests nearby',
+                                style: TextStyle(
+                                    color: AppColors.textSecondary)),
+                          ),
+                        );
+                      }
+                      return Column(
+                        children: items.map((item) {
+                          final b = item['booking'] as Booking;
+                          return _RequestCard(
+                            item['initials'],
+                            item['sellerName'],
+                            b.pickupAddress,
+                            '—',
+                            'Mixed',
+                            '—',
+                            'ASAP',
+                            'assets/images/multiple_scrap_sample.png',
+                            'assets/images/davao_nav_map.png',
+                          );
+                        }).toList(),
+                      );
+                    },
+                  ),
                 ]),
           ),
         ],

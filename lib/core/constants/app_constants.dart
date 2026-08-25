@@ -29,12 +29,14 @@ class AppConstants {
   ];
 
   // ─── Firestore Collections (Tables 6-13) ───────────────────────────────────
+  static const String colAccount = 'UserAccount';
+  static const String colSeller = 'ScrapSeller';
+  static const String colCollector = 'ScrapCollector';
   static const String colBookings = 'bookings';
   static const String colBookingItems = 'bookingItems';
   static const String colRatings = 'ratings';
   static const String colNotifications = 'notifications';
   static const String colAuditLogs = 'auditLogs';
-
   // ─── Audit Action Types ────────────────────────────────────────────────────
   static const String auditVerifyCollector = 'VERIFY_COLLECTOR';
   static const String auditSuspendUser = 'SUSPEND_USER';

@@ -111,4 +111,36 @@ class FirestoreService {
       .limit(limit)
       .snapshots()
       .map((s) => s.docs.map((d) => AuditLog.fromMap(d.id, d.data())).toList());
+
+  // ─── Display helpers (join user names) ────────────────────────────
+
+  Future<String> userName(String uid) async {
+    if (uid.isEmpty) return 'Unknown';
+    try {
+      final doc = await _db.collection(AppConstants.colAccount).doc(uid).get();
+      if (doc.exists) return doc.data()?['Display_Name'] ?? 'Unknown';
+    } catch (_) {}
+    return 'Unknown';
+  }
+
+  /// Pending bookings joined with the seller's display name.
+  Stream<List<Map<String, dynamic>>> availableBookingsDetailed() async* {
+    await for (final bookings in availableBookings()) {
+      final out = <Map<String, dynamic>>[];
+      for (final b in bookings) {
+        final name = await userName(b.sellerId);
+        out.add({'booking': b, 'sellerName': name, 'initials': _initials(name)});
+      }
+      yield out;
+    }
+  }
+
+  static String _initials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    if (parts.length == 1 && parts[0].isNotEmpty) {
+      return parts[0][0].toUpperCase();
+    }
+    return '?';
+  }
 }
