@@ -119,7 +119,7 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                           final b = item['booking'] as Booking;
                           return _RequestCard(
                             item['initials'],
-                            item['sellerName'],
+                            item['name'],
                             b.pickupAddress,
                             '—',
                             'Mixed',

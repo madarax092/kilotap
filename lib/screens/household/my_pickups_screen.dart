@@ -5,6 +5,9 @@ import 'chat_detail_screen.dart';
 import 'booking_summary_screen.dart';
 import 'tracking_screen.dart';
 import '../../models/booking_item.dart';
+import '../../models/booking.dart';
+import '../../services/firestore_service.dart';
+import '../../services/auth_state.dart';
 
 class MyPickupsScreen extends StatelessWidget {
   const MyPickupsScreen({super.key});
@@ -69,123 +72,61 @@ class MyPickupsScreen extends StatelessWidget {
                   ]),
                 ),
                 const SizedBox(height: 24),
-                _PickupCard(
-                  id: '#PKP-0042',
-                  status: 'ON THE WAY',
-                  statusColor: AppColors.buyerBlue,
-                  initials: 'JD',
-                  name: 'Juan Dela Cruz',
-                  items:
-                      'Plastic 12 pcs (S), Cardboard 3 pcs (M) \u00b7 Tricycle',
-                  meta: 'ETA 5 min',
-                  stars: '\u2605 4.8',
-                  actions: [
-                    (
-                      'Track Pickup',
-                      Icons.near_me_outlined,
-                      AppColors.sellerGreen,
-                      Colors.white,
-                      false,
-                      () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const TrackingScreen(
-                                    collectorName: 'Juan Dela Cruz',
-                                    bookingId: '#PKP-0042')));
-                      }
-                    ),
-                    (
-                      'Message',
-                      Icons.chat_bubble_outline,
-                      Colors.white,
-                      const Color(0xFF2C2C2C),
-                      true,
-                      () => _openChat(context, 'Juan Dela Cruz', '#PKP-0042')
-                    ),
-                  ],
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const PickupChecklistScreen(
-                          bookingId: '#PKP-0042',
-                          detectedClasses: [
-                            'refrigerator_standard',
-                            'plastic_bottle_1L',
-                            'metal_pipe_1m'
-                          ],
-                          collectorName: 'Juan Dela Cruz',
-                          eta: '5 min',
-                          vehicle: 'Tricycle',
+                StreamBuilder<List<Map<String, dynamic>>>(
+                  stream: FirestoreService()
+                      .sellerBookingsDetailed(AuthState.instance.uid),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Padding(
+                        padding: EdgeInsets.all(48),
+                        child: Center(
+                            child: CircularProgressIndicator(
+                                color: AppColors.sellerGreen)),
+                      );
+                    }
+                    final items = snapshot.data ?? [];
+                    if (items.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.all(48),
+                        child: Center(
+                          child: Text('No pickups yet',
+                              style:
+                                  TextStyle(color: AppColors.textSecondary)),
                         ),
-                      )),
-                ),
-                _PickupCard(
-                  id: '#PKP-0041',
-                  status: 'CONFIRMED',
-                  statusColor: AppColors.buyerBlue,
-                  initials: 'MS',
-                  name: 'Maria Santos',
-                  items: 'Metal 5 pcs (L), Appliance 1 pc (H) \u00b7 Multicab',
-                  meta: 'Tomorrow 9-12PM',
-                  stars: '\u2605 4.9',
-                  actions: [
-                    (
-                      'Message',
-                      Icons.chat_bubble_outline,
-                      Colors.white,
-                      const Color(0xFF2C2C2C),
-                      true,
-                      () => _openChat(context, 'Maria Santos', '#PKP-0041')
-                    ),
-                    (
-                      'Reschedule',
-                      Icons.calendar_today_outlined,
-                      Colors.white,
-                      const Color(0xFF2C2C2C),
-                      true,
-                      () => _showRescheduleDialog(context, '#PKP-0041')
-                    ),
-                  ],
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const PickupChecklistScreen(
-                          bookingId: '#PKP-0041',
-                          detectedClasses: ['metal_bolt', 'window_aircon'],
-                          collectorName: 'Maria Santos',
-                          eta: 'Tomorrow 9 AM',
-                          vehicle: 'Multicab',
-                        ),
-                      )),
-                ),
-                _PickupCard(
-                  id: '#PKP-0040',
-                  status: 'COMPLETED',
-                  statusColor: const Color(0xFF10B981),
-                  initials: 'PR',
-                  name: 'Pedro Reyes',
-                  items: 'Plastic Bottles (S) 5.2 kg',
-                  meta: 'June 28, 2026',
-                  stars: '\u2605 4.5',
-                  actions: [
-                    (
-                      'Rate',
-                      Icons.star_outline,
-                      AppColors.sellerGreen,
-                      Colors.white,
-                      false,
-                      () => _showRatingDialog(context, 'Pedro Reyes')
-                    ),
-                    (
-                      'Report',
-                      Icons.flag_outlined,
-                      const Color(0xFFFEF2F2),
-                      const Color(0xFFEF4444),
-                      false,
-                      () => _showReportDialog(context, 'Pedro Reyes')
-                    ),
-                  ],
+                      );
+                    }
+                    return Column(
+                      children: items.map((item) {
+                        final b = item['booking'] as Booking;
+                        final label = switch (b.status) {
+                          'Pending' => 'PENDING',
+                          'Accepted' => 'ON THE WAY',
+                          'Completed' => 'COMPLETED',
+                          'Cancelled' => 'CANCELLED',
+                          _ => b.status.toUpperCase(),
+                        };
+                        final color = switch (b.status) {
+                          'Pending' => const Color(0xFFF59E0B),
+                          'Accepted' => AppColors.buyerBlue,
+                          'Completed' => const Color(0xFF10B981),
+                          _ => AppColors.error,
+                        };
+                        return _PickupCard(
+                          id: b.bookingId,
+                          status: label,
+                          statusColor: color,
+                          initials: item['initials'],
+                          name: item['name'].isEmpty
+                              ? 'Unassigned'
+                              : item['name'],
+                          items: b.vehicleRequirement,
+                          meta: b.pickupAddress,
+                          stars: '—',
+                          actions: const [],
+                        );
+                      }).toList(),
+                    );
+                  },
                 ),
                 const SizedBox(height: 30),
               ],

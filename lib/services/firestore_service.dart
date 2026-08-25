@@ -123,17 +123,26 @@ class FirestoreService {
     return 'Unknown';
   }
 
-  /// Pending bookings joined with the seller's display name.
-  Stream<List<Map<String, dynamic>>> availableBookingsDetailed() async* {
-    await for (final bookings in availableBookings()) {
+  Stream<List<Map<String, dynamic>>> _joinNames(
+      Stream<List<Booking>> source, String Function(Booking) nameUid) async* {
+    await for (final bookings in source) {
       final out = <Map<String, dynamic>>[];
       for (final b in bookings) {
-        final name = await userName(b.sellerId);
-        out.add({'booking': b, 'sellerName': name, 'initials': _initials(name)});
+        final name = await userName(nameUid(b));
+        out.add({'booking': b, 'name': name, 'initials': _initials(name)});
       }
       yield out;
     }
   }
+
+  Stream<List<Map<String, dynamic>>> availableBookingsDetailed() =>
+      _joinNames(availableBookings(), (b) => b.sellerId);
+
+  Stream<List<Map<String, dynamic>>> collectorBookingsDetailed(String collectorId) =>
+      _joinNames(collectorBookings(collectorId), (b) => b.sellerId);
+
+  Stream<List<Map<String, dynamic>>> sellerBookingsDetailed(String sellerId) =>
+      _joinNames(sellerBookings(sellerId), (b) => b.collectorId);
 
   static String _initials(String name) {
     final parts = name.trim().split(RegExp(r'\s+'));

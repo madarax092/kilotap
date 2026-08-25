@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/firestore_service.dart';
+import '../../services/auth_state.dart';
+import '../../models/booking.dart';
 
 class MyCollectionScreen extends StatelessWidget {
   const MyCollectionScreen({super.key});
@@ -195,14 +198,47 @@ class MyCollectionScreen extends StatelessWidget {
 
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    children: const [
-                      _Txn('Jose R.', 'Scrap Iron', '25 kg', 'Jun 30', true),
-                      _Txn('Maria S.', 'Plastic', '3.2 kg', 'Jun 30', true),
-                      _Txn('Pedro L.', 'Mixed', '12 kg', 'Jun 29', true),
-                      _Txn('Ana L.', 'Cardboard', '4 kg', 'Jun 28', true),
-                      _Txn('Carlos M.', 'Metal', '8 kg', 'Jun 27', false),
-                    ],
+                  child: StreamBuilder<List<Map<String, dynamic>>>(
+                    stream: FirestoreService()
+                        .collectorBookingsDetailed(AuthState.instance.uid),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Padding(
+                          padding: EdgeInsets.all(32),
+                          child: Center(
+                              child: CircularProgressIndicator(
+                                  color: AppColors.buyerBlue)),
+                        );
+                      }
+                      final items = snapshot.data ?? [];
+                      if (items.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(32),
+                          child: Center(
+                            child: Text('No collections yet',
+                                style:
+                                    TextStyle(color: AppColors.textSecondary)),
+                          ),
+                        );
+                      }
+                      const months = [
+                        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                      ];
+                      return Column(
+                        children: items.map((item) {
+                          final b = item['booking'] as Booking;
+                          final d = b.createdAt;
+                          return _Txn(
+                            item['name'],
+                            b.vehicleRequirement,
+                            '— kg',
+                            '${months[d.month - 1]} ${d.day}',
+                            false,
+                          );
+                        }).toList(),
+                      );
+                    },
                   ),
                 ),
               ],
