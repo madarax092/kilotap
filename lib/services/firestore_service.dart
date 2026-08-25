@@ -161,6 +161,21 @@ class FirestoreService {
             };
           }).toList());
 
+  Stream<List<Map<String, dynamic>>> pendingCollectors() => _db
+      .collectionGroup(AppConstants.colCollector)
+      .where('Verification_Status', isEqualTo: 'Pending')
+      .snapshots()
+      .map((s) => s.docs.map((d) {
+            final m = d.data();
+            final name = m['Full_Name'] ?? 'Unknown';
+            return {
+              'uid': d.id,
+              'name': name,
+              'vehicle': m['Vehicle_Type'] ?? '',
+              'initials': _initials(name),
+            };
+          }).toList());
+
   static String _initials(String name) {
     final parts = name.trim().split(RegExp(r'\s+'));
     if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
