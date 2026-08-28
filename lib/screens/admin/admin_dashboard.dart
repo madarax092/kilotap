@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/firestore_service.dart';
 import '../../widgets/admin_bottom_nav.dart';
 
 class AdminDashboard extends StatelessWidget {
@@ -154,11 +155,37 @@ class AdminDashboard extends StatelessWidget {
                                           color: AppColors.buyerBlue)))
                             ]),
                             const SizedBox(height: 20),
-                            const _VerifyCard('Pedro Reyes',
-                                'Tricycle · Barangay Maa', '2h ago'),
-                            const Divider(height: 24, color: Color(0xFFF3F4F6)),
-                            const _VerifyCard('Ana Lopez',
-                                'Kariton · Barangay Ecoland', '5h ago'),
+                            StreamBuilder<List<Map<String, dynamic>>>(
+                              stream: FirestoreService().pendingCollectors(),
+                              builder: (context, snapshot) {
+                                final list = snapshot.data ?? [];
+                                if (list.isEmpty) {
+                                  return const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 12),
+                                    child: Center(
+                                        child: Text('No pending verifications',
+                                            style: TextStyle(
+                                                color:
+                                                    AppColors.textSecondary))),
+                                  );
+                                }
+                                return Column(
+                                  children: [
+                                    for (var i = 0; i < list.length; i++) ...[
+                                      if (i > 0)
+                                        const Divider(
+                                            height: 24,
+                                            color: Color(0xFFF3F4F6)),
+                                      _VerifyCard(
+                                        list[i]['name'],
+                                        list[i]['vehicle'],
+                                        'Pending',
+                                      ),
+                                    ],
+                                  ],
+                                );
+                              },
+                            ),
                           ])),
 
                   const SizedBox(height: 24),

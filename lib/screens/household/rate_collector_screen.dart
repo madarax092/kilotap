@@ -4,7 +4,15 @@ import '../../core/theme/app_colors.dart';
 class RateCollectorScreen extends StatelessWidget {
   const RateCollectorScreen({super.key});
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments
+        as Map<String, dynamic>?;
+    final name = args?['collectorName'] ?? '';
+    final initials = name.isEmpty
+        ? '?'
+        : name.split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join();
+    final detail = args?['detail'] ?? '';
+    return Scaffold(
         backgroundColor: Colors.black38,
         body: Center(
             child: Container(
@@ -37,23 +45,23 @@ class RateCollectorScreen extends StatelessWidget {
                     height: 44,
                     decoration: const BoxDecoration(
                         color: AppColors.buyerBlue, shape: BoxShape.circle),
-                    child: const Center(
-                        child: Text('JD',
-                            style: TextStyle(
+                    child: Center(
+                        child: Text(initials,
+                            style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w700)))),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                      Text('Juan Dela Cruz',
-                          style: TextStyle(
+                      Text(name,
+                          style: const TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 14,
                               color: AppColors.textPrimary)),
-                      Text('Tricycle · #PKP-0040 · June 28',
-                          style: TextStyle(
+                      Text(detail,
+                          style: const TextStyle(
                               fontSize: 11, color: AppColors.textSecondary)),
                     ])),
               ]),
@@ -116,4 +124,5 @@ class RateCollectorScreen extends StatelessWidget {
           ]),
         )),
       );
+  }
 }
