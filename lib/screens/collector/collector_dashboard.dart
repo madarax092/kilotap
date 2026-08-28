@@ -657,7 +657,7 @@ class _AssignedRouteCard extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (_) => ChatHouseholdsScreen(
-                                  householdName: name, bookingId: bookingId),
+                                  householdName: name, householdUid: ''),
                             ));
                       },
                     ),

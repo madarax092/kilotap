@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/auth_state.dart';
+import '../../services/firestore_service.dart';
 import '../household/chat_detail_screen.dart';
 
 class ChatScreen extends StatelessWidget {
@@ -51,34 +53,35 @@ class ChatScreen extends StatelessWidget {
           ),
 
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              children: const [
-                _ChatPreviewCard(
-                  name: 'Juan Dela Cruz',
-                  message: 'Nandito na po ako sa labas.',
-                  time: 'Just now',
-                  unread: 2,
-                  initials: 'JD',
-                  bookingId: '#PKP-0042',
-                ),
-                _ChatPreviewCard(
-                  name: 'Maria Santos',
-                  message: 'Ok po, will arrive at 9 AM tomorrow.',
-                  time: '2 hours ago',
-                  unread: 0,
-                  initials: 'MS',
-                  bookingId: '#PKP-0041',
-                ),
-                _ChatPreviewCard(
-                  name: 'Pedro Reyes',
-                  message: 'Salamat po sa business!',
-                  time: 'Jun 28',
-                  unread: 0,
-                  initials: 'PR',
-                  bookingId: '#PKP-0040',
-                ),
-              ],
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: FirestoreService().userConversations(AuthState.instance.uid),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                      child: CircularProgressIndicator(
+                          color: AppColors.sellerGreen));
+                }
+                final convos = snapshot.data ?? [];
+                if (convos.isEmpty) {
+                  return const Center(
+                      child: Text('No conversations yet',
+                          style: TextStyle(color: AppColors.textSecondary)));
+                }
+                return ListView(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  children: [
+                    for (final c in convos)
+                      _ChatPreviewCard(
+                        name: c['name'],
+                        message: c['lastMessage'],
+                        time: _fmtTime(c['timestamp'] as DateTime),
+                        initials: c['initials'],
+                        uid: c['uid'],
+                      ),
+                  ],
+                );
+              },
             ),
           ),
         ],
@@ -120,17 +123,26 @@ class ChatScreen extends StatelessWidget {
   }
 }
 
+String _fmtTime(DateTime t) {
+  final now = DateTime.now();
+  if (t.day == now.day && t.month == now.month && t.year == now.year) {
+    final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
+    final m = t.minute.toString().padLeft(2, '0');
+    final ap = t.hour >= 12 ? 'PM' : 'AM';
+    return '$h:$m $ap';
+  }
+  return '${t.month}/${t.day}';
+}
+
 class _ChatPreviewCard extends StatelessWidget {
-  final String name, message, time, initials, bookingId;
-  final int unread;
+  final String name, message, time, initials, uid;
 
   const _ChatPreviewCard({
     required this.name,
     required this.message,
     required this.time,
     required this.initials,
-    required this.bookingId,
-    this.unread = 0,
+    required this.uid,
   });
 
   @override
@@ -140,8 +152,8 @@ class _ChatPreviewCard extends StatelessWidget {
         Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) =>
-                  ChatDetailScreen(collectorName: name, bookingId: bookingId),
+              builder: (_) => ChatDetailScreen(
+                  collectorName: name, collectorUid: uid),
             ));
       },
       child: Container(
@@ -184,56 +196,17 @@ class _ChatPreviewCard extends StatelessWidget {
                               fontSize: 15,
                               color: Color(0xFF111827))),
                       Text(time,
-                          style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: unread > 0
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
-                              color: unread > 0
-                                  ? AppColors.sellerGreen
-                                  : const Color(0xFF9CA3AF))),
+                          style: const TextStyle(
+                              fontSize: 11, color: Color(0xFF9CA3AF))),
                     ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(bookingId,
-                      style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.buyerBlue,
-                          fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          message,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              fontSize: 13,
-                              color: unread > 0
-                                  ? const Color(0xFF111827)
-                                  : const Color(0xFF6B7280),
-                              fontWeight: unread > 0
-                                  ? FontWeight.w600
-                                  : FontWeight.w400),
-                        ),
-                      ),
-                      if (unread > 0)
-                        Container(
-                          margin: const EdgeInsets.only(left: 8),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                              color: AppColors.sellerGreen,
-                              borderRadius: BorderRadius.circular(10)),
-                          child: Text(unread.toString(),
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800)),
-                        ),
-                    ],
+                  Text(
+                    message,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 13, color: Color(0xFF6B7280)),
                   ),
                 ],
               ),

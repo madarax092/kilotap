@@ -338,9 +338,9 @@ class HouseholdDashboard extends StatelessWidget {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const ChatDetailScreen(
+                                  builder: (_) => ChatDetailScreen(
                                       collectorName: 'Juan Dela Cruz',
-                                      bookingId: '#PKP-0042'),
+                                      collectorUid: ''),
                                 ));
                           },
                         ),

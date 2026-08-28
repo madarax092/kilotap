@@ -5,6 +5,7 @@ import '../models/booking_item.dart';
 import '../models/rating.dart';
 import '../models/notification.dart';
 import '../models/audit_log.dart';
+import '../models/message.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -175,6 +176,57 @@ class FirestoreService {
               'initials': _initials(name),
             };
           }).toList());
+
+  // ─── Chat messages ────────────────────────────────────────────────
+
+  Future<void> sendMessage(String senderId, String recipientId, String text) {
+    final ref = _db.collection(AppConstants.colMessages).doc();
+    return ref.set({
+      'Message_ID': ref.id,
+      'Sender_ID': senderId,
+      'Recipient_ID': recipientId,
+      'Text': text,
+      'Timestamp': FieldValue.serverTimestamp(),
+      'Participants': [senderId, recipientId],
+    });
+  }
+
+  Stream<List<Message>> messagesBetween(String uid1, String uid2) => _db
+      .collection(AppConstants.colMessages)
+      .where('Participants', arrayContains: uid1)
+      .snapshots()
+      .map((s) {
+        final list = s.docs
+            .map((d) => Message.fromMap(d.id, d.data()))
+            .where((m) => m.recipientId == uid2 || m.senderId == uid2)
+            .toList();
+        list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+        return list;
+      });
+
+  Stream<List<Map<String, dynamic>>> userConversations(String uid) async* {
+    await for (final snapshot in _db
+        .collection(AppConstants.colMessages)
+        .where('Participants', arrayContains: uid)
+        .snapshots()) {
+      final partners = <String, Map<String, dynamic>>{};
+      for (final d in snapshot.docs) {
+        final m = Message.fromMap(d.id, d.data());
+        final other = m.senderId == uid ? m.recipientId : m.senderId;
+        if (!partners.containsKey(other)) {
+          final name = await userName(other);
+          partners[other] = {
+            'uid': other,
+            'name': name,
+            'initials': _initials(name),
+            'lastMessage': m.text,
+            'timestamp': m.timestamp,
+          };
+        }
+      }
+      yield partners.values.toList();
+    }
+  }
 
   static String _initials(String name) {
     final parts = name.trim().split(RegExp(r'\s+'));

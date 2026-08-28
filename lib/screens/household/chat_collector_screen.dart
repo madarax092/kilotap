@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/auth_state.dart';
+import '../../services/firestore_service.dart';
 import '../collector/chat_households_screen.dart';
 
 class ChatCollectorScreen extends StatelessWidget {
@@ -51,34 +53,35 @@ class ChatCollectorScreen extends StatelessWidget {
           ),
 
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              children: const [
-                _ChatPreviewCard(
-                  name: 'Ana Lim',
-                  message: 'Dito po sa gate 2, pakisabi sa guard.',
-                  time: 'Just now',
-                  unread: 2,
-                  initials: 'AL',
-                  bookingId: '#PKP-0042',
-                ),
-                _ChatPreviewCard(
-                  name: 'Roberto Cruz',
-                  message: 'Nalabas ko na po yung mga karton.',
-                  time: '2 hours ago',
-                  unread: 0,
-                  initials: 'RC',
-                  bookingId: '#PKP-0041',
-                ),
-                _ChatPreviewCard(
-                  name: 'Elena Gomez',
-                  message: 'Salamat po kuya! Next time ulit.',
-                  time: 'Jun 28',
-                  unread: 0,
-                  initials: 'EG',
-                  bookingId: '#PKP-0040',
-                ),
-              ],
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: FirestoreService().userConversations(AuthState.instance.uid),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                      child: CircularProgressIndicator(
+                          color: AppColors.buyerBlue));
+                }
+                final convos = snapshot.data ?? [];
+                if (convos.isEmpty) {
+                  return const Center(
+                      child: Text('No conversations yet',
+                          style: TextStyle(color: AppColors.textSecondary)));
+                }
+                return ListView(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  children: [
+                    for (final c in convos)
+                      _ChatPreviewCard(
+                        name: c['name'],
+                        message: c['lastMessage'],
+                        time: _fmtTime(c['timestamp'] as DateTime),
+                        initials: c['initials'],
+                        uid: c['uid'],
+                      ),
+                  ],
+                );
+              },
             ),
           ),
         ],
@@ -121,16 +124,25 @@ class ChatCollectorScreen extends StatelessWidget {
   }
 }
 
+String _fmtTime(DateTime t) {
+  final now = DateTime.now();
+  if (t.day == now.day && t.month == now.month && t.year == now.year) {
+    final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
+    final m = t.minute.toString().padLeft(2, '0');
+    final ap = t.hour >= 12 ? 'PM' : 'AM';
+    return '$h:$m $ap';
+  }
+  return '${t.month}/${t.day}';
+}
+
 class _ChatPreviewCard extends StatelessWidget {
-  final String name, message, time, initials, bookingId;
-  final int unread;
+  final String name, message, time, initials, uid;
   const _ChatPreviewCard(
       {required this.name,
       required this.message,
       required this.time,
       required this.initials,
-      required this.unread,
-      required this.bookingId});
+      required this.uid});
 
   @override
   Widget build(BuildContext context) {
@@ -139,56 +151,29 @@ class _ChatPreviewCard extends StatelessWidget {
           context,
           MaterialPageRoute(
               builder: (context) => ChatHouseholdsScreen(
-                  householdName: name, bookingId: bookingId))),
+                  householdName: name, householdUid: uid))),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: unread > 0
-              ? Border.all(
-                  color: AppColors.buyerBlue.withValues(alpha: 0.3), width: 1.5)
-              : Border.all(color: const Color(0xFFF3F4F6)),
-          boxShadow: unread > 0
-              ? [
-                  BoxShadow(
-                      color: AppColors.buyerBlue.withValues(alpha: 0.05),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4))
-                ]
-              : [],
+          border: Border.all(color: const Color(0xFFF3F4F6)),
         ),
         child: Row(
           children: [
-            Stack(
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                      color: AppColors.sellerGreen.withValues(alpha: 0.15),
-                      shape: BoxShape.circle),
-                  child: Center(
-                      child: Text(initials,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.sellerGreen,
-                              fontSize: 16))),
-                ),
-                if (unread > 0)
-                  Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: 14,
-                        height: 14,
-                        decoration: BoxDecoration(
-                            color: AppColors.success,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2)),
-                      ))
-              ],
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                  color: AppColors.sellerGreen.withValues(alpha: 0.15),
+                  shape: BoxShape.circle),
+              child: Center(
+                  child: Text(initials,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.sellerGreen,
+                          fontSize: 16))),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -199,68 +184,24 @@ class _ChatPreviewCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(name,
-                          style: TextStyle(
-                              fontWeight: unread > 0
-                                  ? FontWeight.w800
-                                  : FontWeight.w600,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w700,
                               fontSize: 15,
-                              color: const Color(0xFF111827))),
+                              color: Color(0xFF111827))),
                       Text(time,
-                          style: TextStyle(
-                              fontSize: 11,
-                              color: unread > 0
-                                  ? AppColors.buyerBlue
-                                  : const Color(0xFF9CA3AF),
-                              fontWeight: unread > 0
-                                  ? FontWeight.w600
-                                  : FontWeight.normal)),
+                          style: const TextStyle(
+                              fontSize: 11, color: Color(0xFF9CA3AF))),
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                            color: const Color(0xFFF3F4F6),
-                            borderRadius: BorderRadius.circular(4)),
-                        child: Text(bookingId,
-                            style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF6B7280))),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                          child: Text(message,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  color: unread > 0
-                                      ? const Color(0xFF374151)
-                                      : const Color(0xFF6B7280),
-                                  fontWeight: unread > 0
-                                      ? FontWeight.w600
-                                      : FontWeight.normal))),
-                    ],
-                  ),
+                  Text(message,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 13, color: Color(0xFF6B7280))),
                 ],
               ),
             ),
-            if (unread > 0)
-              Container(
-                margin: const EdgeInsets.only(left: 12),
-                padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(
-                    color: AppColors.buyerBlue, shape: BoxShape.circle),
-                child: Text(unread.toString(),
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700)),
-              )
           ],
         ),
       ),
