@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/scrap_weight_service.dart';
@@ -18,6 +19,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
   DateTime? _scheduledDate;
 
   List<String> _detections = [];
+  String? _photoPath;
 
   String get _totalVolume => VolumeClassifier.getTotalVolume(_detections);
   double get _totalWeight => VolumeClassifier.getTotalWeight(_detections);
@@ -88,9 +90,11 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                           context,
                           MaterialPageRoute(
                               builder: (_) => const CameraScreen()));
-                      if (result != null && result is List<String>) {
+                      if (result != null && result is Map) {
                         setState(() {
-                          _detections = result;
+                          _photoPath = result['photoPath'] as String?;
+                          _detections =
+                              (result['items'] as List?)?.cast<String>() ?? [];
                           _selectedVehicle = _recommendedVehicle;
                         });
                       }
@@ -108,29 +112,38 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                                 blurRadius: 10,
                                 offset: Offset(0, 4))
                           ]),
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                                width: 72,
-                                height: 72,
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppColors.sellerGreen
-                                        .withValues(alpha: 0.08)),
-                                child: const Icon(Icons.camera_rounded,
-                                    color: AppColors.sellerGreen, size: 32)),
-                            const SizedBox(height: 16),
-                            const Text('Take a Photo',
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF111827))),
-                            const SizedBox(height: 4),
-                            const Text('Point camera at your scrap items',
-                                style: TextStyle(
-                                    fontSize: 12, color: Color(0xFF6B7280))),
-                          ]),
+                      child: (_photoPath != null && _photoPath!.isNotEmpty)
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Image.file(File(_photoPath!),
+                                  width: double.infinity,
+                                  height: 220,
+                                  fit: BoxFit.cover),
+                            )
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                    width: 72,
+                                    height: 72,
+                                    decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: AppColors.sellerGreen
+                                            .withValues(alpha: 0.08)),
+                                    child: const Icon(Icons.camera_rounded,
+                                        color: AppColors.sellerGreen, size: 32)),
+                                const SizedBox(height: 16),
+                                const Text('Take a Photo',
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF111827))),
+                                const SizedBox(height: 4),
+                                const Text('Point camera at your scrap items',
+                                    style: TextStyle(
+                                        fontSize: 12, color: Color(0xFF6B7280))),
+                              ],
+                            ),
                     ),
                   ),
 

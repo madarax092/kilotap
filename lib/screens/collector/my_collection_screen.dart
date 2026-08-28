@@ -174,10 +174,10 @@ class MyCollectionScreen extends StatelessWidget {
                             height: 1),
                       ),
                       Row(children: const [
-                        _StatBox('₱1,250', 'Est. Fuel Spent',
+                        _StatBox('42 km', 'Total Distance',
                             Icons.local_gas_station_outlined),
                         SizedBox(width: 12),
-                        _StatBox('₱3,400', 'Material Value',
+                        _StatBox('140 kg', 'Total Collected',
                             Icons.inventory_2_outlined),
                       ]),
                     ]),

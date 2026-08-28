@@ -363,29 +363,41 @@ class HouseholdDashboard extends StatelessWidget {
                         blurRadius: 10,
                         offset: Offset(0, 4))
                   ]),
-              child: Column(
-                children: const [
-                  _ActivityItem(
-                      color: Colors.orange,
-                      title: 'Cardboard',
-                      weight: '8.5 kg',
-                      date: 'Jul 22',
-                      amount: '+₱34.00'),
-                  Divider(height: 24, color: Color(0xFFF3F4F6)),
-                  _ActivityItem(
-                      color: Colors.blue,
-                      title: 'Plastic Bottles',
-                      weight: '3.2 kg',
-                      date: 'Jul 19',
-                      amount: '+₱16.00'),
-                  Divider(height: 24, color: Color(0xFFF3F4F6)),
-                  _ActivityItem(
-                      color: Colors.grey,
-                      title: 'Metal Cans',
-                      weight: '5.1 kg',
-                      date: 'Jul 15',
-                      amount: '+₱51.00'),
-                ],
+              child: StreamBuilder<List<Map<String, dynamic>>>(
+                stream: FirestoreService()
+                    .sellerBookingsDetailed(AuthState.instance.uid),
+                builder: (context, snapshot) {
+                  final items = snapshot.data ?? [];
+                  if (items.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Center(
+                          child: Text('No recent activity',
+                              style:
+                                  TextStyle(color: AppColors.textSecondary))),
+                    );
+                  }
+                  const months = [
+                    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                  ];
+                  return Column(
+                    children: [
+                      for (var i = 0; i < items.length; i++) ...[
+                        if (i > 0)
+                          const Divider(
+                              height: 24, color: Color(0xFFF3F4F6)),
+                        _ActivityItem(
+                          color: AppColors.sellerGreen,
+                          title: items[i]['name'],
+                          weight:
+                              (items[i]['booking'] as Booking).vehicleRequirement,
+                          date: (items[i]['booking'] as Booking).status,
+                        ),
+                      ],
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -461,13 +473,12 @@ class _StatCard extends StatelessWidget {
 
 class _ActivityItem extends StatelessWidget {
   final Color color;
-  final String title, weight, date, amount;
+  final String title, weight, date;
   const _ActivityItem(
       {required this.color,
       required this.title,
       required this.weight,
-      required this.date,
-      required this.amount});
+      required this.date});
 
   @override
   Widget build(BuildContext context) {
@@ -499,11 +510,6 @@ class _ActivityItem extends StatelessWidget {
             ],
           ),
         ),
-        Text(amount,
-            style: const TextStyle(
-                color: AppColors.sellerGreen,
-                fontWeight: FontWeight.w700,
-                fontSize: 14)),
       ],
     );
   }

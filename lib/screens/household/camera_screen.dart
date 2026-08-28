@@ -74,16 +74,12 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
       final XFile photo = await c.takePicture();
       _lastPhotoPath = photo.path;
       // TODO: feed _lastPhotoPath to MOLO detection when model is trained.
-      // For now, return demo item names after a short scan delay.
-      await Future.delayed(const Duration(milliseconds: 1600));
+      await Future.delayed(const Duration(milliseconds: 1200));
       if (!mounted) return;
-      Navigator.pop(context, [
-        'refrigerator_standard',
-        'plastic_bottle_1L',
-        'plastic_bottle_1L',
-        'plastic_bottle_1L',
-        'metal_pipe_1m',
-      ]);
+      Navigator.pop(context, {
+        'photoPath': _lastPhotoPath ?? '',
+        'items': <String>[],
+      });
     } catch (_) {
       if (mounted) {
         setState(() => _isAnalyzing = false);
