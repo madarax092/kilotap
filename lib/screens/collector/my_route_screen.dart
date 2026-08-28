@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/firestore_service.dart';
+import '../../services/auth_state.dart';
+import '../../models/booking.dart';
 
 class MyRouteScreen extends StatelessWidget {
   const MyRouteScreen({super.key});
@@ -61,18 +64,45 @@ class MyRouteScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     Row(children: [
                       _Sum('~30 kg', 'Total Load', accent: true),
-                      _Sum('₱85', 'Est. Fuel')
+                      _Sum('—', 'Est. Fuel')
                     ]),
                   ])),
               const SizedBox(height: 16),
-              _StopCard(
-                  '1', 'Maria S.', 'Maa · 3.2 kg · Plastic/Cardboard', 'DONE',
-                  done: true),
-              _StopCard('2', 'Jose R.', 'Matina · 25 kg · Scrap Iron/Appliance',
-                  'NOW',
-                  current: true),
-              _StopCard('3', 'Ana L.', 'Ecoland · 1.8 kg · Cardboard', ''),
-              _StopCard('4', 'Carlos M.', 'Cabantian · 3.5 kg · Mixed', ''),
+              StreamBuilder<List<Map<String, dynamic>>>(
+                stream: FirestoreService()
+                    .collectorBookingsDetailed(AuthState.instance.uid),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Padding(
+                      padding: EdgeInsets.all(40),
+                      child: Center(
+                          child: CircularProgressIndicator(
+                              color: AppColors.buyerBlue)),
+                    );
+                  }
+                  final items = snapshot.data ?? [];
+                  if (items.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(40),
+                      child: Center(
+                          child: Text('No pickups for today',
+                              style:
+                                  TextStyle(color: AppColors.textSecondary))),
+                    );
+                  }
+                  return Column(
+                    children: [
+                      for (var i = 0; i < items.length; i++)
+                        _StopCard(
+                          '${i + 1}',
+                          items[i]['name'],
+                          (items[i]['booking'] as Booking).pickupAddress,
+                          '',
+                        ),
+                    ],
+                  );
+                },
+              ),
               const SizedBox(height: 16),
               SizedBox(
                   width: double.infinity,

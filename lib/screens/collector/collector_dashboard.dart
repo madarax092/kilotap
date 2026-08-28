@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth_state.dart';
+import '../../services/firestore_service.dart';
+import '../../models/booking.dart';
 import 'chat_households_screen.dart';
 import 'documents_page.dart';
 
@@ -209,34 +211,42 @@ class CollectorDashboard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _AssignedRouteCard(
-            status: 'EN ROUTE',
-            statusColor: AppColors.buyerBlue,
-            bookingId: '#PKP-0042',
-            initials: 'MS',
-            name: 'Maria Santos',
-            location: 'Maa · 0.3 km away',
-            weight: '15 kg',
-            pcs: '12 pcs',
-            material: 'Plastic',
-            time: 'ASAP',
-            imagePath: 'assets/images/multiple_scrap_sample.png',
-            mapPath: 'assets/images/davao_nav_map.png',
-          ),
-          const SizedBox(height: 12),
-          _AssignedRouteCard(
-            status: 'UPCOMING',
-            statusColor: Colors.orange,
-            bookingId: '#PKP-0045',
-            initials: 'AL',
-            name: 'Ana Lim',
-            location: 'Ecoland · 2.5 km away',
-            weight: '8 kg',
-            pcs: '20 pcs',
-            material: 'Cardboard',
-            time: 'In 2 hrs',
-            imagePath: 'assets/images/scrap3.jpg',
-            mapPath: 'assets/images/map3.png',
+          StreamBuilder<List<Map<String, dynamic>>>(
+            stream: FirestoreService()
+                .collectorBookingsDetailed(AuthState.instance.uid),
+            builder: (context, snapshot) {
+              final items = snapshot.data ?? [];
+              if (items.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                      child: Text('No assigned pickups yet',
+                          style: TextStyle(color: AppColors.textSecondary))),
+                );
+              }
+              return Column(
+                children: [
+                  for (final item in items)
+                    _AssignedRouteCard(
+                      status: (item['booking'] as Booking).status,
+                      statusColor: (item['booking'] as Booking).status ==
+                              'Completed'
+                          ? AppColors.success
+                          : AppColors.buyerBlue,
+                      bookingId: (item['booking'] as Booking).bookingId,
+                      initials: item['initials'],
+                      name: item['name'],
+                      location: (item['booking'] as Booking).pickupAddress,
+                      weight: '— kg',
+                      pcs: '—',
+                      material: (item['booking'] as Booking).vehicleRequirement,
+                      time: 'ASAP',
+                      imagePath: 'assets/images/multiple_scrap_sample.png',
+                      mapPath: 'assets/images/davao_nav_map.png',
+                    ),
+                ],
+              );
+            },
           ),
 
           const SizedBox(height: 24),
