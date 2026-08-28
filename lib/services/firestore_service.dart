@@ -174,6 +174,10 @@ class FirestoreService {
               'name': name,
               'vehicle': m['Vehicle_Type'] ?? '',
               'initials': _initials(name),
+              'area': m['Service_Areas'] ?? '',
+              'phone': m['Phone'] ?? '',
+              'submitted': '',
+              'docs': m['Verification_Docs'] ?? [],
             };
           }).toList());
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/firestore_service.dart';
 import '../../widgets/admin_bottom_nav.dart';
 
 class VerifyCollectorScreen extends StatefulWidget {
@@ -9,24 +10,16 @@ class VerifyCollectorScreen extends StatefulWidget {
 }
 
 class _VerifyCollectorScreenState extends State<VerifyCollectorScreen> {
-  final _pending = [
-    {
-      'name': 'Pedro Reyes',
-      'vehicle': 'Tricycle',
-      'area': 'Matina, Ecoland, Maa',
-      'phone': '+63928XXXXXXX',
-      'submitted': 'June 28, 2026',
-      'docs': ['Profile Photo', 'Valid ID', 'Vehicle Photo']
-    },
-    {
-      'name': 'Ana Lopez',
-      'vehicle': 'Kariton',
-      'area': 'Ecoland',
-      'phone': '+63917XXXXXXX',
-      'submitted': 'June 29, 2026',
-      'docs': ['Profile Photo', 'Valid ID', 'Vehicle Photo']
-    },
-  ];
+  final _service = FirestoreService();
+  List<Map<String, dynamic>> _pending = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _service.pendingCollectors().listen((list) {
+      if (mounted) setState(() => _pending = list);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
