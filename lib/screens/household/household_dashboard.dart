@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/firestore_service.dart';
+import '../../services/auth_state.dart';
+import '../../models/booking.dart';
 import 'impact_page.dart';
 import 'chat_detail_screen.dart';
 import 'tracking_screen.dart';
@@ -170,45 +173,63 @@ class HouseholdDashboard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border:
-                      Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
-                  boxShadow: const [
-                    BoxShadow(
-                        color: Color(0x06000000),
-                        blurRadius: 10,
-                        offset: Offset(0, 4))
-                  ]),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: const [
-                      Icon(Icons.circle, color: AppColors.sellerGreen, size: 8),
-                      SizedBox(width: 6),
-                      Text('ON THE WAY',
-                          style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.sellerGreen,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1)),
-                      Spacer(),
-                      Text('#PKP-0042',
-                          style: TextStyle(
-                              fontSize: 12, color: Color(0xFFA0A0A0))),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
+          StreamBuilder<List<Map<String, dynamic>>>(
+            stream: FirestoreService()
+                .sellerBookingsDetailed(AuthState.instance.uid),
+            builder: (context, snapshot) {
+              final items = snapshot.data ?? [];
+              final active = items
+                  .where((i) =>
+                      (i['booking'] as Booking).status == 'Accepted')
+                  .toList();
+              if (active.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 32),
+                  child: Center(
+                      child: Text('No active pickup',
+                          style: TextStyle(color: AppColors.textSecondary))),
+                );
+              }
+              final b = active.first['booking'] as Booking;
+              final name = active.first['name'] as String;
+              final initials = active.first['initials'] as String;
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color: const Color(0xFFE5E7EB), width: 1.5),
+                      boxShadow: const [
+                        BoxShadow(
+                            color: Color(0x06000000),
+                            blurRadius: 10,
+                            offset: Offset(0, 4))
+                      ]),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Stack(
+                      Row(
+                        children: [
+                          const Icon(Icons.circle,
+                              color: AppColors.sellerGreen, size: 8),
+                          const SizedBox(width: 6),
+                          Text(b.status.toUpperCase(),
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.sellerGreen,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1)),
+                          const Spacer(),
+                          Text(b.bookingId,
+                              style: const TextStyle(
+                                  fontSize: 12, color: Color(0xFFA0A0A0))),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
                         children: [
                           Container(
                               width: 46,
@@ -216,140 +237,90 @@ class HouseholdDashboard extends StatelessWidget {
                               decoration: const BoxDecoration(
                                   color: Colors.blueAccent,
                                   shape: BoxShape.circle),
-                              child: const Center(
-                                  child: Text('JD',
-                                      style: TextStyle(
+                              child: Center(
+                                  child: Text(initials,
+                                      style: const TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16)))),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                    color: AppColors.sellerGreen,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                        color: Colors.white, width: 2))),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(name,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 15)),
+                                const SizedBox(height: 2),
+                                Text(b.vehicleRequirement,
+                                    style: const TextStyle(
+                                        fontSize: 13,
+                                        color: Color(0xFF888888))),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text('Juan Dela Cruz',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w700, fontSize: 15)),
-                            SizedBox(height: 2),
-                            Text('Tricycle · ETA 5 min',
-                                style: TextStyle(
-                                    fontSize: 13, color: Color(0xFF888888))),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: const Color(0xFFF3F4F6)),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: const [
-                            Icon(Icons.star, color: Colors.orange, size: 14),
-                            SizedBox(width: 4),
-                            Text('4.8',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 12,
-                                    color: Color(0xFF2C2C2C))),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Text('Pickup progress',
-                          style: TextStyle(
-                              fontSize: 12, color: Color(0xFF888888))),
-                      Text('75%',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.sellerGreen)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  LinearProgressIndicator(
-                    value: 0.75,
-                    backgroundColor: const Color(0xFFF3F4F6),
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                        AppColors.sellerGreen),
-                    minHeight: 6,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.near_me_outlined, size: 18),
-                          label: const Text('Track Pickup',
-                              style: TextStyle(fontWeight: FontWeight.w600)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.sellerGreen,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              icon: const Icon(Icons.near_me_outlined,
+                                  size: 18),
+                              label: const Text('Track Pickup',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w600)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.sellerGreen,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10)),
+                              ),
+                              onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => TrackingScreen(
+                                          collectorName: name,
+                                          bookingId: b.bookingId))),
+                            ),
                           ),
-                          onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => const TrackingScreen(
-                                        collectorName: 'Juan Dela Cruz',
-                                        bookingId: '#PKP-0042')));
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          icon: const Icon(Icons.chat_bubble_outline, size: 18),
-                          label: const Text('Message',
-                              style: TextStyle(fontWeight: FontWeight.w600)),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF2C2C2C),
-                            side: const BorderSide(color: Color(0xFFE5E7EB)),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              icon: const Icon(Icons.chat_bubble_outline,
+                                  size: 18),
+                              label: const Text('Message',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w600)),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF2C2C2C),
+                                side: const BorderSide(
+                                    color: Color(0xFFE5E7EB)),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10)),
+                              ),
+                              onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => ChatDetailScreen(
+                                          collectorName: name,
+                                          collectorUid: b.collectorId))),
+                            ),
                           ),
-                          onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => ChatDetailScreen(
-                                      collectorName: 'Juan Dela Cruz',
-                                      collectorUid: ''),
-                                ));
-                          },
-                        ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
 
           const SizedBox(height: 24),
