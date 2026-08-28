@@ -288,29 +288,37 @@ class CollectorDashboard extends StatelessWidget {
                         blurRadius: 10,
                         offset: Offset(0, 4))
                   ]),
-              child: Column(
-                children: const [
-                  _ActivityItem(
-                      color: Colors.orange,
-                      title: 'Cardboard & Paper',
-                      area: 'Matina',
-                      date: 'Today, 10:30 AM',
-                      amount: '+12 kg'),
-                  Divider(height: 24, color: Color(0xFFF3F4F6)),
-                  _ActivityItem(
-                      color: Colors.blue,
-                      title: 'Mixed Plastics',
-                      area: 'Buhangin',
-                      date: 'Yesterday, 3:15 PM',
-                      amount: '+8.5 kg'),
-                  Divider(height: 24, color: Color(0xFFF3F4F6)),
-                  _ActivityItem(
-                      color: Colors.grey,
-                      title: 'Scrap Metal',
-                      area: 'Maa',
-                      date: 'Jul 25, 9:00 AM',
-                      amount: '+45 kg'),
-                ],
+              child: StreamBuilder<List<Map<String, dynamic>>>(
+                stream: FirestoreService()
+                    .collectorBookingsDetailed(AuthState.instance.uid),
+                builder: (context, snapshot) {
+                  final items = snapshot.data ?? [];
+                  if (items.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Center(
+                          child: Text('No collections yet',
+                              style:
+                                  TextStyle(color: AppColors.textSecondary))),
+                    );
+                  }
+                  return Column(
+                    children: [
+                      for (var i = 0; i < items.length; i++) ...[
+                        if (i > 0)
+                          const Divider(
+                              height: 24, color: Color(0xFFF3F4F6)),
+                        _ActivityItem(
+                          color: AppColors.buyerBlue,
+                          title: items[i]['name'],
+                          area: (items[i]['booking'] as Booking).pickupAddress,
+                          date: (items[i]['booking'] as Booking).status,
+                          amount: '— kg',
+                        ),
+                      ],
+                    ],
+                  );
+                },
               ),
             ),
           ),
