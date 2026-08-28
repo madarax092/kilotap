@@ -490,35 +490,44 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                           onPressed: _detections.isEmpty
                               ? null
                               : () {
-                                  final items = <BookingItem>[
-                                    BookingItem(
-                                      itemId: 'ITM-001',
-                                      bookingId: 'BKG-001',
-                                      itemName: 'Standard Refrigerator',
-                                      quantity: 1,
-                                      sizeClass: 'Heavy Override',
-                                      estimatedWeightKg: 100,
-                                      scrapClass: 'refrigerator_standard',
-                                    ),
-                                    BookingItem(
-                                      itemId: 'ITM-002',
-                                      bookingId: 'BKG-001',
-                                      itemName: 'Plastic Bottles',
-                                      quantity: 3,
-                                      sizeClass: 'Small',
-                                      estimatedWeightKg: 0.12,
-                                      scrapClass: 'plastic_bottle_1L',
-                                    ),
-                                    BookingItem(
-                                      itemId: 'ITM-003',
-                                      bookingId: 'BKG-001',
-                                      itemName: 'Metal Pipe',
-                                      quantity: 1,
-                                      sizeClass: 'Large',
-                                      estimatedWeightKg: 68,
-                                      scrapClass: 'metal_pipe_1m',
-                                    ),
-                                  ];
+                                  final counts = <String, int>{};
+                                  for (var d in _detections) {
+                                    counts[d] = (counts[d] ?? 0) + 1;
+                                  }
+                                  final items = <BookingItem>[];
+                                  var idx = 1;
+                                  counts.forEach((cls, qty) {
+                                    var label = cls
+                                        .replaceAll('_', ' ')
+                                        .split(' ')
+                                        .map((w) => w[0].toUpperCase() +
+                                            w.substring(1))
+                                        .join(' ');
+                                    if (cls.contains('plastic_bottle')) {
+                                      label = 'Plastic Bottles';
+                                    }
+                                    if (cls.contains('refrigerator')) {
+                                      label = 'Refrigerator';
+                                    }
+                                    if (cls.contains('metal_pipe')) {
+                                      label = 'Metal Pipe';
+                                    }
+                                    items.add(BookingItem(
+                                      itemId:
+                                          'ITM-${idx.toString().padLeft(3, '0')}',
+                                      bookingId: '',
+                                      itemName: label,
+                                      quantity: qty,
+                                      sizeClass: ScrapWeightService.instance
+                                          .getSizeClass(cls),
+                                      estimatedWeightKg:
+                                          ScrapWeightService.instance
+                                                  .getWeight(cls) ??
+                                              0,
+                                      scrapClass: cls,
+                                    ));
+                                    idx++;
+                                  });
 
                                   Navigator.push(
                                       context,
@@ -529,6 +538,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                                                 selectedVehicle:
                                                     _selectedVehicle,
                                                 items: items,
+                                                photoPath: _photoPath,
                                               )));
                                 },
                           child: const Text('SUBMIT PICKUP REQUEST',

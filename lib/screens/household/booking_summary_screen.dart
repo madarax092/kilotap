@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/booking_item.dart';
@@ -7,6 +8,7 @@ class BookingSummaryScreen extends StatelessWidget {
   final double totalWeight;
   final String selectedVehicle;
   final List<BookingItem> items;
+  final String? photoPath;
 
   const BookingSummaryScreen({
     super.key,
@@ -14,6 +16,7 @@ class BookingSummaryScreen extends StatelessWidget {
     required this.totalWeight,
     required this.selectedVehicle,
     required this.items,
+    this.photoPath,
   });
 
   @override
@@ -36,18 +39,32 @@ class BookingSummaryScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 28),
         children: [
           const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            height: 180,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.divider),
-              image: const DecorationImage(
-                image: AssetImage('assets/images/multiple_scrap_sample.png'),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
+          (photoPath != null && photoPath!.isNotEmpty)
+              ? Container(
+                  width: double.infinity,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.divider),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.file(File(photoPath!), fit: BoxFit.cover),
+                  ),
+                )
+              : Container(
+                  width: double.infinity,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.divider),
+                    image: const DecorationImage(
+                      image:
+                          AssetImage('assets/images/multiple_scrap_sample.png'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(16),
