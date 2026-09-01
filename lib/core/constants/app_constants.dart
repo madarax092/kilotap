@@ -29,6 +29,9 @@ class AppConstants {
   ];
 
   // ─── Firestore Collections (Tables 6-13) ───────────────────────────────────
+  static const String colAccount = 'UserAccount';
+  static const String colSeller = 'ScrapSeller';
+  static const String colCollector = 'ScrapCollector';
   static const String colBookings = 'bookings';
   static const String colBookingItems = 'bookingItems';
   static const String colRatings = 'ratings';

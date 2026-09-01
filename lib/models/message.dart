@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 // ─── Message (chat — not one of the paper's numbered Tables 7-15) ───
 class ChatMessage {
   final String messageId;
@@ -21,7 +23,7 @@ class ChatMessage {
         senderId: m['Sender_ID'] ?? '',
         recipientId: m['Recipient_ID'] ?? '',
         text: m['Text'] ?? '',
-        timestamp: (m['Timestamp'] as dynamic)?.toDate() ?? DateTime.now(),
+        timestamp: (m['Timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
         participants: List<String>.from(m['Participants'] ?? const []),
       );
 }
