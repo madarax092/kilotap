@@ -1,36 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/auth_state.dart';
+import '../../services/firestore_service.dart';
 import '../../widgets/admin_bottom_nav.dart';
 
-class VerifyCollectorScreen extends StatefulWidget {
+class VerifyCollectorScreen extends StatelessWidget {
   const VerifyCollectorScreen({super.key});
-  @override
-  State<VerifyCollectorScreen> createState() => _VerifyCollectorScreenState();
-}
-
-class _VerifyCollectorScreenState extends State<VerifyCollectorScreen> {
-  final _pending = [
-    {
-      'name': 'Pedro Reyes',
-      'vehicle': 'Tricycle',
-      'area': 'Matina, Ecoland, Maa',
-      'phone': '+63928XXXXXXX',
-      'submitted': 'June 28, 2026',
-      'docs': ['Profile Photo', 'Valid ID', 'Vehicle Photo']
-    },
-    {
-      'name': 'Ana Lopez',
-      'vehicle': 'Kariton',
-      'area': 'Ecoland',
-      'phone': '+63917XXXXXXX',
-      'submitted': 'June 29, 2026',
-      'docs': ['Profile Photo', 'Valid ID', 'Vehicle Photo']
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
+    final firestoreService = FirestoreService();
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       body: Column(
@@ -75,60 +55,106 @@ class _VerifyCollectorScreenState extends State<VerifyCollectorScreen> {
               ],
             ),
           ),
-
           Expanded(
-            child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                children: [
-                  const SizedBox(height: 24),
-                  Row(children: [
-                    const Text('PENDING VERIFICATION',
-                        style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1)),
-                    const SizedBox(width: 8),
-                    Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 7, vertical: 2),
-                        decoration: const BoxDecoration(
-                            color: AppColors.adminRed, shape: BoxShape.circle),
-                        child: Text('${_pending.length}',
-                            style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white))),
-                  ]),
-                  const SizedBox(height: 12),
-                  ..._pending.map((c) => _VerifyTile(
-                        c['name'] as String,
-                        c['vehicle'] as String,
-                        c['area'] as String,
-                        c['phone'] as String,
-                        c['submitted'] as String,
-                        List<String>.from(c['docs'] as List),
-                        () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => _VerifyDetail(data: c))),
-                      )),
-                  const SizedBox(height: 30),
-                ]),
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: firestoreService.listUsers(),
+              builder: (context, snapshot) {
+                final users = snapshot.data ?? const <Map<String, dynamic>>[];
+                final collectors = users
+                    .where((u) => u['Role'] == 'Collector' || u['Role'] == 'VerifiedCollector')
+                    .toList();
+
+                return FutureBuilder<List<_PendingCollector>>(
+                  future: _loadPending(firestoreService, collectors),
+                  builder: (context, pendingSnap) {
+                    if (!snapshot.hasData || !pendingSnap.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final pending = pendingSnap.data!;
+                    if (pending.isEmpty) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Text('No pending verifications.',
+                              style: TextStyle(color: Color(0xFF6B7280))),
+                        ),
+                      );
+                    }
+                    return ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      children: [
+                        const SizedBox(height: 24),
+                        Row(children: [
+                          const Text('PENDING VERIFICATION',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1)),
+                          const SizedBox(width: 8),
+                          Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 7, vertical: 2),
+                              decoration: const BoxDecoration(
+                                  color: AppColors.adminRed, shape: BoxShape.circle),
+                              child: Text('${pending.length}',
+                                  style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white))),
+                        ]),
+                        const SizedBox(height: 12),
+                        ...pending.map((c) => _VerifyTile(
+                              collector: c,
+                              onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          _VerifyDetail(collector: c))),
+                            )),
+                        const SizedBox(height: 30),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
       bottomNavigationBar: const AdminBottomNav(current: 1),
     );
   }
+
+  Future<List<_PendingCollector>> _loadPending(
+      FirestoreService svc, List<Map<String, dynamic>> collectors) async {
+    final results = await Future.wait(collectors.map((u) async {
+      final profile = await svc.collectorProfile(u['uid'] as String);
+      return _PendingCollector(uid: u['uid'] as String, account: u, profile: profile);
+    }));
+    return results
+        .where((c) => (c.profile?['Verification_Status'] as String?) == 'Pending')
+        .toList();
+  }
+}
+
+class _PendingCollector {
+  final String uid;
+  final Map<String, dynamic> account;
+  final Map<String, dynamic>? profile;
+  const _PendingCollector({required this.uid, required this.account, this.profile});
+
+  String get name => (account['Display_Name'] as String?) ?? 'Unknown';
+  String get vehicle => (profile?['Vehicle_Type'] as String?) ?? 'Not set';
+  String get phone => (account['Phone'] as String?) ?? '';
+  List<Map<String, dynamic>> get docs =>
+      List<Map<String, dynamic>>.from(profile?['Verification_Docs'] ?? const []);
 }
 
 class _VerifyTile extends StatelessWidget {
-  final String name, vehicle, area, phone, submitted;
-  final List<String> docs;
+  final _PendingCollector collector;
   final VoidCallback onTap;
-  const _VerifyTile(this.name, this.vehicle, this.area, this.phone,
-      this.submitted, this.docs, this.onTap);
+  const _VerifyTile({required this.collector, required this.onTap});
   @override
   Widget build(BuildContext context) => Container(
         margin: const EdgeInsets.only(bottom: 8),
@@ -155,18 +181,12 @@ class _VerifyTile extends StatelessWidget {
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                        Row(children: [
-                          Text(name,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
-                                  color: AppColors.textPrimary)),
-                          const Spacer(),
-                          Text(submitted,
-                              style: const TextStyle(
-                                  fontSize: 10, color: AppColors.textMuted))
-                        ]),
-                        Text('$vehicle · $area',
+                        Text(collector.name,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                color: AppColors.textPrimary)),
+                        Text(collector.vehicle,
                             style: const TextStyle(
                                 fontSize: 11, color: AppColors.textSecondary)),
                       ])),
@@ -176,13 +196,40 @@ class _VerifyTile extends StatelessWidget {
       );
 }
 
-class _VerifyDetail extends StatelessWidget {
-  final Map<String, dynamic> data;
-  const _VerifyDetail({required this.data});
+class _VerifyDetail extends StatefulWidget {
+  final _PendingCollector collector;
+  const _VerifyDetail({required this.collector});
+
+  @override
+  State<_VerifyDetail> createState() => _VerifyDetailState();
+}
+
+class _VerifyDetailState extends State<_VerifyDetail> {
+  bool _submitting = false;
+
+  Future<void> _decide(String status) async {
+    if (_submitting) return;
+    setState(() => _submitting = true);
+    final svc = FirestoreService();
+    try {
+      await svc.setCollectorVerification(widget.collector.uid, status);
+      await svc.logAction({
+        'Actor_ID': AuthState.instance.uid ?? 'admin',
+        'Action': status == 'Verified' ? 'VERIFY_COLLECTOR' : 'REJECT_COLLECTOR',
+        'Target_ID': widget.collector.uid,
+        'Description':
+            'Admin ${status == 'Verified' ? 'verified' : 'rejected'} collector ${widget.collector.name}.',
+      });
+      if (!mounted) return;
+      Navigator.pop(context);
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final docs = List<String>.from(data['docs'] as List);
+    final collector = widget.collector;
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
@@ -191,45 +238,26 @@ class _VerifyDetail extends StatelessWidget {
           leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
               onPressed: () => Navigator.pop(context)),
-          title: Text('Verify: ${data['name']}',
+          title: Text('Verify: ${collector.name}',
               style: const TextStyle(
                   color: AppColors.textPrimary, fontWeight: FontWeight.w800))),
       body: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 28),
           children: [
             const SizedBox(height: 8),
-            Row(
-                children: docs
-                    .map((d) => Expanded(child: _DTile(_docIcon(d), d)))
-                    .toList()),
+            if (collector.docs.isNotEmpty)
+              Row(
+                  children: collector.docs
+                      .map((d) => Expanded(
+                          child: _DTile((d['type'] as String?) ?? 'Document',
+                              (d['status'] as String?) ?? 'pending')))
+                      .toList()),
             const SizedBox(height: 16),
             _VSec('COLLECTOR DETAILS', [
-              ('Name', data['name'] as String),
-              ('Phone', data['phone'] as String),
-              ('Vehicle', data['vehicle'] as String),
-              ('Areas', data['area'] as String),
-              ('Submitted', data['submitted'] as String)
+              ('Name', collector.name),
+              ('Phone', collector.phone),
+              ('Vehicle', collector.vehicle),
             ]),
-            _VSec(
-                'VERIFICATION CHECKLIST',
-                [
-                  ('✓', 'Profile photo matches ID photo'),
-                  ('✓', 'Valid ID is government-issued'),
-                  ('✓', 'Vehicle photo matches stated type')
-                ],
-                check: true),
-            Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: TextField(
-                    decoration: InputDecoration(
-                        hintText: 'Admin notes...',
-                        filled: true,
-                        fillColor: AppColors.inputGrey,
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                const BorderSide(color: AppColors.divider))),
-                    maxLines: 2)),
             Row(children: [
               Expanded(
                   child: ElevatedButton(
@@ -239,7 +267,7 @@ class _VerifyDetail extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10))),
-                      onPressed: () {},
+                      onPressed: _submitting ? null : () => _decide('Verified'),
                       child: const Text('APPROVE',
                           style: TextStyle(
                               fontSize: 12, fontWeight: FontWeight.w800)))),
@@ -252,41 +280,21 @@ class _VerifyDetail extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10))),
-                      onPressed: () {},
+                      onPressed: _submitting ? null : () => _decide('Rejected'),
                       child: const Text('REJECT',
                           style: TextStyle(
                               fontSize: 12, fontWeight: FontWeight.w800)))),
-              const SizedBox(width: 8),
-              Expanded(
-                  child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.inputGrey,
-                          foregroundColor: AppColors.textPrimary,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10))),
-                      onPressed: () {},
-                      child: const Text('REQUEST INFO',
-                          style: TextStyle(
-                              fontSize: 10, fontWeight: FontWeight.w700)))),
             ]),
             const SizedBox(height: 30),
           ]),
     );
-  }
-
-  String _docIcon(String label) {
-    if (label.contains('Profile')) return '🪪';
-    if (label.contains('ID')) return '🆔';
-    return '🛵';
   }
 }
 
 class _VSec extends StatelessWidget {
   final String title;
   final List<(String, String)> rows;
-  final bool check;
-  const _VSec(this.title, this.rows, {this.check = false});
+  const _VSec(this.title, this.rows);
   @override
   Widget build(BuildContext context) => Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -305,8 +313,6 @@ class _VSec extends StatelessWidget {
                 border: Border.all(color: AppColors.divider)),
             child: Column(
                 children: rows.asMap().entries.map((e) {
-              final isCheck = e.value.$1 == '✓';
-              final isUncheck = e.value.$1 == '○';
               return Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -316,41 +322,27 @@ class _VSec extends StatelessWidget {
                               bottom: BorderSide(color: AppColors.divider)))
                       : null,
                   child: Row(children: [
-                    if (check) ...[
-                      Container(
-                          width: 18,
-                          height: 18,
-                          decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isCheck ? AppColors.success : null,
-                              border: isUncheck
-                                  ? Border.all(color: AppColors.divider)
-                                  : null),
-                          child: isCheck
-                              ? const Icon(Icons.check,
-                                  size: 9, color: Colors.white)
-                              : null),
-                      const SizedBox(width: 8)
-                    ],
+                    Text('${e.value.$1}: ',
+                        style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary)),
                     Expanded(
                         child: Text(e.value.$2,
-                            style: TextStyle(
-                                fontSize: 11,
-                                color: isUncheck
-                                    ? AppColors.textMuted
-                                    : AppColors.textPrimary))),
+                            style: const TextStyle(
+                                fontSize: 11, color: AppColors.textPrimary))),
                   ]));
             }).toList())),
       ]));
 }
 
 class _DTile extends StatelessWidget {
-  final String icon, label;
-  const _DTile(this.icon, this.label);
+  final String label, status;
+  const _DTile(this.label, this.status);
   @override
   Widget build(BuildContext context) => Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
-      height: 110,
+      height: 90,
       decoration: BoxDecoration(
           color: AppColors.pureWhite,
           borderRadius: BorderRadius.circular(12),
@@ -358,7 +350,8 @@ class _DTile extends StatelessWidget {
       child: Stack(children: [
         Center(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(icon, style: const TextStyle(fontSize: 24)),
+          const Icon(Icons.insert_drive_file_outlined,
+              color: AppColors.textSecondary, size: 24),
           const SizedBox(height: 4),
           Text(label,
               style: const TextStyle(
@@ -367,17 +360,15 @@ class _DTile extends StatelessWidget {
                   fontWeight: FontWeight.w600),
               textAlign: TextAlign.center)
         ])),
-        const Positioned(top: 6, right: 6, child: _Check()),
+        Positioned(
+            top: 6,
+            right: 6,
+            child: Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                    color: status == 'verified' ? AppColors.success : AppColors.warning,
+                    shape: BoxShape.circle),
+                child: const Icon(Icons.circle, size: 8, color: Colors.transparent))),
       ]));
-}
-
-class _Check extends StatelessWidget {
-  const _Check();
-  @override
-  Widget build(BuildContext context) => Container(
-      width: 18,
-      height: 18,
-      decoration:
-          const BoxDecoration(color: AppColors.success, shape: BoxShape.circle),
-      child: const Icon(Icons.check, size: 9, color: Colors.white));
 }

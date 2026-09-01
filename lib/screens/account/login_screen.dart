@@ -193,18 +193,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              Row(
+              const Row(
                 children: [
-                  const Expanded(child: Divider(color: AppColors.divider)),
+                  Expanded(child: Divider(color: AppColors.divider)),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: EdgeInsets.symmetric(horizontal: 12),
                     child: Text('OR',
                         style: TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 12,
                             fontWeight: FontWeight.w600)),
                   ),
-                  const Expanded(child: Divider(color: AppColors.divider)),
+                  Expanded(child: Divider(color: AppColors.divider)),
                 ],
               ),
               const SizedBox(height: 24),

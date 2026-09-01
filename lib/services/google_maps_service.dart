@@ -3,7 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import '../core/constants/app_constants.dart';
 
-// ─── Google Maps Service: Distance + ETA ───
+// ─── Google Maps Service: Distance + ETA + Route Polyline (Routes API) ───
 
 class RouteInfo {
   final double distanceKm;
@@ -19,7 +19,8 @@ class RouteInfo {
 class GoogleMapsService {
   GoogleMapsService._();
 
-  static const String _baseUrl = 'https://maps.googleapis.com/maps/api/distancematrix/json';
+  static const String _baseUrl =
+      'https://routes.googleapis.com/directions/v2:computeRoutes';
   static const String _routeBox = 'route_cache';
   static const int _maxCachedRoutes = 20;
 
@@ -37,46 +38,59 @@ class GoogleMapsService {
     }
 
     try {
-      final uri = Uri.parse(_baseUrl).replace(queryParameters: {
-        'origins': '$originLat,$originLon',
-        'destinations': '$destLat,$destLon',
-        'mode': 'driving',
-        'key': AppConstants.googleMapsApiKey,
-      });
+      final response = await http
+          .post(
+            Uri.parse(_baseUrl),
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Goog-Api-Key': AppConstants.googleMapsApiKey,
+              'X-Goog-FieldMask':
+                  'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline',
+            },
+            body: jsonEncode({
+              'origin': {
+                'location': {
+                  'latLng': {'latitude': originLat, 'longitude': originLon}
+                }
+              },
+              'destination': {
+                'location': {
+                  'latLng': {'latitude': destLat, 'longitude': destLon}
+                }
+              },
+              'travelMode': 'DRIVE',
+            }),
+          )
+          .timeout(const Duration(seconds: 8));
 
-      final response = await http.get(uri).timeout(const Duration(seconds: 8));
       if (response.statusCode != 200) return _getCachedRoute(cacheKey);
 
       final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final status = json['status'] as String?;
-      if (status != 'OK') return _getCachedRoute(cacheKey);
+      final routes = json['routes'] as List?;
+      if (routes == null || routes.isEmpty) return _getCachedRoute(cacheKey);
 
-      final rows = json['rows'] as List?;
-      if (rows == null || rows.isEmpty) return _getCachedRoute(cacheKey);
+      final route = routes.first as Map<String, dynamic>;
+      final distanceMeters = (route['distanceMeters'] as num?)?.toInt() ?? 0;
+      final durationStr = route['duration'] as String? ?? '0s';
+      final durationSeconds =
+          int.tryParse(durationStr.replaceAll('s', '')) ?? 0;
+      final encodedPolyline =
+          (route['polyline'] as Map?)?['encodedPolyline'] as String? ?? '';
 
-      final elements = (rows.first as Map)['elements'] as List?;
-      if (elements == null || elements.isEmpty) return _getCachedRoute(cacheKey);
-
-      final element = elements.first as Map;
-      final elementStatus = element['status'] as String?;
-      if (elementStatus != 'OK') return _getCachedRoute(cacheKey);
-
-      final distance = (element['distance'] as Map)['value'] as int? ?? 0;
-      final duration = (element['duration'] as Map)['value'] as int? ?? 0;
-
-      final route = RouteInfo(
-        distanceKm: distance / 1000.0,
-        etaMinutes: duration / 60.0,
+      final routeInfo = RouteInfo(
+        distanceKm: distanceMeters / 1000.0,
+        etaMinutes: durationSeconds / 60.0,
+        polyline: encodedPolyline,
       );
-      await _cacheRoute(cacheKey, route);
-      return route;
+      await _cacheRoute(cacheKey, routeInfo);
+      return routeInfo;
     } catch (_) {
       return _getCachedRoute(cacheKey);
     }
   }
 
   static String _cacheKey(double lat1, double lon1, double lat2, double lon2) {
-    final r = (double v) => (v * 1000).round().toString();
+    String r(double v) => (v * 1000).round().toString();
     return '${r(lat1)},${r(lon1)}|${r(lat2)},${r(lon2)}';
   }
 
@@ -88,6 +102,7 @@ class GoogleMapsService {
       return RouteInfo(
         distanceKm: (data['distanceKm'] as num).toDouble(),
         etaMinutes: (data['etaMinutes'] as num).toDouble(),
+        polyline: (data['polyline'] as String?) ?? '',
       );
     } catch (_) {
       return null;
@@ -103,6 +118,7 @@ class GoogleMapsService {
       await box.put(key, {
         'distanceKm': route.distanceKm,
         'etaMinutes': route.etaMinutes,
+        'polyline': route.polyline,
       });
     } catch (_) {}
   }

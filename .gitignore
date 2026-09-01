@@ -54,3 +54,8 @@ android/.gradle/
 .hermes/plans/
 # Agent/markdown files — local only
 **/*.md
+# Exceptions: these carry standing instructions for future Claude Code
+# sessions and should travel with the repo. Remove this block (and let
+# CLAUDE.md / .claude/ fall back to local-only) before a clean publish.
+!/CLAUDE.md
+!/.claude/**/*.md

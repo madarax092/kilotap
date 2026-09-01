@@ -1,130 +1,23 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../widgets/chat_thread_view.dart';
 
 class ChatHouseholdsScreen extends StatelessWidget {
-  final String householdName;
-  final String bookingId;
+  final String otherUserId;
+  final String otherUserName;
 
   const ChatHouseholdsScreen({
     super.key,
-    required this.householdName,
-    required this.bookingId,
+    required this.otherUserId,
+    required this.otherUserName,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.canvas,
-      appBar: AppBar(
-        backgroundColor: AppColors.canvas,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(householdName,
-            style: const TextStyle(
-                color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: AppColors.buyerBlue.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(bookingId,
-                  style: const TextStyle(
-                      fontSize: 9,
-                      color: AppColors.buyerBlue,
-                      fontWeight: FontWeight.w600)),
-            ),
-          )
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: const [
-                _Msg("Hello ma'am! On my way po, mga 5 minutes na lang.", true),
-                _Msg('Sige po, gate code is #1234. Blue ang gate.', false),
-                _Msg('Copy po. Tricycle color blue ako.', true),
-                _Msg('Nandito na po ako sa labas.', true),
-                _Msg('Dito po sa gate 2, pakisabi sa guard.', false),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(
-                color: AppColors.pureWhite,
-                border: Border(top: BorderSide(color: AppColors.divider))),
-            child: SafeArea(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Type message...',
-                        filled: true,
-                        fillColor: AppColors.inputGrey,
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
-                            borderSide: BorderSide.none),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const CircleAvatar(
-                    backgroundColor: AppColors.buyerBlue,
-                    child: Icon(Icons.send, color: Colors.white, size: 18),
-                  )
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Msg extends StatelessWidget {
-  final String text;
-  final bool outgoing;
-
-  const _Msg(this.text, this.outgoing);
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: outgoing ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        constraints: const BoxConstraints(maxWidth: 280),
-        decoration: BoxDecoration(
-          color: outgoing ? AppColors.buyerBlue : AppColors.pureWhite,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft:
-                outgoing ? const Radius.circular(16) : const Radius.circular(4),
-            bottomRight:
-                outgoing ? const Radius.circular(4) : const Radius.circular(16),
-          ),
-          border: outgoing ? null : Border.all(color: AppColors.divider),
-        ),
-        child: Text(text,
-            style: TextStyle(
-                fontSize: 13,
-                color: outgoing ? Colors.white : AppColors.textPrimary)),
-      ),
+    return ChatThreadView(
+      otherUserId: otherUserId,
+      otherUserName: otherUserName,
+      accentColor: AppColors.buyerBlue,
     );
   }
 }

@@ -168,15 +168,19 @@ class CollectorProfileScreen extends StatelessWidget {
             child: BottomNavigationBar(
               currentIndex: 4,
               onTap: (i) {
-                if (i == 0)
+                if (i == 0) {
                   Navigator.pushReplacementNamed(context, '/collector');
+                }
                 if (i == 1) Navigator.pushReplacementNamed(context, '/find');
-                if (i == 2)
-                  Navigator.pushReplacementNamed(context, '/chat_collector');
-                if (i == 3)
+                if (i == 2) {
+                  Navigator.pushReplacementNamed(context, '/chat');
+                }
+                if (i == 3) {
                   Navigator.pushReplacementNamed(context, '/earnings');
-                if (i == 4)
+                }
+                if (i == 4) {
                   Navigator.pushReplacementNamed(context, '/collector_profile');
+                }
               },
               selectedItemColor: AppColors.buyerBlue,
               unselectedItemColor: const Color(0xFFBBBBBB),

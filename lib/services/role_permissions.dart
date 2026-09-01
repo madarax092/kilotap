@@ -35,7 +35,6 @@ class RolePermissions {
   static const Map<String, String> routePermissions = {
     '/sell': sellScrap,
     '/pickups': viewPickups,
-    '/rate': rateCollector,
     '/profile': manageProfile,
     '/find': findScrap,
     '/idcard': viewIdCard,

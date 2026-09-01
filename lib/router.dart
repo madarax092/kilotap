@@ -19,12 +19,10 @@ import 'screens/admin/admin_profile_screen.dart';
 import 'screens/admin/reports_screen.dart';
 import 'screens/analytics_screen.dart';
 import 'screens/household/chat_collector_screen.dart';
-import 'screens/household/detection_results_screen.dart';
 import 'screens/account/role_picker_screen.dart';
 import 'screens/account/household_register_screen.dart';
 import 'screens/account/collector_register_screen.dart';
 import 'screens/collector/chat_screen.dart';
-import 'screens/household/rate_collector_screen.dart';
 import 'screens/collector/collector_navigation_screen.dart';
 import 'screens/collector/request_details_screen.dart';
 
@@ -54,7 +52,6 @@ class AppRouter {
 
       case '/admin': return _page(const AdminDashboard());
       case '/idcard': return _page(const CollectorIDCard());
-      case '/rate': return _page(const RateCollectorScreen());
       case '/route': return _page(const MyRouteScreen());
       case '/users': return _page(const UserManagementScreen());
       case '/verify': return _page(const VerifyCollectorScreen());
@@ -63,7 +60,6 @@ class AppRouter {
       case '/reports': return _page(const ReportsScreen());
       case '/analytics': return _page(const AnalyticsScreen());
       case '/chat': return _page(const ChatScreen());
-      case '/detection': return _page(const DetectionResultsScreen());
       case '/collector_nav': return _page(const CollectorNavigationScreen(), settings);
       case '/request_details': return _page(const RequestDetailsScreen(), settings);
       default: return _page(const LoginScreen());

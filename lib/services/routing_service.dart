@@ -49,50 +49,13 @@ class ProximityFilter {
   }
 }
 
-const List<Map<String, dynamic>> demoCollectors = [
-  {
-    'id': 'COLLECTOR-001',
-    'name': 'Max',
-    'latitude': 7.0750,
-    'longitude': 125.6130,
-    'vehicle': 'Tricycle',
-    'online': true,
-    'verified': true,
-  },
-  {
-    'id': 'COLLECTOR-002',
-    'name': 'Leo',
-    'latitude': 7.1000,
-    'longitude': 125.6500,
-    'vehicle': 'Truck',
-    'online': true,
-    'verified': true,
-  },
-  {
-    'id': 'COLLECTOR-003',
-    'name': 'Rico',
-    'latitude': 7.0680,
-    'longitude': 125.6070,
-    'vehicle': 'Multicab',
-    'online': true,
-    'verified': true,
-  },
-  {
-    'id': 'COLLECTOR-004',
-    'name': 'Jun',
-    'latitude': 7.0800,
-    'longitude': 125.6050,
-    'vehicle': 'Tricycle',
-    'online': true,
-    'verified': true,
-  },
-  {
-    'id': 'COLLECTOR-005',
-    'name': 'Ben',
-    'latitude': 7.0850,
-    'longitude': 125.6200,
-    'vehicle': 'Pushcart',
-    'online': true,
-    'verified': true,
-  },
-];
+// Vehicle capacity tiers, matching CapacityMatcher.VehicleSize — used to
+// check whether a collector's vehicle can handle a booking's requirement.
+const List<String> _vehicleCapacityOrder = ['Pushcart', 'Tricycle', 'Multicab', 'Truck'];
+
+bool vehicleCanHandle(String collectorVehicle, String requiredVehicle) {
+  final collectorTier = _vehicleCapacityOrder.indexOf(collectorVehicle);
+  final requiredTier = _vehicleCapacityOrder.indexOf(requiredVehicle);
+  if (collectorTier == -1 || requiredTier == -1) return true;
+  return collectorTier >= requiredTier;
+}

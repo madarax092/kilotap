@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../models/booking.dart';
+import '../../services/auth_state.dart';
+import '../../services/firestore_service.dart';
+import '../../services/google_maps_service.dart';
+import '../../services/routing_service.dart';
 
 class FindScrapScreen extends StatefulWidget {
   const FindScrapScreen({super.key});
@@ -10,9 +15,45 @@ class FindScrapScreen extends StatefulWidget {
 class _FindScrapScreenState extends State<FindScrapScreen> {
   bool _isOnline = true;
 
+  String _timeAgo(DateTime t) {
+    final diff = DateTime.now().difference(t);
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
+    if (diff.inDays < 1) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
+  }
+
+  Future<_RequestData> _loadRequestData(FirestoreService svc, Booking b) async {
+    final sellerName = await svc.displayNameFor(b.sellerId);
+    final items = await svc.bookingItems(b.bookingId).first;
+    final totalWeight = items.fold<double>(0, (s, i) => s + i.estimatedWeightKg);
+    final itemsSummary = items.isEmpty
+        ? 'No items listed'
+        : '${items.length} item${items.length > 1 ? 's' : ''} · '
+            '${totalWeight.toStringAsFixed(1)} kg';
+
+    String? distanceLabel;
+    final auth = AuthState.instance;
+    if (auth.currentLatitude != 0 && auth.currentLongitude != 0) {
+      final route = await GoogleMapsService.getRoute(
+        originLat: auth.currentLatitude,
+        originLon: auth.currentLongitude,
+        destLat: b.pickupGps.latitude,
+        destLon: b.pickupGps.longitude,
+      );
+      if (route != null) {
+        distanceLabel = GoogleMapsService.formatDistance(route.distanceKm);
+      }
+    }
+
+    return _RequestData(
+        sellerName: sellerName, itemsSummary: itemsSummary, distanceLabel: distanceLabel);
+  }
+
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
+    final firestoreService = FirestoreService();
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       body: Column(
@@ -69,68 +110,66 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
               ],
             ),
           ),
-
           Expanded(
-            child: ListView(
-                padding: const EdgeInsets.only(top: 20, bottom: 40),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(children: const [
-                          _FilterChip('All', true),
-                          _FilterChip('<1 km', false),
-                          _FilterChip('<3 km', false),
-                          _FilterChip('Small', false),
-                          _FilterChip('Medium', false),
-                          _FilterChip('Large', false),
-                          _FilterChip('Heavy', false)
-                        ])),
+            child: !_isOnline
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Text('Go online to see pickup requests near you.',
+                          style: TextStyle(color: Color(0xFF6B7280))),
+                    ),
+                  )
+                : StreamBuilder<List<Booking>>(
+                    stream: firestoreService.availableBookings(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      // Two-stage dispatch: attribute (capacity) filter first,
+                      // then Google Maps distance ranking per card below.
+                      final myVehicle = AuthState.instance.vehicleType;
+                      final bookings = snapshot.data!
+                          .where((b) => vehicleCanHandle(myVehicle, b.vehicleRequirement))
+                          .toList();
+                      if (bookings.isEmpty) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Text(
+                                'No pickup requests match your vehicle right now.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Color(0xFF6B7280))),
+                          ),
+                        );
+                      }
+                      return ListView.builder(
+                        padding: const EdgeInsets.only(top: 20, bottom: 40),
+                        itemCount: bookings.length,
+                        itemBuilder: (context, i) {
+                          final b = bookings[i];
+                          return FutureBuilder<_RequestData>(
+                            future: _loadRequestData(firestoreService, b),
+                            builder: (context, dataSnap) {
+                              if (!dataSnap.hasData) {
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 8),
+                                  child: LinearProgressIndicator(minHeight: 2),
+                                );
+                              }
+                              final data = dataSnap.data!;
+                              return _RequestCard(
+                                booking: b,
+                                sellerName: data.sellerName,
+                                itemsSummary: data.itemsSummary,
+                                timeAgo: data.distanceLabel ?? _timeAgo(b.createdAt),
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
                   ),
-                  const SizedBox(height: 20),
-
-                  const _RequestCard(
-                      'MS',
-                      'Maria Santos',
-                      'Maa · 0.3 km away',
-                      '12 pcs',
-                      'Plastic',
-                      '15 kg',
-                      'ASAP',
-                      'assets/images/multiple_scrap_sample.png',
-                      'assets/images/davao_nav_map.png'),
-                  const _RequestCard(
-                      'JR',
-                      'Jose Reyes',
-                      'Matina · 1.2 km away',
-                      '5 pcs',
-                      'Scrap Metal',
-                      '25 kg',
-                      'ASAP',
-                      'assets/images/scrap2.jpg',
-                      'assets/images/map2.png'),
-                  const _RequestCard(
-                      'AL',
-                      'Ana Lim',
-                      'Ecoland · 2.5 km away',
-                      '20 pcs',
-                      'Cardboard',
-                      '8 kg',
-                      'In 2 hrs',
-                      'assets/images/scrap3.jpg',
-                      'assets/images/map3.png'),
-                  const _RequestCard(
-                      'CM',
-                      'Carlos Mendoza',
-                      'Buhangin · 4.1 km away',
-                      '8 pcs',
-                      'Mixed',
-                      '12 kg',
-                      'In 4 hrs',
-                      'assets/images/scrap4.jpg',
-                      'assets/images/map4.png'),
-                ]),
           ),
         ],
       ),
@@ -148,15 +187,19 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
             child: BottomNavigationBar(
               currentIndex: 1,
               onTap: (i) {
-                if (i == 0)
+                if (i == 0) {
                   Navigator.pushReplacementNamed(context, '/collector');
+                }
                 if (i == 1) Navigator.pushReplacementNamed(context, '/find');
-                if (i == 2)
-                  Navigator.pushReplacementNamed(context, '/chat_collector');
-                if (i == 3)
+                if (i == 2) {
+                  Navigator.pushReplacementNamed(context, '/chat');
+                }
+                if (i == 3) {
                   Navigator.pushReplacementNamed(context, '/earnings');
-                if (i == 4)
+                }
+                if (i == 4) {
                   Navigator.pushReplacementNamed(context, '/collector_profile');
+                }
               },
               selectedItemColor: AppColors.buyerBlue,
               unselectedItemColor: const Color(0xFFBBBBBB),
@@ -184,36 +227,12 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
   }
 }
 
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool active;
-
-  const _FilterChip(this.label, this.active);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: active ? AppColors.buyerBlue : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: active ? null : Border.all(color: const Color(0xFFE5E7EB)),
-          boxShadow: active
-              ? [
-                  BoxShadow(
-                      color: AppColors.buyerBlue.withValues(alpha: 0.3),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2))
-                ]
-              : null,
-        ),
-        child: Text(label,
-            style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: active ? Colors.white : const Color(0xFF6B7280))));
-  }
+class _RequestData {
+  final String sellerName;
+  final String itemsSummary;
+  final String? distanceLabel;
+  const _RequestData(
+      {required this.sellerName, required this.itemsSummary, this.distanceLabel});
 }
 
 class _Det extends StatelessWidget {
@@ -239,35 +258,36 @@ class _Det extends StatelessWidget {
 }
 
 class _RequestCard extends StatelessWidget {
-  final String initials,
-      name,
-      location,
-      pcs,
-      material,
-      weight,
-      time,
-      imagePath,
-      mapPath;
-  const _RequestCard(this.initials, this.name, this.location, this.pcs,
-      this.material, this.weight, this.time, this.imagePath, this.mapPath);
+  final Booking booking;
+  final String sellerName;
+  final String itemsSummary;
+  final String timeAgo;
+
+  const _RequestCard({
+    required this.booking,
+    required this.sellerName,
+    required this.itemsSummary,
+    required this.timeAgo,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final initials = sellerName.trim().isNotEmpty
+        ? sellerName
+            .trim()
+            .split(' ')
+            .where((w) => w.isNotEmpty)
+            .take(2)
+            .map((w) => w[0])
+            .join()
+            .toUpperCase()
+        : '?';
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: GestureDetector(
         onTap: () {
-          Navigator.pushNamed(context, '/request_details', arguments: {
-            'initials': initials,
-            'name': name,
-            'location': location,
-            'pcs': pcs,
-            'material': material,
-            'weight': weight,
-            'time': time,
-            'imagePath': imagePath,
-            'mapPath': mapPath,
-          });
+          Navigator.pushNamed(context, '/request_details',
+              arguments: {'bookingId': booking.bookingId});
         },
         child: Container(
             padding: const EdgeInsets.all(16),
@@ -300,13 +320,18 @@ class _RequestCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(name,
+                        Text(sellerName,
                             style: const TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 15,
                                 color: Color(0xFF111827))),
                         const SizedBox(height: 2),
-                        Text(location,
+                        Text(
+                            booking.pickupAddress.isEmpty
+                                ? 'Address not provided'
+                                : booking.pickupAddress,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                                 fontSize: 12, color: Color(0xFF6B7280))),
                       ],
@@ -318,7 +343,7 @@ class _RequestCard extends StatelessWidget {
                     decoration: BoxDecoration(
                         color: AppColors.error.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8)),
-                    child: Text(time,
+                    child: Text(timeAgo,
                         style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -327,23 +352,9 @@ class _RequestCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                height: 120,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE5E7EB)),
-                  image: DecorationImage(
-                    image: AssetImage(imagePath),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
               Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                _Det(pcs, material),
-                const _Det('Medium', 'Volume'),
-                _Det(weight, 'Est. Weight')
+                _Det(itemsSummary, 'Items'),
+                _Det(booking.vehicleRequirement, 'Vehicle'),
               ]),
             ])),
       ),

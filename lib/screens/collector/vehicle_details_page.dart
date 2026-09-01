@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import '../../services/auth_state.dart';
-import '../../services/auth_service.dart';
 
 class VehicleDetailsPage extends StatefulWidget {
   const VehicleDetailsPage({super.key});
@@ -12,19 +10,7 @@ class VehicleDetailsPage extends StatefulWidget {
 
 class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
   String _vehicleType = 'Tricycle';
-  late final TextEditingController _capacityController;
-  bool _saving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final auth = AuthState.instance;
-    _vehicleType = auth.vehicleType.isNotEmpty ? auth.vehicleType : 'Tricycle';
-    _capacityController = TextEditingController(
-        text: auth.vehicleCapacityKg > 0
-            ? auth.vehicleCapacityKg.toStringAsFixed(0)
-            : '200');
-  }
+  final _capacityController = TextEditingController(text: '200');
 
   @override
   void dispose() {
@@ -32,70 +18,43 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
     super.dispose();
   }
 
-  Future<void> _save() async {
-    setState(() => _saving = true);
-    try {
-      await AuthService.instance.updateCollectorProfile(
-        vehicleType: _vehicleType,
-        vehicleCapacityKg: double.tryParse(_capacityController.text.trim()) ?? 0,
-      );
-      if (!mounted) return;
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Vehicle details saved successfully.'),
-        backgroundColor: AppColors.buyerBlue,
-      ));
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Failed to save. Check your connection.'),
-        backgroundColor: AppColors.error,
-      ));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text('Vehicle Details',
-            style: TextStyle(color: Color(0xFF111827), fontWeight: FontWeight.w800, fontSize: 16)),
+            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700)),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.5),
-          child: Container(color: const Color(0xFFE5E7EB), height: 1.5),
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         children: [
+          const SizedBox(height: 12),
           const Text('Vehicle information is used for capacity matching',
-              style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
-          const SizedBox(height: 24),
-          Material(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
-        ),
-        child: ListTile(
-              leading: const Icon(Icons.local_shipping_outlined, color: Color(0xFF9CA3AF), size: 22),
-              title: const Text('Vehicle Type', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          const SizedBox(height: 20),
+          // Vehicle type
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ListTile(
+              leading: const Icon(Icons.local_shipping_outlined, color: AppColors.textSecondary, size: 22),
+              title: const Text('Vehicle Type', style: TextStyle(fontSize: 14, color: AppColors.textPrimary)),
               trailing: SizedBox(
                 width: 140,
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: _vehicleType,
                     isDense: true,
-                    icon: const Icon(Icons.expand_more, color: Color(0xFF6B7280)),
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.buyerBlue),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.buyerBlue),
                     items: ['Pushcart', 'Tricycle', 'Multicab', 'Truck']
                         .map((v) => DropdownMenuItem(value: v, child: Text(v)))
                         .toList(),
@@ -106,27 +65,26 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             ),
           ),
-          const SizedBox(height: 12),
-          Material(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
-        ),
-        child: ListTile(
-              leading: const Icon(Icons.scale_outlined, color: Color(0xFF9CA3AF), size: 22),
-              title: const Text('Max Capacity (kg)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
+          const SizedBox(height: 10),
+          // Capacity
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ListTile(
+              leading: const Icon(Icons.scale_outlined, color: AppColors.textSecondary, size: 22),
+              title: const Text('Max Capacity (kg)', style: TextStyle(fontSize: 14, color: AppColors.textPrimary)),
               trailing: SizedBox(
                 width: 80,
                 child: TextField(
                   controller: _capacityController,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.end,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     hintText: 'kg',
-                    hintStyle: TextStyle(color: Color(0xFF9CA3AF)),
                   ),
                 ),
               ),
@@ -134,44 +92,35 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
             ),
           ),
           const SizedBox(height: 12),
-          const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFFBEB),
+              color: AppColors.warning.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFFCD34D), width: 1.5),
+              border: Border.all(color: AppColors.warning.withValues(alpha: 0.2)),
             ),
             child: const Row(children: [
-              Icon(Icons.info_outline, color: Color(0xFFD97706), size: 20),
-              SizedBox(width: 12),
+              Icon(Icons.info_outline, color: AppColors.warning, size: 18),
+              SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'The system recommends but does not enforce. You decide if your vehicle can handle each booking.',
-                  style: TextStyle(fontSize: 13, color: Color(0xFFB45309), height: 1.4),
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
               ),
             ]),
           ),
           const SizedBox(height: 30),
-          const SizedBox(height: 32),
           SizedBox(
-            width: double.infinity, height: 54,
+            width: double.infinity, height: 48,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.buyerBlue,
                 foregroundColor: Colors.white,
-                elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              onPressed: _saving ? null : _save,
-              child: _saving
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                          color: Colors.white, strokeWidth: 2.5))
-                  : const Text('SAVE VEHICLE DETAILS', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Save', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
             ),
           ),
         ],

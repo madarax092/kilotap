@@ -73,18 +73,18 @@ class HouseholdProfileScreen extends StatelessWidget {
                   style:
                       TextStyle(fontSize: 13, color: AppColors.textSecondary)),
               const SizedBox(height: 16),
-              _MenuCard(items: [
-                const _MenuItem(
+              const _MenuCard(items: [
+                _MenuItem(
                   icon: Icons.person_outline,
                   label: 'Personal Information',
                   pageBuilder: HouseholdPersonalInfoPage.new,
                 ),
-                const _MenuItem(
+                _MenuItem(
                   icon: Icons.schedule_outlined,
                   label: 'Pickup Preferences',
                   pageBuilder: PickupPrefsPage.new,
                 ),
-                const _MenuItem(
+                _MenuItem(
                   icon: Icons.eco_outlined,
                   label: 'Recycling Impact',
                   pageBuilder: ImpactPage.new,
@@ -140,11 +140,14 @@ class HouseholdProfileScreen extends StatelessWidget {
             child: BottomNavigationBar(
               currentIndex: 4,
               onTap: (i) {
-                if (i == 0)
+                if (i == 0) {
                   Navigator.pushReplacementNamed(context, '/household');
+                }
                 if (i == 1) Navigator.pushReplacementNamed(context, '/sell');
                 if (i == 2) Navigator.pushReplacementNamed(context, '/pickups');
-                if (i == 3) Navigator.pushReplacementNamed(context, '/chat');
+                if (i == 3) {
+                  Navigator.pushReplacementNamed(context, '/chat_collector');
+                }
               },
               selectedItemColor: AppColors.sellerGreen,
               unselectedItemColor: const Color(0xFFBBBBBB),

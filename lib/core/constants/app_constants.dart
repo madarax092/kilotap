@@ -34,6 +34,7 @@ class AppConstants {
   static const String colRatings = 'ratings';
   static const String colNotifications = 'notifications';
   static const String colAuditLogs = 'auditLogs';
+  static const String colMessages = 'messages';
 
   // ─── Audit Action Types ────────────────────────────────────────────────────
   static const String auditVerifyCollector = 'VERIFY_COLLECTOR';

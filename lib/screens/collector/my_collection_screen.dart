@@ -1,12 +1,31 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../models/booking.dart';
+import '../../services/auth_state.dart';
+import '../../services/firestore_service.dart';
 
 class MyCollectionScreen extends StatelessWidget {
   const MyCollectionScreen({super.key});
 
+  Future<_CollectionStats> _loadStats(
+      FirestoreService svc, List<Booking> completed) async {
+    double totalKg = 0;
+    final txns = <_TxnData>[];
+    for (final b in completed) {
+      final items = await svc.bookingItems(b.bookingId).first;
+      final kg = items.fold<double>(0, (s, i) => s + i.estimatedWeightKg);
+      totalKg += kg;
+      final sellerName = await svc.displayNameFor(b.sellerId);
+      txns.add(_TxnData(name: sellerName, kg: kg, date: b.completedAt ?? b.createdAt));
+    }
+    txns.sort((a, b) => b.date.compareTo(a.date));
+    return _CollectionStats(totalKg: totalKg, recent: txns.take(5).toList());
+  }
+
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
+    final firestoreService = FirestoreService();
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       body: Column(
@@ -43,169 +62,133 @@ class MyCollectionScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 4),
-                const Text('Track your daily collected weight and statistics',
+                const Text('Track your completed pickups and total weight',
                     style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
               ],
             ),
           ),
-
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.only(top: 20, bottom: 40),
-              children: [
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(children: const [
-                    _DayCard('Mon', '32 kg', false),
-                    _DayCard('Tue', '45 kg', false),
-                    _DayCard('Wed', '18 kg', false),
-                    _DayCard('Thu', '45 kg', true),
-                    _DayCard('Fri', '—', false),
-                    _DayCard('Sat', '—', false),
-                  ]),
-                ),
-                const SizedBox(height: 24),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppColors.buyerBlue,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                            color: AppColors.buyerBlue.withValues(alpha: 0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 6))
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: StreamBuilder<List<Booking>>(
+              stream:
+                  firestoreService.collectorBookings(AuthState.instance.uid ?? ''),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final completed = snapshot.data!
+                    .where((b) => b.status == 'Completed')
+                    .toList();
+                return FutureBuilder<_CollectionStats>(
+                  future: _loadStats(firestoreService, completed),
+                  builder: (context, statsSnap) {
+                    if (!statsSnap.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final stats = statsSnap.data!;
+                    return ListView(
+                      padding: const EdgeInsets.only(top: 20, bottom: 40),
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Est. Total CollectionThis Week',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    color: Color(0xFFE1F5FE),
-                                    fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 4),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: const [
-                                Text('',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600)),
-                                Text('140',
-                                    style: TextStyle(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.w800,
-                                        color: Colors.white)),
-                                Text('.0 kg',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        color: Colors.white70,
-                                        fontWeight: FontWeight.w600)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: AppColors.buyerBlue,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                    color:
+                                        AppColors.buyerBlue.withValues(alpha: 0.3),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 6))
                               ],
                             ),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(20)),
-                          child: Row(
-                            children: const [
-                              Icon(Icons.trending_up,
-                                  color: Colors.white, size: 16),
-                              SizedBox(width: 4),
-                              Text('+12%',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 13)),
-                            ],
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Total Weight Collected',
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        color: Color(0xFFE1F5FE),
+                                        fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 4),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                                  textBaseline: TextBaseline.alphabetic,
+                                  children: [
+                                    Text(stats.totalKg.toStringAsFixed(1),
+                                        style: const TextStyle(
+                                            fontSize: 32,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white)),
+                                    const Text(' kg',
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            color: Colors.white70,
+                                            fontWeight: FontWeight.w600)),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
+                        const SizedBox(height: 24),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFFE5E7EB)),
+                                boxShadow: const [
+                                  BoxShadow(
+                                      color: Color(0x06000000),
+                                      blurRadius: 8,
+                                      offset: Offset(0, 4))
+                                ]),
+                            child: Row(children: [
+                              _StatBox('${completed.length}', 'Pickups Completed',
+                                  Icons.local_shipping_outlined),
+                              const SizedBox(width: 12),
+                              _StatBox(
+                                  AuthState.instance.avgRating.toStringAsFixed(1),
+                                  'Avg Rating',
+                                  Icons.star_outline),
+                            ]),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 24),
+                          child: Text('RECENT TRANSACTIONS',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF6B7280),
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.2)),
+                        ),
+                        const SizedBox(height: 12),
+                        if (stats.recent.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 24),
+                            child: Text('No completed pickups yet.',
+                                style: TextStyle(color: Color(0xFF6B7280))),
+                          )
+                        else
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Column(
+                              children: stats.recent
+                                  .map((t) => _Txn(t.name, t.kg, t.date))
+                                  .toList(),
+                            ),
+                          ),
                       ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE5E7EB)),
-                        boxShadow: const [
-                          BoxShadow(
-                              color: Color(0x06000000),
-                              blurRadius: 8,
-                              offset: Offset(0, 4))
-                        ]),
-                    child: Column(children: [
-                      Row(children: const [
-                        _StatBox('42', 'Pickups Completed',
-                            Icons.local_shipping_outlined),
-                        SizedBox(width: 12),
-                        _StatBox('487 kg', 'Total Weight Collected',
-                            Icons.scale_outlined),
-                      ]),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Divider(
-                            color: Color(0xFFF3F4F6),
-                            thickness: 1.5,
-                            height: 1),
-                      ),
-                      Row(children: const [
-                        _StatBox('₱1,250', 'Est. Fuel Spent',
-                            Icons.local_gas_station_outlined),
-                        SizedBox(width: 12),
-                        _StatBox('₱3,400', 'Material Value',
-                            Icons.inventory_2_outlined),
-                      ]),
-                    ]),
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: Text('RECENT TRANSACTIONS',
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF6B7280),
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.2)),
-                ),
-                const SizedBox(height: 12),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    children: const [
-                      _Txn('Jose R.', 'Scrap Iron', '25 kg', 'Jun 30', true),
-                      _Txn('Maria S.', 'Plastic', '3.2 kg', 'Jun 30', true),
-                      _Txn('Pedro L.', 'Mixed', '12 kg', 'Jun 29', true),
-                      _Txn('Ana L.', 'Cardboard', '4 kg', 'Jun 28', true),
-                      _Txn('Carlos M.', 'Metal', '8 kg', 'Jun 27', false),
-                    ],
-                  ),
-                ),
-              ],
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
@@ -224,15 +207,19 @@ class MyCollectionScreen extends StatelessWidget {
             child: BottomNavigationBar(
               currentIndex: 3,
               onTap: (i) {
-                if (i == 0)
+                if (i == 0) {
                   Navigator.pushReplacementNamed(context, '/collector');
+                }
                 if (i == 1) Navigator.pushReplacementNamed(context, '/find');
-                if (i == 2)
-                  Navigator.pushReplacementNamed(context, '/chat_collector');
-                if (i == 3)
+                if (i == 2) {
+                  Navigator.pushReplacementNamed(context, '/chat');
+                }
+                if (i == 3) {
                   Navigator.pushReplacementNamed(context, '/earnings');
-                if (i == 4)
+                }
+                if (i == 4) {
                   Navigator.pushReplacementNamed(context, '/collector_profile');
+                }
               },
               selectedItemColor: AppColors.buyerBlue,
               unselectedItemColor: const Color(0xFFBBBBBB),
@@ -260,47 +247,17 @@ class MyCollectionScreen extends StatelessWidget {
   }
 }
 
-class _DayCard extends StatelessWidget {
-  final String day, value;
-  final bool today;
-  const _DayCard(this.day, this.value, this.today);
+class _CollectionStats {
+  final double totalKg;
+  final List<_TxnData> recent;
+  const _CollectionStats({required this.totalKg, required this.recent});
+}
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-      width: 70,
-      decoration: BoxDecoration(
-        color: today ? AppColors.buyerBlue : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: today ? null : Border.all(color: const Color(0xFFE5E7EB)),
-        boxShadow: today
-            ? [
-                BoxShadow(
-                    color: AppColors.buyerBlue.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4))
-              ]
-            : null,
-      ),
-      child: Column(
-        children: [
-          Text(day,
-              style: TextStyle(
-                  fontSize: 11,
-                  color: today ? Colors.white70 : const Color(0xFF6B7280),
-                  fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: today ? Colors.white : const Color(0xFF111827))),
-        ],
-      ),
-    );
-  }
+class _TxnData {
+  final String name;
+  final double kg;
+  final DateTime date;
+  const _TxnData({required this.name, required this.kg, required this.date});
 }
 
 class _StatBox extends StatelessWidget {
@@ -340,12 +297,17 @@ class _StatBox extends StatelessWidget {
 }
 
 class _Txn extends StatelessWidget {
-  final String name, detail, amount, date;
-  final bool isLatest;
-  const _Txn(this.name, this.detail, this.amount, this.date, this.isLatest);
+  final String name;
+  final double kg;
+  final DateTime date;
+  const _Txn(this.name, this.kg, this.date);
 
   @override
   Widget build(BuildContext context) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -370,27 +332,19 @@ class _Txn extends StatelessWidget {
           ),
           const SizedBox(width: 14),
           Expanded(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                Text(name,
-                    style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF111827))),
-                const SizedBox(height: 2),
-                Text(detail,
-                    style: const TextStyle(
-                        fontSize: 12, color: Color(0xFF6B7280))),
-              ])),
+              child: Text(name,
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF111827)))),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text(amount,
+            Text('${kg.toStringAsFixed(1)} kg',
                 style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                     color: AppColors.buyerBlue)),
             const SizedBox(height: 2),
-            Text(date,
+            Text('${months[date.month - 1]} ${date.day}',
                 style: const TextStyle(
                     fontSize: 11,
                     color: Color(0xFF9CA3AF),

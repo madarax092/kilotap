@@ -47,8 +47,8 @@ class HelpSupportScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5)),
-            child: Column(
-              children: const [
+            child: const Column(
+              children: [
                 _ContactRow(icon: Icons.email_outlined, title: 'Email Support', subtitle: 'support@kilotap.com'),
                 Divider(height: 24, color: Color(0xFFE5E7EB)),
                 _ContactRow(icon: Icons.phone_outlined, title: 'Call Us', subtitle: '+63 917 123 4567'),

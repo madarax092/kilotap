@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/auth_service.dart';
+import '../../services/auth_state.dart';
 
 class PickupPrefsPage extends StatefulWidget {
   const PickupPrefsPage({super.key});
@@ -9,10 +11,19 @@ class PickupPrefsPage extends StatefulWidget {
 }
 
 class _PickupPrefsPageState extends State<PickupPrefsPage> {
-  bool _asap = true;
-  String _timeWindow = 'Morning (8 AM - 12 PM)';
+  static const _timeWindows = [
+    'Morning (8 AM - 12 PM)',
+    'Afternoon (12 PM - 5 PM)',
+    'Evening (5 PM - 8 PM)',
+  ];
+
+  late bool _asap = AuthState.instance.preferredSchedule == 'ASAP';
+  late String _timeWindow = _timeWindows.contains(AuthState.instance.preferredSchedule)
+      ? AuthState.instance.preferredSchedule
+      : _timeWindows.first;
   bool _pushNotifications = true;
   bool _smsNotifications = true;
+  bool _saving = false;
 
   @override
   Widget build(BuildContext context) {
@@ -79,11 +90,9 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
                       isDense: true,
                       icon: const Icon(Icons.expand_more, color: Color(0xFF6B7280)),
                       style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.sellerGreen),
-                      items: [
-                        'Morning (8 AM - 12 PM)',
-                        'Afternoon (12 PM - 5 PM)',
-                        'Evening (5 PM - 8 PM)',
-                      ].map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontSize: 13)))).toList(),
+                      items: _timeWindows
+                          .map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontSize: 13))))
+                          .toList(),
                       onChanged: (v) => setState(() => _timeWindow = v!),
                     ),
                   ),
@@ -140,14 +149,27 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text('Preferences updated successfully.'),
-                  backgroundColor: AppColors.sellerGreen,
-                ));
-              },
-              child: const Text('SAVE PREFERENCES', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+              onPressed: _saving
+                  ? null
+                  : () async {
+                      setState(() => _saving = true);
+                      await AuthService.instance.updateSellerProfile(
+                        address: AuthState.instance.address,
+                        preferredSchedule: _asap ? 'ASAP' : _timeWindow,
+                      );
+                      if (!context.mounted) return;
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Preferences updated successfully.'),
+                        backgroundColor: AppColors.sellerGreen,
+                      ));
+                    },
+              child: _saving
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                  : const Text('SAVE PREFERENCES', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
             ),
           ),
         ],

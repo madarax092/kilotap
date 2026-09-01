@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth_service.dart';
+import '../../services/auth_state.dart';
 import '../account/help_support_screen.dart';
 import '../account/terms_service_screen.dart';
 import '../../widgets/admin_bottom_nav.dart';
@@ -35,18 +36,21 @@ class AdminProfileScreen extends StatelessWidget {
                         color: AppColors.adminRed, size: 33)),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Super Admin',
-                        style: TextStyle(
+                    Text(
+                        AuthState.instance.displayName.isEmpty
+                            ? 'Admin'
+                            : AuthState.instance.displayName,
+                        style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF111827))),
-                    SizedBox(height: 2),
-                    Text('admin@kilotap.com',
-                        style: TextStyle(
+                    const SizedBox(height: 2),
+                    Text(AuthState.instance.email,
+                        style: const TextStyle(
                             fontSize: 12,
                             color: Color(0xFF6B7280),
                             fontWeight: FontWeight.w500)),

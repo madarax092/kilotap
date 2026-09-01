@@ -26,6 +26,13 @@ dependencies:
   # HTTP (Google Maps Distance Matrix API)
   http: ^1.2.0
 
+  # Real device GPS for PickupGPS, real camera capture for scrap photos
+  geolocator: ^13.0.0
+  image_picker: ^1.1.2
+
+  # Launch real turn-by-turn navigation in the Google Maps app
+  url_launcher: ^6.3.0
+
   # Fonts
   google_fonts: ^6.3.1
 

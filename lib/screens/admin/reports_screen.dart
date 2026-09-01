@@ -57,13 +57,13 @@ class ReportsScreen extends StatelessWidget {
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              children: [
+              children: const [
                 _RCard(
                     '#RPT-0018',
                     'INVESTIGATE',
                     AppColors.warning,
                     'Collector No-Show',
-                    const [
+                    [
                       'Reported by: Maria S. (Household)',
                       'Against: Juan D. (Collector)',
                       'Pickup: #PKP-0035 · June 29, 2026',
@@ -71,18 +71,18 @@ class ReportsScreen extends StatelessWidget {
                     ],
                     response:
                         'Collector response: "Traffic po, nag-message ako sa household"',
-                    actions: const [
+                    actions: [
                       _Act('RESOLVE', AppColors.success, true),
                       _Act('WARN', AppColors.warning, false),
                       _Act('SUSPEND', AppColors.error, false)
                     ]),
                 _RCard('#RPT-0017', 'RESOLVED', AppColors.success,
-                    'Wrong Items Collected', const [
+                    'Wrong Items Collected', [
                   'Reported by: Jose R. (Household)',
                   'Against: Pedro R. (Collector)',
                   'Pickup: #PKP-0032 · June 28, 2026'
                 ]),
-                const SizedBox(height: 30),
+                SizedBox(height: 30),
               ],
             ),
           ),

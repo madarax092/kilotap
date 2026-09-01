@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/auth_state.dart';
 
 class CollectorIDCard extends StatefulWidget {
   const CollectorIDCard({super.key});
@@ -12,6 +13,17 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = AuthState.instance;
+    final name = auth.displayName.trim().isEmpty ? 'Collector' : auth.displayName;
+    final initials = name
+        .trim()
+        .split(' ')
+        .where((w) => w.isNotEmpty)
+        .take(2)
+        .map((w) => w[0])
+        .join()
+        .toUpperCase();
+    final isVerified = auth.verificationStatus == 'Verified';
     Matrix4 cardTransform = Matrix4.identity();
     if (_mode == 1) {
       cardTransform = Matrix4.identity()
@@ -80,10 +92,13 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
-                                      color: AppColors.success,
+                                      color: isVerified
+                                          ? AppColors.success
+                                          : AppColors.warning,
                                       borderRadius: BorderRadius.circular(12)),
-                                  child: const Text('VERIFIED',
-                                      style: TextStyle(
+                                  child: Text(
+                                      auth.verificationStatus.toUpperCase(),
+                                      style: const TextStyle(
                                           fontSize: 9,
                                           fontWeight: FontWeight.w800,
                                           color: Colors.white,
@@ -98,36 +113,32 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
                                   color: Colors.white24,
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(color: Colors.white30)),
-                              child: const Center(
-                                  child: Text('JD',
-                                      style: TextStyle(
+                              child: Center(
+                                  child: Text(initials,
+                                      style: const TextStyle(
                                           fontSize: 28,
                                           fontWeight: FontWeight.w900,
                                           color: Colors.white)))),
                           const SizedBox(width: 16),
-                          const Expanded(
+                          Expanded(
                               child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                Text('Juan Dela Cruz',
-                                    style: TextStyle(
+                                Text(name,
+                                    style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w800,
                                         color: Colors.white)),
-                                Text('Tricycle Operator',
-                                    style: TextStyle(
+                                Text(
+                                    auth.vehicleType.isEmpty
+                                        ? 'Vehicle not set'
+                                        : '${auth.vehicleType} Operator',
+                                    style: const TextStyle(
                                         fontSize: 11, color: Colors.white60)),
-                                Text('Maa, Davao City',
-                                    style: TextStyle(
-                                        fontSize: 11, color: Colors.white60)),
-                                SizedBox(height: 8),
-                                Text('★★★★☆  4.8  (42)',
-                                    style: TextStyle(
+                                const SizedBox(height: 8),
+                                Text('★ ${auth.avgRating.toStringAsFixed(1)}',
+                                    style: const TextStyle(
                                         fontSize: 14, color: AppColors.star)),
-                                Text('✓ Verified since June 15, 2026',
-                                    style: TextStyle(
-                                        fontSize: 10,
-                                        color: AppColors.success)),
                               ])),
                         ]),
                         const SizedBox(height: 18),
@@ -136,29 +147,26 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
                             decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(10)),
-                            child: const Row(children: [
-                              Icon(Icons.qr_code,
+                            child: Row(children: [
+                              const Icon(Icons.qr_code,
                                   size: 50, color: AppColors.textPrimary),
-                              SizedBox(width: 12),
+                              const SizedBox(width: 12),
                               Expanded(
                                   child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                    Text('Scan to Verify',
+                                    const Text('Scan to Verify',
                                         style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.w700,
                                             color: AppColors.textPrimary)),
-                                    Text('kilotap.app/v/jd123',
-                                        style: TextStyle(
+                                    Text(
+                                        'kilotap.app/v/${(auth.uid ?? '').isEmpty ? '—' : auth.uid!.substring(0, auth.uid!.length < 8 ? auth.uid!.length : 8)}',
+                                        style: const TextStyle(
                                             fontSize: 10,
                                             color: AppColors.buyerBlue)),
-                                    Text('Issued by KiloTap',
-                                        style: TextStyle(
-                                            fontSize: 9,
-                                            color: AppColors.textMuted)),
-                                    Text('Valid until Dec 15, 2026',
+                                    const Text('Issued by KiloTap',
                                         style: TextStyle(
                                             fontSize: 9,
                                             color: AppColors.textMuted)),
@@ -210,10 +218,10 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
                   ])),
             ],
             const SizedBox(height: 20),
-            _SectionTitle('VERIFICATION STATUS'),
-            _VerifyItem('Valid Government ID', true),
-            _VerifyItem('Vehicle Photo', true),
-            _VerifyItem('Profile Photo Match', true),
+            const _SectionTitle('VERIFICATION STATUS'),
+            const _VerifyItem('Valid Government ID', true),
+            const _VerifyItem('Vehicle Photo', true),
+            const _VerifyItem('Profile Photo Match', true),
             const SizedBox(height: 20),
             Container(
                 padding: const EdgeInsets.all(16),
@@ -221,7 +229,7 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
                     color: AppColors.pureWhite,
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: AppColors.divider)),
-                child: Column(
+                child: const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _SectionTitle('SHOW THIS CARD TO'),
