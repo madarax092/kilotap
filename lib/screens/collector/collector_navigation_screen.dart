@@ -85,7 +85,6 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
               },
             ),
           ),
-
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             left: 16,
@@ -108,7 +107,6 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
               ),
             ),
           ),
-
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             left: 80,
@@ -117,7 +115,8 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
               borderRadius: BorderRadius.circular(12),
               onTap: () => _openInGoogleMaps(destLat, destLon),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   color: AppColors.buyerBlue,
                   borderRadius: BorderRadius.circular(12),
@@ -145,7 +144,6 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
               ),
             ),
           ),
-
           Positioned(
             bottom: 0,
             left: 0,
@@ -220,7 +218,6 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
                   const SizedBox(height: 20),
                   const Divider(color: AppColors.divider, height: 1),
                   const SizedBox(height: 20),
-
                   Row(
                     children: [
                       Container(
@@ -259,7 +256,6 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-
                   SizedBox(
                     width: double.infinity,
                     height: 54,
@@ -275,8 +271,19 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
                       onPressed: () async {
                         final bookingId = args['bookingId'] as String?;
                         if (bookingId != null) {
-                          await FirestoreService()
-                              .updateBookingStatus(bookingId, 'Completed');
+                          final svc = FirestoreService();
+                          await svc.updateBookingStatus(bookingId, 'Completed');
+                          final booking = await svc.getBooking(bookingId);
+                          if (booking != null) {
+                            await svc.sendNotification({
+                              'Recipient_ID': booking.sellerId,
+                              'Booking_ID': bookingId,
+                              'Title': 'Pickup completed',
+                              'Message':
+                                  'Your scrap pickup was completed. Rate your collector!',
+                              'Type': 'booking_completed',
+                            });
+                          }
                         }
                         if (!context.mounted) return;
                         Navigator.pushReplacementNamed(context, '/collector');

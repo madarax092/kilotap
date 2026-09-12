@@ -14,7 +14,8 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
   @override
   Widget build(BuildContext context) {
     final auth = AuthState.instance;
-    final name = auth.displayName.trim().isEmpty ? 'Collector' : auth.displayName;
+    final name =
+        auth.displayName.trim().isEmpty ? 'Collector' : auth.displayName;
     final initials = name
         .trim()
         .split(' ')
@@ -219,9 +220,14 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
             ],
             const SizedBox(height: 20),
             const _SectionTitle('VERIFICATION STATUS'),
-            const _VerifyItem('Valid Government ID', true),
-            const _VerifyItem('Vehicle Photo', true),
-            const _VerifyItem('Profile Photo Match', true),
+            if (auth.verificationDocs.isEmpty)
+              const _VerifyItem('No documents on file', false)
+            else
+              for (final d in auth.verificationDocs)
+                _VerifyItem(
+                  d['type'] as String? ?? 'Document',
+                  (d['status'] as String? ?? '').toLowerCase() == 'verified',
+                ),
             const SizedBox(height: 20),
             Container(
                 padding: const EdgeInsets.all(16),
@@ -339,36 +345,36 @@ class _VerifyItem extends StatelessWidget {
   final bool ok;
   const _VerifyItem(this.label, this.ok);
   @override
-  Widget build(BuildContext context) => Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5)),
-      child: Row(children: [
-        Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.1),
-                shape: BoxShape.circle),
-            child: const Center(
-                child: Icon(Icons.check_circle,
-                    size: 16, color: AppColors.success))),
-        const SizedBox(width: 12),
-        Expanded(
-            child: Text(label,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                    color: Color(0xFF111827)))),
-        const Text('Verified',
-            style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppColors.success))
-      ]));
+  Widget build(BuildContext context) {
+    final color = ok ? AppColors.success : AppColors.warning;
+    return Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5)),
+        child: Row(children: [
+          Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+              child: Center(
+                  child: Icon(ok ? Icons.check_circle : Icons.hourglass_top,
+                      size: 16, color: color))),
+          const SizedBox(width: 12),
+          Expanded(
+              child: Text(label,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: Color(0xFF111827)))),
+          Text(ok ? 'Verified' : 'Pending',
+              style: TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w700, color: color))
+        ]));
+  }
 }
 
 class _ShowToItem extends StatelessWidget {

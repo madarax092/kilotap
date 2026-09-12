@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'services/auth_state.dart';
+import 'screens/account/landing_screen.dart';
 import 'screens/account/login_screen.dart';
 import 'screens/household/household_dashboard.dart';
 import 'screens/household/sell_scrap_screen.dart';
@@ -35,7 +36,8 @@ class AppRouter {
     }
 
     switch (route) {
-      case '/': return _page(const LoginScreen());
+      case '/': return _page(const LandingScreen());
+      case '/login': return _page(const LoginScreen());
       case '/register': return _page(const RolePickerScreen());
       case '/register-household': return _page(const HouseholdRegisterScreen());
       case '/register-collector': return _page(const CollectorRegisterScreen());

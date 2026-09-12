@@ -1,42 +1,82 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth_service.dart';
 
+final RegExp _passwordRule = RegExp(r'^(?=.*[A-Za-z])(?=.*\d).{8,}$');
+
 class CollectorRegisterScreen extends StatefulWidget {
-  const CollectorRegisterScreen({super.key});
+  final String? googleUid;
+  final String? googleEmail;
+  final String? googleDisplayName;
+
+  const CollectorRegisterScreen({
+    super.key,
+    this.googleUid,
+    this.googleEmail,
+    this.googleDisplayName,
+  });
+
   @override
   State<CollectorRegisterScreen> createState() =>
       _CollectorRegisterScreenState();
 }
 
 class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
-  final _nameCtrl = TextEditingController();
+  late final _nameCtrl =
+      TextEditingController(text: widget.googleDisplayName ?? '');
   final _phoneCtrl = TextEditingController();
-  final _emailCtrl = TextEditingController();
+  late final _emailCtrl = TextEditingController(text: widget.googleEmail ?? '');
   final _passCtrl = TextEditingController();
+  final _confirmPassCtrl = TextEditingController();
   final _addrCtrl = TextEditingController();
   bool _loading = false;
+
+  bool get _isGoogleFlow => widget.googleUid != null;
 
   Future<void> _register() async {
     final email = _emailCtrl.text.trim();
     final pass = _passCtrl.text.trim();
+    final confirmPass = _confirmPassCtrl.text.trim();
     final name = _nameCtrl.text.trim();
     final phone = _phoneCtrl.text.trim();
     final addr = _addrCtrl.text.trim();
-    if (email.isEmpty || pass.isEmpty || name.isEmpty) {
+    if (email.isEmpty || name.isEmpty || (!_isGoogleFlow && pass.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please fill in all required fields')));
       return;
     }
+    if (!_isGoogleFlow) {
+      if (!_passwordRule.hasMatch(pass)) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text(
+                'Password must be at least 8 characters and include a letter and a number')));
+        return;
+      }
+      if (pass != confirmPass) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Passwords do not match')));
+        return;
+      }
+    }
     setState(() => _loading = true);
-    final role = await AuthService.instance.register(
-      email: email,
-      password: pass,
-      fullName: name,
-      phone: phone,
-      role: 'Collector',
-      address: addr.isNotEmpty ? addr : 'Davao City',
-    );
+    final role = _isGoogleFlow
+        ? await AuthService.instance.completeGoogleRegistration(
+            uid: widget.googleUid!,
+            email: email,
+            fullName: name,
+            phone: phone,
+            role: 'Collector',
+            address: addr.isNotEmpty ? addr : 'Davao City',
+          )
+        : await AuthService.instance.register(
+            email: email,
+            password: pass,
+            fullName: name,
+            phone: phone,
+            role: 'Collector',
+            address: addr.isNotEmpty ? addr : 'Davao City',
+          );
     if (!mounted) return;
     setState(() => _loading = false);
     if (role != null) {
@@ -53,6 +93,7 @@ class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
     _phoneCtrl.dispose();
     _emailCtrl.dispose();
     _passCtrl.dispose();
+    _confirmPassCtrl.dispose();
     _addrCtrl.dispose();
     super.dispose();
   }
@@ -101,16 +142,29 @@ class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
           _Field(
               label: 'Phone Number',
               hint: '09********',
-              controller: _phoneCtrl),
+              controller: _phoneCtrl,
+              keyboardType: TextInputType.phone,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(11),
+              ]),
           _Field(
               label: 'Email Address',
               hint: 'Collector@email.com',
-              controller: _emailCtrl),
-          _Field(
-              label: 'Password',
-              hint: 'Create password',
-              controller: _passCtrl,
-              obscure: true),
+              controller: _emailCtrl,
+              readOnly: _isGoogleFlow),
+          if (!_isGoogleFlow) ...[
+            _Field(
+                label: 'Password',
+                hint: 'Create password',
+                controller: _passCtrl,
+                obscure: true),
+            _Field(
+                label: 'Confirm Password',
+                hint: 'Re-enter password',
+                controller: _confirmPassCtrl,
+                obscure: true),
+          ],
           _Field(
               label: 'Address', hint: 'Barangay, City', controller: _addrCtrl),
           const SizedBox(height: 8),
@@ -163,11 +217,17 @@ class _Field extends StatefulWidget {
   final String label, hint;
   final TextEditingController? controller;
   final bool obscure;
+  final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
+  final bool readOnly;
   const _Field(
       {required this.label,
       required this.hint,
       this.controller,
-      this.obscure = false});
+      this.obscure = false,
+      this.keyboardType,
+      this.inputFormatters,
+      this.readOnly = false});
 
   @override
   State<_Field> createState() => _FieldState();
@@ -196,9 +256,14 @@ class _FieldState extends State<_Field> {
         TextField(
           controller: widget.controller,
           obscureText: _obscureText,
-          style: const TextStyle(
+          keyboardType: widget.keyboardType,
+          inputFormatters: widget.inputFormatters,
+          readOnly: widget.readOnly,
+          style: TextStyle(
               fontSize: 15,
-              color: AppColors.textPrimary,
+              color: widget.readOnly
+                  ? AppColors.textSecondary
+                  : AppColors.textPrimary,
               fontWeight: FontWeight.w400),
           decoration: InputDecoration(
             hintText: widget.hint,
@@ -218,7 +283,8 @@ class _FieldState extends State<_Field> {
                 borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
             focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.buyerBlue, width: 1.5)),
+                borderSide:
+                    const BorderSide(color: AppColors.buyerBlue, width: 1.5)),
             suffixIcon: widget.obscure
                 ? IconButton(
                     icon: Icon(

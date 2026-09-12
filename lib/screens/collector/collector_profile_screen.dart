@@ -232,8 +232,9 @@ void _confirmLogout(BuildContext context) {
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10))),
-                  onPressed: () {
-                    AuthService.instance.signOut();
+                  onPressed: () async {
+                    await AuthService.instance.signOut();
+                    if (!context.mounted) return;
                     Navigator.pushNamedAndRemoveUntil(
                         context, '/', (r) => false);
                   },

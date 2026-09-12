@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
 import '../core/constants/app_constants.dart';
 import '../models/booking.dart';
 import '../models/booking_item.dart';
@@ -54,10 +57,13 @@ class FirestoreService {
       .snapshots()
       .map((s) => s.docs.map((d) => Booking.fromMap(d.id, d.data())).toList());
 
-  Future<void> updateBookingStatus(String id, String status, {String? collectorId}) async {
+  Future<void> updateBookingStatus(String id, String status,
+      {String? collectorId}) async {
     final data = <String, dynamic>{'Status': status};
     if (collectorId != null) data['Collector_ID'] = collectorId;
-    if (status == 'Completed') data['Completed_At'] = FieldValue.serverTimestamp();
+    if (status == 'Completed') {
+      data['Completed_At'] = FieldValue.serverTimestamp();
+    }
     await _db.collection(AppConstants.colBookings).doc(id).update(data);
   }
 
@@ -84,8 +90,10 @@ class FirestoreService {
   }
 
   Future<List<Rating>> getRatings(String bookingId) async {
-    final s = await _db.collection(AppConstants.colRatings)
-        .where('Booking_ID', isEqualTo: bookingId).get();
+    final s = await _db
+        .collection(AppConstants.colRatings)
+        .where('Booking_ID', isEqualTo: bookingId)
+        .get();
     return s.docs.map((d) => Rating.fromMap(d.id, d.data())).toList();
   }
 
@@ -103,7 +111,15 @@ class FirestoreService {
       .where('Recipient_ID', isEqualTo: recipientId)
       .orderBy('Timestamp', descending: true)
       .snapshots()
-      .map((s) => s.docs.map((d) => AppNotification.fromMap(d.id, d.data())).toList());
+      .map((s) =>
+          s.docs.map((d) => AppNotification.fromMap(d.id, d.data())).toList());
+
+  Future<void> markNotificationRead(String notificationId) async {
+    await _db
+        .collection(AppConstants.colNotifications)
+        .doc(notificationId)
+        .update({'IsRead': true});
+  }
 
   // ─── AuditLogs (Table 14) ──────────────────────────────────────
 
@@ -131,6 +147,26 @@ class FirestoreService {
     await ref.set(data);
   }
 
+  Future<String> uploadChatImage(
+      File file, String senderId, String recipientId) async {
+    if (AppConstants.cloudinaryCloudName == 'YOUR_CLOUDINARY_CLOUD_NAME') {
+      throw Exception(
+          'Cloudinary is not configured — set cloudinaryCloudName and cloudinaryUploadPreset in app_constants.dart');
+    }
+    final uri = Uri.parse(
+        'https://api.cloudinary.com/v1_1/${AppConstants.cloudinaryCloudName}/image/upload');
+    final request = http.MultipartRequest('POST', uri)
+      ..fields['upload_preset'] = AppConstants.cloudinaryUploadPreset
+      ..files.add(await http.MultipartFile.fromPath('file', file.path));
+    final response = await request.send();
+    final body = await response.stream.bytesToString();
+    if (response.statusCode != 200) {
+      throw Exception('Cloudinary upload failed: $body');
+    }
+    final data = jsonDecode(body) as Map<String, dynamic>;
+    return data['secure_url'] as String;
+  }
+
   // Sorted in Dart, not via .orderBy() — combining array-contains with
   // orderBy on a different field would force a composite index.
   Stream<List<ChatMessage>> messagesBetween(String uidA, String uidB) => _db
@@ -142,6 +178,27 @@ class FirestoreService {
           .where((m) => m.participants.contains(uidB))
           .toList()
         ..sort((a, b) => a.timestamp.compareTo(b.timestamp)));
+
+  static const _activeBookingStatuses = {'Pending', 'Accepted'};
+
+  Future<bool> hasActiveBookingBetween(String uidA, String uidB) async {
+    final asSeller = await _db
+        .collection(AppConstants.colBookings)
+        .where('Seller_ID', isEqualTo: uidA)
+        .where('Collector_ID', isEqualTo: uidB)
+        .get();
+    if (asSeller.docs
+        .any((d) => _activeBookingStatuses.contains(d.data()['Status']))) {
+      return true;
+    }
+    final asCollector = await _db
+        .collection(AppConstants.colBookings)
+        .where('Seller_ID', isEqualTo: uidB)
+        .where('Collector_ID', isEqualTo: uidA)
+        .get();
+    return asCollector.docs
+        .any((d) => _activeBookingStatuses.contains(d.data()['Status']));
+  }
 
   Stream<List<ChatMessage>> userConversations(String uid) => _db
       .collection(AppConstants.colMessages)

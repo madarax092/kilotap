@@ -3,6 +3,8 @@ import '../../core/theme/app_colors.dart';
 import '../../models/booking.dart';
 import '../../services/auth_state.dart';
 import '../../services/firestore_service.dart';
+import '../../models/notification.dart';
+import '../notifications_screen.dart';
 import 'chat_households_screen.dart';
 import 'documents_page.dart';
 
@@ -14,8 +16,9 @@ class CollectorDashboard extends StatelessWidget {
     final top = MediaQuery.of(context).padding.top;
     final firestoreService = FirestoreService();
     final displayName = AuthState.instance.displayName;
-    final firstName =
-        displayName.trim().isEmpty ? 'Collector' : displayName.trim().split(' ').first;
+    final firstName = displayName.trim().isEmpty
+        ? 'Collector'
+        : displayName.trim().split(' ').first;
     final initial = firstName.isNotEmpty ? firstName[0].toUpperCase() : '?';
 
     return Scaffold(
@@ -65,20 +68,53 @@ class CollectorDashboard extends StatelessWidget {
                     ),
                   ],
                 ),
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: const BoxDecoration(shape: BoxShape.circle),
-                  child: const Icon(Icons.notifications_none,
-                      color: Color(0xFF4B5563), size: 24),
+                StreamBuilder<List<AppNotification>>(
+                  stream: firestoreService
+                      .userNotifications(AuthState.instance.uid ?? ''),
+                  builder: (context, snapshot) {
+                    final unread = (snapshot.data ?? const <AppNotification>[])
+                        .where((n) => !n.isRead)
+                        .length;
+                    return GestureDetector(
+                      onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const NotificationsScreen())),
+                      child: SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            const Center(
+                              child: Icon(Icons.notifications_none,
+                                  color: Color(0xFF4B5563), size: 24),
+                            ),
+                            if (unread > 0)
+                              Positioned(
+                                right: 4,
+                                top: 4,
+                                child: Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                      color: AppColors.error,
+                                      shape: BoxShape.circle),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
           ),
           const SizedBox(height: 20),
           StreamBuilder<List<Booking>>(
-            stream:
-                firestoreService.collectorBookings(AuthState.instance.uid ?? ''),
+            stream: firestoreService
+                .collectorBookings(AuthState.instance.uid ?? ''),
             builder: (context, snapshot) {
               final bookings = snapshot.data ?? const <Booking>[];
               final active =
@@ -246,7 +282,8 @@ class CollectorDashboard extends StatelessWidget {
                                 color: Color(0xFF2C2C2C))),
                         GestureDetector(
                           onTap: () {
-                            Navigator.pushReplacementNamed(context, '/earnings');
+                            Navigator.pushReplacementNamed(
+                                context, '/earnings');
                           },
                           child: const Text('View All',
                               style: TextStyle(
@@ -279,9 +316,11 @@ class CollectorDashboard extends StatelessWidget {
                             )
                           : _RecentCollections(
                               svc: firestoreService,
-                              bookings: (completed..sort((a, b) =>
-                                      (b.completedAt ?? b.createdAt)
-                                          .compareTo(a.completedAt ?? a.createdAt)))
+                              bookings: (completed
+                                    ..sort((a, b) =>
+                                        (b.completedAt ?? b.createdAt)
+                                            .compareTo(
+                                                a.completedAt ?? a.createdAt)))
                                   .take(3)
                                   .toList(),
                             ),
@@ -324,7 +363,9 @@ class _RecentCollections extends StatelessWidget {
         }
         final rows = <Widget>[];
         for (var i = 0; i < data.length; i++) {
-          if (i > 0) rows.add(const Divider(height: 24, color: Color(0xFFF3F4F6)));
+          if (i > 0) {
+            rows.add(const Divider(height: 24, color: Color(0xFFF3F4F6)));
+          }
           rows.add(_ActivityItem(data: data[i]));
         }
         return Column(children: rows);
@@ -337,7 +378,8 @@ class _ActivityData {
   final String label;
   final double kg;
   final DateTime date;
-  const _ActivityData({required this.label, required this.kg, required this.date});
+  const _ActivityData(
+      {required this.label, required this.kg, required this.date});
 }
 
 class _StatCard extends StatelessWidget {
@@ -408,8 +450,18 @@ class _ActivityItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return Row(
       children: [
@@ -522,7 +574,14 @@ class _AssignedRouteCard extends StatelessWidget {
           final weight = items.fold<double>(
               0, (s, i) => s + (i.estimatedWeightKg as double));
           final initials = name.trim().isNotEmpty
-              ? name.trim().split(' ').where((w) => w.isNotEmpty).take(2).map((w) => w[0]).join().toUpperCase()
+              ? name
+                  .trim()
+                  .split(' ')
+                  .where((w) => w.isNotEmpty)
+                  .take(2)
+                  .map((w) => w[0])
+                  .join()
+                  .toUpperCase()
               : '?';
 
           return Container(
@@ -530,7 +589,6 @@ class _AssignedRouteCard extends StatelessWidget {
             decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.buyerBlue, width: 1.5),
                 boxShadow: const [
                   BoxShadow(
                       color: Color(0x06000000),

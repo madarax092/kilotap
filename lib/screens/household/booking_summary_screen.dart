@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/booking.dart';
@@ -63,7 +64,9 @@ class BookingSummaryScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: AppColors.divider),
                       ),
-                      child: Image.file(File(photoPath!), fit: BoxFit.cover),
+                      child: kIsWeb
+                          ? Image.network(photoPath!, fit: BoxFit.cover)
+                          : Image.file(File(photoPath!), fit: BoxFit.cover),
                     ),
                   const SizedBox(height: 20),
                   Container(
@@ -78,7 +81,8 @@ class BookingSummaryScreen extends StatelessWidget {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                          color:
+                              const Color(0xFFF59E0B).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Center(
@@ -95,7 +99,8 @@ class BookingSummaryScreen extends StatelessWidget {
                                     fontSize: 14,
                                     fontWeight: FontWeight.w700,
                                     color: Color(0xFF92400E))),
-                            const Text('Waiting for a nearby collector to accept',
+                            const Text(
+                                'Waiting for a nearby collector to accept',
                                 style: TextStyle(
                                     fontSize: 12, color: Color(0xFFB45309))),
                           ],
@@ -122,8 +127,8 @@ class BookingSummaryScreen extends StatelessWidget {
                                   letterSpacing: 1)),
                           const SizedBox(height: 12),
                           _DetailRow('Vehicle', booking.vehicleRequirement),
-                          _DetailRow(
-                              'Est. Weight', '${totalWeight.toStringAsFixed(2)} kg'),
+                          _DetailRow('Est. Weight',
+                              '${totalWeight.toStringAsFixed(2)} kg'),
                           _DetailRow('Pickup Address', booking.pickupAddress),
                         ]),
                   ),

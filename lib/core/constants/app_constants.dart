@@ -49,4 +49,8 @@ class AppConstants {
 
   // ─── Google Maps API (replace with real key on your local machine) ─────────
   static const String googleMapsApiKey = 'YOUR_GOOGLE_MAPS_API_KEY';
+
+  // ─── Cloudinary (unsigned upload, for chat photo attachments) ──────────────
+  static const String cloudinaryCloudName = 'iqsnzgli';
+  static const String cloudinaryUploadPreset = 'iqsnzgli';
 }

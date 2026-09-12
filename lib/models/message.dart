@@ -6,6 +6,7 @@ class ChatMessage {
   final String senderId;
   final String recipientId;
   final String text;
+  final String imageUrl;
   final DateTime timestamp;
   final List<String> participants;
 
@@ -14,6 +15,7 @@ class ChatMessage {
     required this.senderId,
     required this.recipientId,
     required this.text,
+    this.imageUrl = '',
     required this.timestamp,
     this.participants = const [],
   });
@@ -23,6 +25,7 @@ class ChatMessage {
         senderId: m['Sender_ID'] ?? '',
         recipientId: m['Recipient_ID'] ?? '',
         text: m['Text'] ?? '',
+        imageUrl: m['Image_URL'] ?? '',
         timestamp: (m['Timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
         participants: List<String>.from(m['Participants'] ?? const []),
       );

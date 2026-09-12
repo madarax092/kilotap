@@ -26,6 +26,13 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
         'Accepted',
         collectorId: AuthState.instance.uid,
       );
+      await FirestoreService().sendNotification({
+        'Recipient_ID': booking.sellerId,
+        'Booking_ID': booking.bookingId,
+        'Title': 'Collector on the way',
+        'Message': 'A collector accepted your pickup request.',
+        'Type': 'booking_accepted',
+      });
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Pickup accepted! Starting navigation...'),
@@ -89,7 +96,8 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
           }
           final booking = bookingSnap.data;
           if (booking == null) {
-            return const Center(child: Text('This request is no longer available.'));
+            return const Center(
+                child: Text('This request is no longer available.'));
           }
           return FutureBuilder<List<dynamic>>(
             future: Future.wait([
@@ -161,7 +169,8 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                                           ? 'Address not provided'
                                           : booking.pickupAddress,
                                       style: const TextStyle(
-                                          fontSize: 13, color: Color(0xFF6B7280))),
+                                          fontSize: 13,
+                                          color: Color(0xFF6B7280))),
                                 ],
                               ),
                             ),
@@ -169,7 +178,8 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
-                                  color: AppColors.buyerBlue.withValues(alpha: 0.1),
+                                  color: AppColors.buyerBlue
+                                      .withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8)),
                               child: Text(booking.status,
                                   style: const TextStyle(
@@ -194,7 +204,8 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                           const Divider(color: Color(0xFFF3F4F6), height: 1),
                           const SizedBox(height: 12),
                           ...items.map((i) => Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4),
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,

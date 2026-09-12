@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../core/theme/app_colors.dart';
 import '../services/auth_state.dart';
 import '../services/firestore_service.dart';
@@ -24,6 +26,27 @@ class _ChatThreadViewState extends State<ChatThreadView> {
   final _controller = TextEditingController();
   final _firestoreService = FirestoreService();
   bool _sending = false;
+  bool _locked = false;
+  bool _checkingLock = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLock();
+  }
+
+  Future<void> _checkLock() async {
+    final uid = AuthState.instance.uid;
+    if (uid == null) return;
+    final active = await _firestoreService.hasActiveBookingBetween(
+        uid, widget.otherUserId);
+    if (mounted) {
+      setState(() {
+        _locked = !active;
+        _checkingLock = false;
+      });
+    }
+  }
 
   Future<void> _send() async {
     final text = _controller.text.trim();
@@ -38,6 +61,60 @@ class _ChatThreadViewState extends State<ChatThreadView> {
         'Recipient_ID': widget.otherUserId,
         'Text': text,
       });
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _sendImage() async {
+    if (_sending) return;
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: const Text('Take Photo'),
+                onTap: () => Navigator.pop(sheetContext, ImageSource.camera),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('Choose from Gallery'),
+                onTap: () => Navigator.pop(sheetContext, ImageSource.gallery),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (source == null) return;
+
+    final picked =
+        await ImagePicker().pickImage(source: source, imageQuality: 70);
+    if (picked == null) return;
+    final uid = AuthState.instance.uid;
+    if (uid == null) return;
+
+    setState(() => _sending = true);
+    try {
+      final url = await _firestoreService.uploadChatImage(
+          File(picked.path), uid, widget.otherUserId);
+      await _firestoreService.sendMessage({
+        'Sender_ID': uid,
+        'Recipient_ID': widget.otherUserId,
+        'Text': '',
+        'Image_URL': url,
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Could not send photo: $e')));
+      }
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -88,6 +165,7 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                     final m = messages[i];
                     return _Bubble(
                         text: m.text,
+                        imageUrl: m.imageUrl,
                         outgoing: m.senderId == uid,
                         accentColor: widget.accentColor);
                   },
@@ -101,41 +179,64 @@ class _ChatThreadViewState extends State<ChatThreadView> {
                 color: AppColors.pureWhite,
                 border: Border(top: BorderSide(color: AppColors.divider))),
             child: SafeArea(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      onSubmitted: (_) => _send(),
-                      decoration: InputDecoration(
-                        hintText: 'Type message...',
-                        filled: true,
-                        fillColor: AppColors.inputGrey,
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
-                            borderSide: BorderSide.none),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: _send,
-                    child: CircleAvatar(
-                      backgroundColor: widget.accentColor,
-                      child: _sending
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2))
-                          : const Icon(Icons.send,
-                              color: Colors.white, size: 18),
-                    ),
-                  )
-                ],
-              ),
+              child: _checkingLock
+                  ? const SizedBox(height: 44)
+                  : _locked
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          alignment: Alignment.center,
+                          child: const Text(
+                              'This pickup is complete — messaging is closed.',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w600)),
+                        )
+                      : Row(
+                          children: [
+                            GestureDetector(
+                              onTap: _sending ? null : _sendImage,
+                              child: CircleAvatar(
+                                backgroundColor: AppColors.inputGrey,
+                                child: Icon(Icons.add_photo_alternate_outlined,
+                                    color: widget.accentColor, size: 20),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: TextField(
+                                controller: _controller,
+                                onSubmitted: (_) => _send(),
+                                decoration: InputDecoration(
+                                  hintText: 'Type message...',
+                                  filled: true,
+                                  fillColor: AppColors.inputGrey,
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide.none),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 10),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: _send,
+                              child: CircleAvatar(
+                                backgroundColor: widget.accentColor,
+                                child: _sending
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2))
+                                    : const Icon(Icons.send,
+                                        color: Colors.white, size: 18),
+                              ),
+                            )
+                          ],
+                        ),
             ),
           ),
         ],
@@ -146,19 +247,26 @@ class _ChatThreadViewState extends State<ChatThreadView> {
 
 class _Bubble extends StatelessWidget {
   final String text;
+  final String imageUrl;
   final bool outgoing;
   final Color accentColor;
 
   const _Bubble(
-      {required this.text, required this.outgoing, required this.accentColor});
+      {required this.text,
+      this.imageUrl = '',
+      required this.outgoing,
+      required this.accentColor});
 
   @override
   Widget build(BuildContext context) {
+    final hasImage = imageUrl.isNotEmpty;
     return Align(
       alignment: outgoing ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: hasImage
+            ? const EdgeInsets.all(4)
+            : const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         constraints: const BoxConstraints(maxWidth: 280),
         decoration: BoxDecoration(
           color: outgoing ? accentColor : AppColors.pureWhite,
@@ -172,10 +280,30 @@ class _Bubble extends StatelessWidget {
           ),
           border: outgoing ? null : Border.all(color: AppColors.divider),
         ),
-        child: Text(text,
-            style: TextStyle(
-                fontSize: 13,
-                color: outgoing ? Colors.white : AppColors.textPrimary)),
+        child: hasImage
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(imageUrl,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, progress) => progress ==
+                            null
+                        ? child
+                        : const SizedBox(
+                            width: 180,
+                            height: 180,
+                            child: Center(
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2))),
+                    errorBuilder: (context, error, stack) => const SizedBox(
+                        width: 180,
+                        height: 120,
+                        child:
+                            Center(child: Icon(Icons.broken_image_outlined)))),
+              )
+            : Text(text,
+                style: TextStyle(
+                    fontSize: 13,
+                    color: outgoing ? Colors.white : AppColors.textPrimary)),
       ),
     );
   }

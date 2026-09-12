@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth_service.dart';
+import 'role_picker_screen.dart';
 
 // ─── Login Screen ───
 
@@ -47,6 +49,73 @@ class _LoginScreenState extends State<LoginScreen> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
+  Future<void> _continueWithGoogle() async {
+    setState(() => _loading = true);
+    final result = await AuthService.instance.signInWithGoogle();
+    if (!mounted) return;
+    setState(() => _loading = false);
+
+    if (result == null) return;
+
+    if (result.needsRegistration) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => RolePickerScreen(
+                  googleUid: result.uid,
+                  googleEmail: result.email,
+                  googleDisplayName: result.displayName)));
+      return;
+    }
+
+    final route = result.role == 'Collector'
+        ? '/collector'
+        : result.role == 'Admin'
+            ? '/admin'
+            : '/household';
+    Navigator.of(context).pushNamedAndRemoveUntil(route, (r) => false);
+  }
+
+  Future<void> _forgotPassword() async {
+    final resetCtrl = TextEditingController(text: _emailCtrl.text.trim());
+    final email = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Reset Password'),
+          content: TextField(
+            controller: resetCtrl,
+            keyboardType: TextInputType.emailAddress,
+            decoration: const InputDecoration(
+                labelText: 'Email', hintText: 'Enter your account email'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () =>
+                  Navigator.pop(dialogContext, resetCtrl.text.trim()),
+              child: const Text('Send Reset Link'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (email == null || email.isEmpty) return;
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      if (!mounted) return;
+      _showError('Password reset link sent to $email');
+    } on FirebaseAuthException {
+      if (!mounted) return;
+      _showError('Could not send reset link. Check the email and try again.');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,13 +147,14 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _emailCtrl,
                 enabled: !_loading,
+                keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  labelText: 'Phone or Email',
+                  labelText: 'Email',
                   labelStyle: const TextStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w500),
-                  hintText: 'Enter your phone or email',
+                  hintText: 'Enter your email',
                   hintStyle: TextStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary.withValues(alpha: 0.5)),
@@ -156,7 +226,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: _loading ? null : _forgotPassword,
                   style: TextButton.styleFrom(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -218,7 +288,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                       side: const BorderSide(color: AppColors.divider)),
-                  onPressed: _loading ? null : _login,
+                  onPressed: _loading ? null : _continueWithGoogle,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

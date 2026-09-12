@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/booking.dart';
+import '../../services/auth_service.dart';
 import '../../services/auth_state.dart';
 import '../../services/firestore_service.dart';
 import '../../services/google_maps_service.dart';
@@ -15,6 +16,55 @@ class FindScrapScreen extends StatefulWidget {
 class _FindScrapScreenState extends State<FindScrapScreen> {
   bool _isOnline = true;
 
+  Future<void> _handleOnlineToggle(bool val) async {
+    if (!val) {
+      setState(() => _isOnline = false);
+      return;
+    }
+    final vehicles = AuthState.instance.vehicles;
+    if (vehicles.length <= 1) {
+      setState(() => _isOnline = true);
+      return;
+    }
+    final chosen = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(20),
+                child: Text('Which vehicle are you using?',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+              ),
+              for (final v in vehicles)
+                ListTile(
+                  leading: const Icon(Icons.local_shipping_outlined,
+                      color: AppColors.buyerBlue),
+                  title: Text(v['Vehicle_Type'] as String? ?? 'Vehicle'),
+                  subtitle:
+                      Text('${v['Vehicle_Capacity_Kg'] ?? 0} kg capacity'),
+                  onTap: () => Navigator.pop(sheetContext, v),
+                ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+    if (chosen == null) return;
+    await AuthService.instance.updateCollectorProfile(
+      vehicleType: chosen['Vehicle_Type'] as String?,
+      vehicleCapacityKg: (chosen['Vehicle_Capacity_Kg'] as num?)?.toDouble(),
+    );
+    if (!mounted) return;
+    setState(() => _isOnline = true);
+  }
+
   String _timeAgo(DateTime t) {
     final diff = DateTime.now().difference(t);
     if (diff.inMinutes < 1) return 'Just now';
@@ -26,7 +76,8 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
   Future<_RequestData> _loadRequestData(FirestoreService svc, Booking b) async {
     final sellerName = await svc.displayNameFor(b.sellerId);
     final items = await svc.bookingItems(b.bookingId).first;
-    final totalWeight = items.fold<double>(0, (s, i) => s + i.estimatedWeightKg);
+    final totalWeight =
+        items.fold<double>(0, (s, i) => s + i.estimatedWeightKg);
     final itemsSummary = items.isEmpty
         ? 'No items listed'
         : '${items.length} item${items.length > 1 ? 's' : ''} · '
@@ -47,7 +98,9 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
     }
 
     return _RequestData(
-        sellerName: sellerName, itemsSummary: itemsSummary, distanceLabel: distanceLabel);
+        sellerName: sellerName,
+        itemsSummary: itemsSummary,
+        distanceLabel: distanceLabel);
   }
 
   @override
@@ -94,11 +147,7 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                         Switch(
                           value: _isOnline,
                           activeThumbColor: AppColors.buyerBlue,
-                          onChanged: (val) {
-                            setState(() {
-                              _isOnline = val;
-                            });
-                          },
+                          onChanged: _handleOnlineToggle,
                         ),
                       ],
                     )
@@ -129,7 +178,8 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                       // then Google Maps distance ranking per card below.
                       final myVehicle = AuthState.instance.vehicleType;
                       final bookings = snapshot.data!
-                          .where((b) => vehicleCanHandle(myVehicle, b.vehicleRequirement))
+                          .where((b) =>
+                              vehicleCanHandle(myVehicle, b.vehicleRequirement))
                           .toList();
                       if (bookings.isEmpty) {
                         return const Center(
@@ -162,7 +212,8 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                                 booking: b,
                                 sellerName: data.sellerName,
                                 itemsSummary: data.itemsSummary,
-                                timeAgo: data.distanceLabel ?? _timeAgo(b.createdAt),
+                                timeAgo:
+                                    data.distanceLabel ?? _timeAgo(b.createdAt),
                               );
                             },
                           );
@@ -232,7 +283,9 @@ class _RequestData {
   final String itemsSummary;
   final String? distanceLabel;
   const _RequestData(
-      {required this.sellerName, required this.itemsSummary, this.distanceLabel});
+      {required this.sellerName,
+      required this.itemsSummary,
+      this.distanceLabel});
 }
 
 class _Det extends StatelessWidget {

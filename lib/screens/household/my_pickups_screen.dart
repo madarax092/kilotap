@@ -21,8 +21,18 @@ class MyPickupsScreen extends StatelessWidget {
 
   String _formatDate(DateTime d) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[d.month - 1]} ${d.day}, ${d.year}';
   }
@@ -46,7 +56,8 @@ class MyPickupsScreen extends StatelessWidget {
       collectorName = await svc.displayNameFor(b.collectorId);
     }
     final items = await svc.bookingItems(b.bookingId).first;
-    final totalWeight = items.fold<double>(0, (s, i) => s + i.estimatedWeightKg);
+    final totalWeight =
+        items.fold<double>(0, (s, i) => s + i.estimatedWeightKg);
     final itemsSummary = items.isEmpty
         ? 'No items recorded'
         : '${items.length} item${items.length > 1 ? 's' : ''} · '
@@ -66,6 +77,9 @@ class MyPickupsScreen extends StatelessWidget {
       BuildContext context, Booking b, _CardData data, FirestoreService svc) {
     switch (b.status) {
       case 'Pending':
+        final withinCancelWindow = DateTime.now().difference(b.createdAt) <=
+            const Duration(minutes: 2);
+        if (!withinCancelWindow) return const [];
         return [
           (
             'Cancel',
@@ -189,7 +203,8 @@ class MyPickupsScreen extends StatelessWidget {
                   return const Center(
                     child: Padding(
                       padding: EdgeInsets.all(24),
-                      child: Text('No pickups yet — book one from the Sell tab.',
+                      child: Text(
+                          'No pickups yet — book one from the Sell tab.',
                           style: TextStyle(color: Color(0xFF6B7280))),
                     ),
                   );
@@ -221,7 +236,8 @@ class MyPickupsScreen extends StatelessWidget {
                           stars: data.existingRating != null
                               ? '★ ${data.existingRating!.toStringAsFixed(1)}'
                               : '',
-                          actions: _actionsFor(context, b, data, firestoreService),
+                          actions:
+                              _actionsFor(context, b, data, firestoreService),
                           onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -253,7 +269,9 @@ class MyPickupsScreen extends StatelessWidget {
             onTap: (i) {
               if (i == 0) Navigator.pushReplacementNamed(context, '/household');
               if (i == 1) Navigator.pushReplacementNamed(context, '/sell');
-              if (i == 3) Navigator.pushReplacementNamed(context, '/chat_collector');
+              if (i == 3) {
+                Navigator.pushReplacementNamed(context, '/chat_collector');
+              }
               if (i == 4) Navigator.pushReplacementNamed(context, '/profile');
             },
             items: const [

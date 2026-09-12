@@ -3,6 +3,8 @@ import '../../core/theme/app_colors.dart';
 import '../../models/booking.dart';
 import '../../services/auth_state.dart';
 import '../../services/firestore_service.dart';
+import '../../models/notification.dart';
+import '../notifications_screen.dart';
 import 'impact_page.dart';
 import 'chat_detail_screen.dart';
 import 'tracking_screen.dart';
@@ -15,8 +17,9 @@ class HouseholdDashboard extends StatelessWidget {
     final top = MediaQuery.of(context).padding.top;
     final firestoreService = FirestoreService();
     final displayName = AuthState.instance.displayName;
-    final firstName =
-        displayName.trim().isEmpty ? 'there' : displayName.trim().split(' ').first;
+    final firstName = displayName.trim().isEmpty
+        ? 'there'
+        : displayName.trim().split(' ').first;
     final initial = firstName == 'there' ? '?' : firstName[0].toUpperCase();
 
     return Scaffold(
@@ -66,12 +69,45 @@ class HouseholdDashboard extends StatelessWidget {
                     ),
                   ],
                 ),
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: const BoxDecoration(shape: BoxShape.circle),
-                  child: const Icon(Icons.notifications_none,
-                      color: Color(0xFF4B5563), size: 24),
+                StreamBuilder<List<AppNotification>>(
+                  stream: firestoreService
+                      .userNotifications(AuthState.instance.uid ?? ''),
+                  builder: (context, snapshot) {
+                    final unread = (snapshot.data ?? const <AppNotification>[])
+                        .where((n) => !n.isRead)
+                        .length;
+                    return GestureDetector(
+                      onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const NotificationsScreen())),
+                      child: SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            const Center(
+                              child: Icon(Icons.notifications_none,
+                                  color: Color(0xFF4B5563), size: 24),
+                            ),
+                            if (unread > 0)
+                              Positioned(
+                                right: 4,
+                                top: 4,
+                                child: Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                      color: AppColors.error,
+                                      shape: BoxShape.circle),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -100,14 +136,18 @@ class HouseholdDashboard extends StatelessWidget {
                             value: '${pending.length}',
                             icon: Icons.access_time,
                             iconColor: Colors.orange,
-                            iconBg: Colors.orange.withValues(alpha: 0.1)),
+                            iconBg: Colors.orange.withValues(alpha: 0.1),
+                            onTap: () => Navigator.pushReplacementNamed(
+                                context, '/pickups')),
                         const SizedBox(width: 12),
                         _StatCard(
                             label: 'Completed',
                             value: '${completed.length}',
                             icon: Icons.check_circle_outline,
                             iconColor: Colors.green,
-                            iconBg: Colors.green.withValues(alpha: 0.1)),
+                            iconBg: Colors.green.withValues(alpha: 0.1),
+                            onTap: () => Navigator.pushReplacementNamed(
+                                context, '/pickups')),
                       ],
                     ),
                   ),
@@ -116,8 +156,10 @@ class HouseholdDashboard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => const ImpactPage()));
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const ImpactPage()));
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -174,8 +216,8 @@ class HouseholdDashboard extends StatelessWidget {
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF2C2C2C))),
                         GestureDetector(
-                          onTap: () =>
-                              Navigator.pushReplacementNamed(context, '/pickups'),
+                          onTap: () => Navigator.pushReplacementNamed(
+                              context, '/pickups'),
                           child: const Text('View All',
                               style: TextStyle(
                                   fontSize: 13,
@@ -195,9 +237,9 @@ class HouseholdDashboard extends StatelessWidget {
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                    color: const Color(0xFFE5E7EB), width: 1.5)),
-                            child: const Text(
-                                'No active pickup right now.',
+                                    color: const Color(0xFFE5E7EB),
+                                    width: 1.5)),
+                            child: const Text('No active pickup right now.',
                                 style: TextStyle(color: Color(0xFF6B7280))),
                           )
                         : _ActivePickupCard(booking: active.first),
@@ -214,8 +256,8 @@ class HouseholdDashboard extends StatelessWidget {
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF2C2C2C))),
                         GestureDetector(
-                          onTap: () =>
-                              Navigator.pushReplacementNamed(context, '/pickups'),
+                          onTap: () => Navigator.pushReplacementNamed(
+                              context, '/pickups'),
                           child: const Text('View All',
                               style: TextStyle(
                                   fontSize: 13,
@@ -246,9 +288,11 @@ class HouseholdDashboard extends StatelessWidget {
                               style: TextStyle(color: Color(0xFF6B7280)))
                           : _RecentActivity(
                               svc: firestoreService,
-                              bookings: (completed..sort((a, b) =>
-                                      (b.completedAt ?? b.createdAt)
-                                          .compareTo(a.completedAt ?? a.createdAt)))
+                              bookings: (completed
+                                    ..sort((a, b) =>
+                                        (b.completedAt ?? b.createdAt)
+                                            .compareTo(
+                                                a.completedAt ?? a.createdAt)))
                                   .take(3)
                                   .toList(),
                             ),
@@ -277,16 +321,17 @@ class _ActivePickupCard extends StatelessWidget {
       future: firestoreService.displayNameFor(booking.collectorId),
       builder: (context, snapshot) {
         final collectorName = snapshot.data ?? '...';
-        final initials = collectorName.trim().isNotEmpty && collectorName != '...'
-            ? collectorName
-                .trim()
-                .split(' ')
-                .where((w) => w.isNotEmpty)
-                .take(2)
-                .map((w) => w[0])
-                .join()
-                .toUpperCase()
-            : '?';
+        final initials =
+            collectorName.trim().isNotEmpty && collectorName != '...'
+                ? collectorName
+                    .trim()
+                    .split(' ')
+                    .where((w) => w.isNotEmpty)
+                    .take(2)
+                    .map((w) => w[0])
+                    .join()
+                    .toUpperCase()
+                : '?';
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -295,7 +340,9 @@ class _ActivePickupCard extends StatelessWidget {
               border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
               boxShadow: const [
                 BoxShadow(
-                    color: Color(0x06000000), blurRadius: 10, offset: Offset(0, 4))
+                    color: Color(0x06000000),
+                    blurRadius: 10,
+                    offset: Offset(0, 4))
               ]),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -428,7 +475,9 @@ class _RecentActivity extends StatelessWidget {
         }
         final rows = <Widget>[];
         for (var i = 0; i < data.length; i++) {
-          if (i > 0) rows.add(const Divider(height: 24, color: Color(0xFFF3F4F6)));
+          if (i > 0) {
+            rows.add(const Divider(height: 24, color: Color(0xFFF3F4F6)));
+          }
           rows.add(_ActivityItem(data: data[i]));
         }
         return Column(children: rows);
@@ -441,64 +490,70 @@ class _ActivityData {
   final String label;
   final double kg;
   final DateTime date;
-  const _ActivityData({required this.label, required this.kg, required this.date});
+  const _ActivityData(
+      {required this.label, required this.kg, required this.date});
 }
 
 class _StatCard extends StatelessWidget {
   final String label, value;
   final IconData icon;
   final Color iconColor, iconBg;
+  final VoidCallback? onTap;
   const _StatCard(
       {required this.label,
       required this.value,
       required this.icon,
       required this.iconColor,
-      required this.iconBg});
+      required this.iconBg,
+      this.onTap});
   @override
   Widget build(BuildContext c) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
-            boxShadow: const [
-              BoxShadow(
-                  color: Color(0x06000000),
-                  blurRadius: 10,
-                  offset: Offset(0, 4))
-            ]),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration:
-                      BoxDecoration(color: iconBg, shape: BoxShape.circle),
-                  child: Icon(icon, color: iconColor, size: 16),
-                ),
-                const Icon(Icons.chevron_right,
-                    color: Color(0xFFD1D5DB), size: 18),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(value,
-                style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF111827))),
-            const SizedBox(height: 4),
-            Text(label,
-                style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF6B7280),
-                    fontWeight: FontWeight.w500)),
-          ],
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+              boxShadow: const [
+                BoxShadow(
+                    color: Color(0x06000000),
+                    blurRadius: 10,
+                    offset: Offset(0, 4))
+              ]),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration:
+                        BoxDecoration(color: iconBg, shape: BoxShape.circle),
+                    child: Icon(icon, color: iconColor, size: 16),
+                  ),
+                  const Icon(Icons.chevron_right,
+                      color: Color(0xFFD1D5DB), size: 18),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(value,
+                  style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF111827))),
+              const SizedBox(height: 4),
+              Text(label,
+                  style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF6B7280),
+                      fontWeight: FontWeight.w500)),
+            ],
+          ),
         ),
       ),
     );
@@ -512,8 +567,18 @@ class _ActivityItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return Row(
       children: [

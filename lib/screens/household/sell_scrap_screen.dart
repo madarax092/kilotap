@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
@@ -8,6 +9,7 @@ import '../../services/scrap_weight_service.dart';
 import '../../services/ml/capacity_matcher.dart';
 import '../../services/firestore_service.dart';
 import '../../services/auth_state.dart';
+import 'address_entry_page.dart';
 import 'booking_summary_screen.dart';
 import 'camera_prototype_screen.dart';
 
@@ -19,6 +21,7 @@ class SellScrapScreen extends StatefulWidget {
 
 class _SellScrapScreenState extends State<SellScrapScreen> {
   XFile? _photo;
+  late String _address = AuthState.instance.address;
 
   // scrapClass -> quantity. No trained detection model yet, so items are
   // entered manually (see MOLO Training Plan in .claude plan history).
@@ -78,11 +81,12 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
       throw Exception('Please enable location services and try again.');
     }
     return Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
+        locationSettings:
+            const LocationSettings(accuracy: LocationAccuracy.high));
   }
 
   Future<void> _submit() async {
-    if (_selectedItems.isEmpty || _submitting) return;
+    if (_selectedItems.isEmpty || _photo == null || _submitting) return;
     setState(() => _submitting = true);
 
     try {
@@ -99,19 +103,21 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
         // trained MOLO model (see MOLO Training Plan).
         'SpatialAreaRatio': 0.0,
         'PickupGPS': GeoPoint(position.latitude, position.longitude),
-        'PickupAddress': auth.address,
+        'PickupAddress': _address,
       });
 
       for (final entry in _selectedItems.entries) {
         final className = entry.key;
         final qty = entry.value;
-        final unitWeight = ScrapWeightService.instance.getWeight(className) ?? 0;
+        final unitWeight =
+            ScrapWeightService.instance.getWeight(className) ?? 0;
         await firestoreService.createBookingItem({
           'Booking_ID': bookingId,
           'ItemName': _humanize(className),
           'Quantity': qty,
           'SizeClass': ScrapWeightService.instance.getSizeClass(className),
-          'EstimatedWeightKg': double.parse((unitWeight * qty).toStringAsFixed(2)),
+          'EstimatedWeightKg':
+              double.parse((unitWeight * qty).toStringAsFixed(2)),
           'ScrapClass': className,
         });
       }
@@ -177,7 +183,6 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
               ],
             ),
           ),
-
           Expanded(
             child: ListView(
                 padding:
@@ -204,33 +209,37 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                             ? Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Container(
-                                      width: 72,
-                                      height: 72,
-                                      decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: AppColors.sellerGreen
-                                              .withValues(alpha: 0.08)),
-                                      child: const Icon(Icons.camera_rounded,
-                                          color: AppColors.sellerGreen,
-                                          size: 32)),
-                                  const SizedBox(height: 16),
-                                  const Text('Take a Photo',
-                                      style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                          color: Color(0xFF111827))),
-                                  const SizedBox(height: 4),
-                                  const Text('Point camera at your scrap items',
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          color: Color(0xFF6B7280))),
-                                ])
+                                    Container(
+                                        width: 72,
+                                        height: 72,
+                                        decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: AppColors.sellerGreen
+                                                .withValues(alpha: 0.08)),
+                                        child: const Icon(Icons.camera_rounded,
+                                            color: AppColors.sellerGreen,
+                                            size: 32)),
+                                    const SizedBox(height: 16),
+                                    const Text('Take a Photo',
+                                        style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w700,
+                                            color: Color(0xFF111827))),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                        'Point camera at your scrap items',
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            color: Color(0xFF6B7280))),
+                                  ])
                             : Stack(
                                 fit: StackFit.expand,
                                 children: [
-                                  Image.file(File(_photo!.path),
-                                      fit: BoxFit.cover),
+                                  kIsWeb
+                                      ? Image.network(_photo!.path,
+                                          fit: BoxFit.cover)
+                                      : Image.file(File(_photo!.path),
+                                          fit: BoxFit.cover),
                                   Positioned(
                                     right: 8,
                                     top: 8,
@@ -251,8 +260,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                                               style: TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 12,
-                                                  fontWeight:
-                                                      FontWeight.w600)),
+                                                  fontWeight: FontWeight.w600)),
                                         ],
                                       ),
                                     ),
@@ -262,9 +270,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
@@ -287,9 +293,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
                   _Card(children: [
                     Row(
                       children: [
@@ -297,8 +301,8 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                                color:
-                                    AppColors.sellerGreen.withValues(alpha: 0.1),
+                                color: AppColors.sellerGreen
+                                    .withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8)),
                             child: const Icon(Icons.inventory_2_outlined,
                                 color: AppColors.sellerGreen, size: 16)),
@@ -412,9 +416,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                                 color: Color(0xFF6B7280), fontSize: 13)),
                       ),
                   ]),
-
                   const SizedBox(height: 24),
-
                   const Text('PICKUP DETAILS',
                       style: TextStyle(
                           fontSize: 12,
@@ -422,7 +424,6 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                           fontWeight: FontWeight.w800,
                           letterSpacing: 1)),
                   const SizedBox(height: 12),
-
                   Row(children: [
                     Expanded(
                       child: GestureDetector(
@@ -517,9 +518,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                       ),
                     ),
                   ]),
-
                   const SizedBox(height: 16),
-
                   Row(children: [
                     Expanded(
                       child: Container(
@@ -561,16 +560,64 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
-                      onPressed: () =>
-                          setState(() => _vehicleOverride = null),
+                      onPressed: () => setState(() => _vehicleOverride = null),
                       child: const Text('Reset',
                           style: TextStyle(
                               fontSize: 13, fontWeight: FontWeight.w700)),
                     ),
                   ]),
-
                   const SizedBox(height: 16),
-
+                  GestureDetector(
+                    onTap: () async {
+                      final result = await Navigator.push<String>(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  AddressEntryPage(initialAddress: _address)));
+                      if (result != null) setState(() => _address = result);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFE5E7EB))),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.location_on_outlined,
+                              size: 20, color: Color(0xFF6B7280)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Pickup Address',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF6B7280),
+                                        fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 2),
+                                Text(
+                                    _address.isEmpty
+                                        ? 'Tap to set address'
+                                        : _address,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF111827))),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right,
+                              color: Color(0xFF9CA3AF), size: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   TextField(
                       decoration: InputDecoration(
                           hintText: 'Notes: Gate code, instructions...',
@@ -592,9 +639,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                               borderSide: const BorderSide(
                                   color: AppColors.sellerGreen, width: 1.5))),
                       maxLines: 2),
-
                   const SizedBox(height: 32),
-
                   SizedBox(
                       width: double.infinity,
                       height: 54,
@@ -609,7 +654,9 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16))),
-                          onPressed: _selectedItems.isEmpty || _submitting
+                          onPressed: _selectedItems.isEmpty ||
+                                  _photo == null ||
+                                  _submitting
                               ? null
                               : _submit,
                           child: _submitting
@@ -623,6 +670,16 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                                       fontSize: 15,
                                       fontWeight: FontWeight.w800,
                                       letterSpacing: 0.5)))),
+                  if (_photo == null || _selectedItems.isEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                        _photo == null
+                            ? 'Take a photo of your scrap to continue.'
+                            : 'Add at least one item to continue.',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 12, color: Color(0xFF9CA3AF))),
+                  ],
                   const SizedBox(height: 30),
                 ]),
           ),
@@ -688,7 +745,8 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF111827))),
                   const SizedBox(height: 2),
-                  Text('$sizeClass · ${(unitWeight * qty).toStringAsFixed(2)} kg',
+                  Text(
+                      '$sizeClass · ${(unitWeight * qty).toStringAsFixed(2)} kg',
                       style: const TextStyle(
                           fontSize: 11, color: Color(0xFF6B7280))),
                 ])),
@@ -704,8 +762,8 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
               }),
             ),
             Text('$qty',
-                style: const TextStyle(
-                    fontSize: 13, fontWeight: FontWeight.w700)),
+                style:
+                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
             IconButton(
               icon: const Icon(Icons.add_circle_outline,
                   size: 20, color: AppColors.sellerGreen),
