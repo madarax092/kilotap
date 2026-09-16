@@ -127,7 +127,22 @@ class FirestoreService {
     final ref = _db.collection(AppConstants.colAuditLogs).doc();
     data['Log_ID'] = ref.id;
     data['Create_At'] = FieldValue.serverTimestamp();
+    data['Ip_Adress'] ??= await _lookupPublicIp();
     await ref.set(data);
+  }
+
+  Future<String> _lookupPublicIp() async {
+    try {
+      final res = await http
+          .get(Uri.parse('https://api.ipify.org?format=json'))
+          .timeout(const Duration(seconds: 3));
+      if (res.statusCode == 200) {
+        return (jsonDecode(res.body) as Map<String, dynamic>)['ip'] ?? '';
+      }
+    } catch (_) {
+      // Offline or lookup failed — leave Ip_Adress blank rather than fail the log.
+    }
+    return '';
   }
 
   Stream<List<AuditLog>> recentLogs({int limit = 20}) => _db

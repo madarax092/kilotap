@@ -31,7 +31,7 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
         'Booking_ID': booking.bookingId,
         'Title': 'Collector on the way',
         'Message': 'A collector accepted your pickup request.',
-        'Type': 'booking_accepted',
+        'Type': 'booking_confirmed',
       });
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

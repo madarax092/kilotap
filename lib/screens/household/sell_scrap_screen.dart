@@ -19,14 +19,29 @@ class SellScrapScreen extends StatefulWidget {
   State<SellScrapScreen> createState() => _SellScrapScreenState();
 }
 
+class _SellItem {
+  final String className;
+  int quantity;
+  final TextEditingController weightCtrl;
+  final TextEditingController notesCtrl;
+  _SellItem({
+    required this.className,
+    required this.quantity,
+    required this.weightCtrl,
+    required this.notesCtrl,
+  });
+}
+
 class _SellScrapScreenState extends State<SellScrapScreen> {
   XFile? _photo;
   late String _address = AuthState.instance.address;
 
-  // scrapClass -> quantity. No trained detection model yet, so items are
+  // scrapClass -> quantity, with a user-editable weight (kg) and optional
+  // detail annotation per item. No trained detection model yet, so items are
   // entered manually (see MOLO Training Plan in .claude plan history).
-  final Map<String, int> _selectedItems = {};
+  final List<_SellItem> _selectedItems = [];
   String _pendingClass = ScrapWeightService.supportedClasses.first;
+  final _bookingNotesCtrl = TextEditingController();
 
   String? _vehicleOverride;
   bool _isAsap = true;
@@ -35,14 +50,14 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
 
   double get _totalWeight {
     double total = 0;
-    _selectedItems.forEach((className, qty) {
-      total += (ScrapWeightService.instance.getWeight(className) ?? 0) * qty;
-    });
+    for (final item in _selectedItems) {
+      total += double.tryParse(item.weightCtrl.text) ?? 0;
+    }
     return double.parse(total.toStringAsFixed(2));
   }
 
-  List<String> get _sizeClasses => _selectedItems.keys
-      .map((c) => ScrapWeightService.instance.getSizeClass(c))
+  List<String> get _sizeClasses => _selectedItems
+      .map((item) => ScrapWeightService.instance.getSizeClass(item.className))
       .toList();
 
   String get _recommendedVehicle =>
@@ -87,6 +102,12 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
 
   Future<void> _submit() async {
     if (_selectedItems.isEmpty || _photo == null || _submitting) return;
+    if (_selectedItems
+        .any((item) => (double.tryParse(item.weightCtrl.text) ?? 0) <= 0)) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Enter a valid weight (kg) for every item.')));
+      return;
+    }
     setState(() => _submitting = true);
 
     try {
@@ -104,21 +125,19 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
         'SpatialAreaRatio': 0.0,
         'PickupGPS': GeoPoint(position.latitude, position.longitude),
         'PickupAddress': _address,
+        'Notes': _bookingNotesCtrl.text.trim(),
       });
 
-      for (final entry in _selectedItems.entries) {
-        final className = entry.key;
-        final qty = entry.value;
-        final unitWeight =
-            ScrapWeightService.instance.getWeight(className) ?? 0;
+      for (final item in _selectedItems) {
+        final weight = double.tryParse(item.weightCtrl.text) ?? 0;
         await firestoreService.createBookingItem({
           'Booking_ID': bookingId,
-          'ItemName': _humanize(className),
-          'Quantity': qty,
-          'SizeClass': ScrapWeightService.instance.getSizeClass(className),
-          'EstimatedWeightKg':
-              double.parse((unitWeight * qty).toStringAsFixed(2)),
-          'ScrapClass': className,
+          'ItemName': _humanize(item.className),
+          'Quantity': item.quantity,
+          'SizeClass': ScrapWeightService.instance.getSizeClass(item.className),
+          'EstimatedWeightKg': double.parse(weight.toStringAsFixed(2)),
+          'ScrapClass': item.className,
+          'Notes': item.notesCtrl.text.trim(),
         });
       }
 
@@ -137,6 +156,16 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+  }
+
+  @override
+  void dispose() {
+    for (final item in _selectedItems) {
+      item.weightCtrl.dispose();
+      item.notesCtrl.dispose();
+    }
+    _bookingNotesCtrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -348,8 +377,22 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                         const SizedBox(width: 8),
                         ElevatedButton(
                           onPressed: () => setState(() {
-                            _selectedItems[_pendingClass] =
-                                (_selectedItems[_pendingClass] ?? 0) + 1;
+                            final existing = _selectedItems
+                                .where((e) => e.className == _pendingClass);
+                            if (existing.isNotEmpty) {
+                              existing.first.quantity++;
+                            } else {
+                              final defaultWeight = ScrapWeightService.instance
+                                      .getWeight(_pendingClass) ??
+                                  0;
+                              _selectedItems.add(_SellItem(
+                                className: _pendingClass,
+                                quantity: 1,
+                                weightCtrl: TextEditingController(
+                                    text: defaultWeight.toStringAsFixed(2)),
+                                notesCtrl: TextEditingController(),
+                              ));
+                            }
                           }),
                           style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.sellerGreen,
@@ -619,6 +662,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                   ),
                   const SizedBox(height: 16),
                   TextField(
+                      controller: _bookingNotesCtrl,
                       decoration: InputDecoration(
                           hintText: 'Notes: Gate code, instructions...',
                           hintStyle: const TextStyle(
@@ -725,50 +769,115 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
 
   List<Widget> _buildItemRows() {
     final rows = <Widget>[];
-    for (final className in _selectedItems.keys.toList()) {
-      final qty = _selectedItems[className]!;
-      final sizeClass = ScrapWeightService.instance.getSizeClass(className);
-      final unitWeight = ScrapWeightService.instance.getWeight(className) ?? 0;
+    for (final item in _selectedItems) {
+      final sizeClass =
+          ScrapWeightService.instance.getSizeClass(item.className);
 
       rows.add(Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                  Text(_humanize(className),
-                      style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF111827))),
-                  const SizedBox(height: 2),
-                  Text(
-                      '$sizeClass · ${(unitWeight * qty).toStringAsFixed(2)} kg',
-                      style: const TextStyle(
-                          fontSize: 11, color: Color(0xFF6B7280))),
-                ])),
-            IconButton(
-              icon: const Icon(Icons.remove_circle_outline,
-                  size: 20, color: Color(0xFF9CA3AF)),
-              onPressed: () => setState(() {
-                if (qty > 1) {
-                  _selectedItems[className] = qty - 1;
-                } else {
-                  _selectedItems.remove(className);
-                }
-              }),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                      Text(_humanize(item.className),
+                          style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF111827))),
+                      const SizedBox(height: 2),
+                      Text(sizeClass,
+                          style: const TextStyle(
+                              fontSize: 11, color: Color(0xFF6B7280))),
+                    ])),
+                IconButton(
+                  icon: const Icon(Icons.remove_circle_outline,
+                      size: 20, color: Color(0xFF9CA3AF)),
+                  onPressed: () => setState(() {
+                    if (item.quantity > 1) {
+                      item.quantity--;
+                    } else {
+                      item.weightCtrl.dispose();
+                      item.notesCtrl.dispose();
+                      _selectedItems.remove(item);
+                    }
+                  }),
+                ),
+                Text('${item.quantity}',
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w700)),
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline,
+                      size: 20, color: AppColors.sellerGreen),
+                  onPressed: () => setState(() => item.quantity++),
+                ),
+              ],
             ),
-            Text('$qty',
-                style:
-                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-            IconButton(
-              icon: const Icon(Icons.add_circle_outline,
-                  size: 20, color: AppColors.sellerGreen),
-              onPressed: () =>
-                  setState(() => _selectedItems[className] = qty + 1),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 90,
+                  child: TextField(
+                    controller: item.weightCtrl,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    onChanged: (_) => setState(() {}),
+                    style: const TextStyle(fontSize: 13),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      suffixText: 'kg',
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 10),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE5E7EB))),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE5E7EB))),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                              color: AppColors.sellerGreen, width: 1.5)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: item.notesCtrl,
+                    style: const TextStyle(fontSize: 13),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: 'Notes (optional)',
+                      hintStyle: const TextStyle(
+                          fontSize: 13, color: Color(0xFF9CA3AF)),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 10),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE5E7EB))),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE5E7EB))),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                              color: AppColors.sellerGreen, width: 1.5)),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

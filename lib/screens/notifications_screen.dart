@@ -17,9 +17,9 @@ class NotificationsScreen extends StatelessWidget {
 
   IconData _iconFor(String type) {
     switch (type) {
-      case 'booking_accepted':
+      case 'booking_confirmed':
         return Icons.local_shipping_outlined;
-      case 'booking_completed':
+      case 'completed':
         return Icons.check_circle_outline;
       case 'booking_cancelled':
         return Icons.cancel_outlined;

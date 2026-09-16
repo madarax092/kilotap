@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/material_preferences.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/booking.dart';
+import '../../models/booking_item.dart';
 import '../../services/auth_service.dart';
 import '../../services/auth_state.dart';
 import '../../services/firestore_service.dart';
@@ -73,9 +75,23 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
     return '${diff.inDays}d ago';
   }
 
-  Future<_RequestData> _loadRequestData(FirestoreService svc, Booking b) async {
+  Future<List<_MatchedBooking>> _filterByPreferences(
+      FirestoreService svc, List<Booking> bookings) async {
+    final preferred = AuthState.instance.preferredMaterials;
+    final matched = <_MatchedBooking>[];
+    for (final b in bookings) {
+      final items = await svc.bookingItems(b.bookingId).first;
+      final classes = items.map((i) => i.scrapClass).toList();
+      if (MaterialPreferences.matchesPreference(classes, preferred)) {
+        matched.add(_MatchedBooking(booking: b, items: items));
+      }
+    }
+    return matched;
+  }
+
+  Future<_RequestData> _loadRequestData(
+      FirestoreService svc, Booking b, List<BookingItem> items) async {
     final sellerName = await svc.displayNameFor(b.sellerId);
-    final items = await svc.bookingItems(b.bookingId).first;
     final totalWeight =
         items.fold<double>(0, (s, i) => s + i.estimatedWeightKg);
     final itemsSummary = items.isEmpty
@@ -192,28 +208,52 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                           ),
                         );
                       }
-                      return ListView.builder(
-                        padding: const EdgeInsets.only(top: 20, bottom: 40),
-                        itemCount: bookings.length,
-                        itemBuilder: (context, i) {
-                          final b = bookings[i];
-                          return FutureBuilder<_RequestData>(
-                            future: _loadRequestData(firestoreService, b),
-                            builder: (context, dataSnap) {
-                              if (!dataSnap.hasData) {
-                                return const Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 8),
-                                  child: LinearProgressIndicator(minHeight: 2),
-                                );
-                              }
-                              final data = dataSnap.data!;
-                              return _RequestCard(
-                                booking: b,
-                                sellerName: data.sellerName,
-                                itemsSummary: data.itemsSummary,
-                                timeAgo:
-                                    data.distanceLabel ?? _timeAgo(b.createdAt),
+                      return FutureBuilder<List<_MatchedBooking>>(
+                        future:
+                            _filterByPreferences(firestoreService, bookings),
+                        builder: (context, matchSnap) {
+                          if (!matchSnap.hasData) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          final matched = matchSnap.data!;
+                          if (matched.isEmpty) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(24),
+                                child: Text(
+                                    'No pickup requests match your preferred materials right now.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: Color(0xFF6B7280))),
+                              ),
+                            );
+                          }
+                          return ListView.builder(
+                            padding: const EdgeInsets.only(top: 20, bottom: 40),
+                            itemCount: matched.length,
+                            itemBuilder: (context, i) {
+                              final b = matched[i].booking;
+                              return FutureBuilder<_RequestData>(
+                                future: _loadRequestData(
+                                    firestoreService, b, matched[i].items),
+                                builder: (context, dataSnap) {
+                                  if (!dataSnap.hasData) {
+                                    return const Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 20, vertical: 8),
+                                      child:
+                                          LinearProgressIndicator(minHeight: 2),
+                                    );
+                                  }
+                                  final data = dataSnap.data!;
+                                  return _RequestCard(
+                                    booking: b,
+                                    sellerName: data.sellerName,
+                                    itemsSummary: data.itemsSummary,
+                                    timeAgo: data.distanceLabel ??
+                                        _timeAgo(b.createdAt),
+                                  );
+                                },
                               );
                             },
                           );
@@ -286,6 +326,12 @@ class _RequestData {
       {required this.sellerName,
       required this.itemsSummary,
       this.distanceLabel});
+}
+
+class _MatchedBooking {
+  final Booking booking;
+  final List<BookingItem> items;
+  const _MatchedBooking({required this.booking, required this.items});
 }
 
 class _Det extends StatelessWidget {

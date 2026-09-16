@@ -130,6 +130,8 @@ class BookingSummaryScreen extends StatelessWidget {
                           _DetailRow('Est. Weight',
                               '${totalWeight.toStringAsFixed(2)} kg'),
                           _DetailRow('Pickup Address', booking.pickupAddress),
+                          if (booking.notes.isNotEmpty)
+                            _DetailRow('Notes', booking.notes),
                         ]),
                   ),
                   const SizedBox(height: 12),
@@ -210,6 +212,14 @@ class _ItemRow extends StatelessWidget {
                   '${item.sizeClass} · ${item.estimatedWeightKg.toStringAsFixed(2)} kg',
                   style:
                       const TextStyle(fontSize: 11, color: Color(0xFF6B7280))),
+              if (item.notes.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(item.notes,
+                    style: const TextStyle(
+                        fontSize: 11,
+                        fontStyle: FontStyle.italic,
+                        color: Color(0xFF9CA3AF))),
+              ],
             ],
           )),
           Container(

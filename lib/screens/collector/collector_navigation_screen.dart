@@ -281,7 +281,7 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
                               'Title': 'Pickup completed',
                               'Message':
                                   'Your scrap pickup was completed. Rate your collector!',
-                              'Type': 'booking_completed',
+                              'Type': 'completed',
                             });
                           }
                         }
