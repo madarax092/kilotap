@@ -12,6 +12,7 @@ class Booking {
   final GeoPoint pickupGps;
   final String pickupAddress;
   final String notes;
+  final String photoUrl;
   final DateTime createdAt;
   final DateTime? completedAt;
 
@@ -25,6 +26,7 @@ class Booking {
     required this.pickupGps,
     this.pickupAddress = '',
     this.notes = '',
+    this.photoUrl = '',
     required this.createdAt,
     this.completedAt,
   });
@@ -39,6 +41,7 @@ class Booking {
         pickupGps: m['PickupGPS'] ?? const GeoPoint(0, 0),
         pickupAddress: m['PickupAddress'] ?? '',
         notes: m['Notes'] ?? '',
+        photoUrl: m['PhotoURL'] ?? '',
         createdAt: (m['Created_At'] as Timestamp?)?.toDate() ?? DateTime.now(),
         completedAt: (m['Completed_At'] as Timestamp?)?.toDate(),
       );

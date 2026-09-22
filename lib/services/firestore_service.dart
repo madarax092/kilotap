@@ -36,26 +36,35 @@ class FirestoreService {
       .snapshots()
       .map((s) => s.docs.map((d) => Booking.fromMap(d.id, d.data())).toList());
 
+  // orderBy is done in Dart, not Firestore, for these three — combining a
+  // where() on one field with orderBy() on a different field requires a
+  // composite index; none is deployed for this project, so the query would
+  // throw failed-precondition at runtime instead of returning results.
   Stream<List<Booking>> sellerBookings(String sellerId) => _db
       .collection(AppConstants.colBookings)
       .where('Seller_ID', isEqualTo: sellerId)
-      .orderBy('Created_At', descending: true)
       .snapshots()
-      .map((s) => s.docs.map((d) => Booking.fromMap(d.id, d.data())).toList());
+      .map((s) => _sortByCreatedAtDesc(
+          s.docs.map((d) => Booking.fromMap(d.id, d.data())).toList()));
 
   Stream<List<Booking>> collectorBookings(String collectorId) => _db
       .collection(AppConstants.colBookings)
       .where('Collector_ID', isEqualTo: collectorId)
-      .orderBy('Created_At', descending: true)
       .snapshots()
-      .map((s) => s.docs.map((d) => Booking.fromMap(d.id, d.data())).toList());
+      .map((s) => _sortByCreatedAtDesc(
+          s.docs.map((d) => Booking.fromMap(d.id, d.data())).toList()));
 
   Stream<List<Booking>> availableBookings() => _db
       .collection(AppConstants.colBookings)
       .where('Status', isEqualTo: 'Pending')
-      .orderBy('Created_At', descending: true)
       .snapshots()
-      .map((s) => s.docs.map((d) => Booking.fromMap(d.id, d.data())).toList());
+      .map((s) => _sortByCreatedAtDesc(
+          s.docs.map((d) => Booking.fromMap(d.id, d.data())).toList()));
+
+  List<Booking> _sortByCreatedAtDesc(List<Booking> bookings) {
+    bookings.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return bookings;
+  }
 
   Future<void> updateBookingStatus(String id, String status,
       {String? collectorId}) async {
@@ -164,6 +173,25 @@ class FirestoreService {
 
   Future<String> uploadChatImage(
       File file, String senderId, String recipientId) async {
+    if (AppConstants.cloudinaryCloudName == 'YOUR_CLOUDINARY_CLOUD_NAME') {
+      throw Exception(
+          'Cloudinary is not configured — set cloudinaryCloudName and cloudinaryUploadPreset in app_constants.dart');
+    }
+    final uri = Uri.parse(
+        'https://api.cloudinary.com/v1_1/${AppConstants.cloudinaryCloudName}/image/upload');
+    final request = http.MultipartRequest('POST', uri)
+      ..fields['upload_preset'] = AppConstants.cloudinaryUploadPreset
+      ..files.add(await http.MultipartFile.fromPath('file', file.path));
+    final response = await request.send();
+    final body = await response.stream.bytesToString();
+    if (response.statusCode != 200) {
+      throw Exception('Cloudinary upload failed: $body');
+    }
+    final data = jsonDecode(body) as Map<String, dynamic>;
+    return data['secure_url'] as String;
+  }
+
+  Future<String> uploadBookingPhoto(File file) async {
     if (AppConstants.cloudinaryCloudName == 'YOUR_CLOUDINARY_CLOUD_NAME') {
       throw Exception(
           'Cloudinary is not configured — set cloudinaryCloudName and cloudinaryUploadPreset in app_constants.dart');

@@ -38,6 +38,10 @@ dependencies:
 
   # Fonts
   google_fonts: ^6.3.1
+  tflite_flutter: ^0.12.1
+  image: ^4.10.1
+  google_maps_flutter_android: ^2.19.13
+  google_maps_flutter_platform_interface: ^2.17.0
 
 dev_dependencies:
   flutter_test:
@@ -49,6 +53,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/models/
 
   # fonts:
   #   - family: NunitoSans

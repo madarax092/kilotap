@@ -34,6 +34,7 @@ class _LiveRouteMapState extends State<LiveRouteMap> {
   RouteInfo? _route;
   bool _loading = true;
   GoogleMapController? _controller;
+  BitmapDescriptor? _collectorIcon;
 
   bool get _hasOrigin => widget.originLat != null && widget.originLon != null;
 
@@ -41,6 +42,35 @@ class _LiveRouteMapState extends State<LiveRouteMap> {
   void initState() {
     super.initState();
     _load();
+    _loadCollectorIcon();
+  }
+
+  Future<void> _loadCollectorIcon() async {
+    try {
+      final icon = await BitmapDescriptor.asset(
+        const ImageConfiguration(size: Size(48, 48)),
+        'assets/images/collector_marker.png',
+      );
+      if (mounted) setState(() => _collectorIcon = icon);
+    } catch (_) {
+      // Falls back to the default pin if the asset can't be decoded.
+    }
+  }
+
+  @override
+  void didUpdateWidget(LiveRouteMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Origin/destination props can change after a parent rebuild (e.g. a
+    // fresh GPS fix) — StatefulWidget only calls initState() once, so
+    // without this the route/polyline would stay frozen at whatever it
+    // was on first build.
+    if (oldWidget.originLat != widget.originLat ||
+        oldWidget.originLon != widget.originLon ||
+        oldWidget.destLat != widget.destLat ||
+        oldWidget.destLon != widget.destLon) {
+      setState(() => _loading = true);
+      _load();
+    }
   }
 
   Future<void> _load() async {
@@ -108,7 +138,8 @@ class _LiveRouteMapState extends State<LiveRouteMap> {
       markers.add(Marker(
         markerId: const MarkerId('origin'),
         position: LatLng(widget.originLat!, widget.originLon!),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        icon: _collectorIcon ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
       ));
     }
 

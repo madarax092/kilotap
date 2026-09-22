@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/auth_service.dart';
 import '../../services/auth_state.dart';
 import '../../services/firestore_service.dart';
 import '../../services/google_maps_service.dart';
@@ -19,6 +21,33 @@ class CollectorNavigationScreen extends StatefulWidget {
 class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
   RouteInfo? _route;
   bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshLocation();
+  }
+
+  Future<void> _refreshLocation() async {
+    try {
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever ||
+          !await Geolocator.isLocationServiceEnabled()) {
+        return;
+      }
+      final position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
+      await AuthService.instance
+          .updateCollectorLocation(position.latitude, position.longitude);
+      if (mounted) setState(() {});
+    } catch (_) {
+      // Non-fatal — falls back to whatever location was already on file.
+    }
+  }
 
   Future<void> _openInGoogleMaps(double lat, double lon) async {
     final uri = Uri.parse('google.navigation:q=$lat,$lon');

@@ -411,6 +411,7 @@ class _ActivePickupCard extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                                 builder: (_) => TrackingScreen(
+                                    collectorId: booking.collectorId,
                                     collectorName: collectorName,
                                     bookingId: booking.bookingId,
                                     vehicleType: booking.vehicleRequirement,

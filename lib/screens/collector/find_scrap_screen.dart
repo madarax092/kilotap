@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../core/constants/material_preferences.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/booking.dart';
@@ -18,6 +20,33 @@ class FindScrapScreen extends StatefulWidget {
 class _FindScrapScreenState extends State<FindScrapScreen> {
   bool _isOnline = true;
 
+  @override
+  void initState() {
+    super.initState();
+    if (_isOnline) _captureLocation();
+  }
+
+  Future<void> _captureLocation() async {
+    try {
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever ||
+          !await Geolocator.isLocationServiceEnabled()) {
+        return;
+      }
+      final position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
+      await AuthService.instance
+          .updateCollectorLocation(position.latitude, position.longitude);
+    } catch (_) {
+      // Non-fatal — dispatch filtering/route ETA just falls back to
+      // whatever location was already on file.
+    }
+  }
+
   Future<void> _handleOnlineToggle(bool val) async {
     if (!val) {
       setState(() => _isOnline = false);
@@ -26,6 +55,7 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
     final vehicles = AuthState.instance.vehicles;
     if (vehicles.length <= 1) {
       setState(() => _isOnline = true);
+      unawaited(_captureLocation());
       return;
     }
     final chosen = await showModalBottomSheet<Map<String, dynamic>>(
@@ -65,6 +95,7 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
     );
     if (!mounted) return;
     setState(() => _isOnline = true);
+    unawaited(_captureLocation());
   }
 
   String _timeAgo(DateTime t) {
@@ -187,6 +218,17 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                 : StreamBuilder<List<Booking>>(
                     stream: firestoreService.availableBookings(),
                     builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Text(
+                                'Could not load pickup requests: ${snapshot.error}',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: Color(0xFF6B7280))),
+                          ),
+                        );
+                      }
                       if (!snapshot.hasData) {
                         return const Center(child: CircularProgressIndicator());
                       }

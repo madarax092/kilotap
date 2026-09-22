@@ -389,6 +389,30 @@ class AuthService {
     );
   }
 
+  Future<void> updateCollectorLocation(double lat, double lon) async {
+    final uid = AuthState.instance.uid;
+    if (uid == null) return;
+    await _firestore
+        .collection(colAccount)
+        .doc(uid)
+        .collection(colCollector)
+        .doc(uid)
+        .update({'Current_Latitude': lat, 'Current_Longitude': lon});
+    AuthState.instance.setCollectorProfile(
+      vehicleType: AuthState.instance.vehicleType,
+      vehicleCapacityKg: AuthState.instance.vehicleCapacityKg,
+      vehicles: AuthState.instance.vehicles,
+      verificationDocs: AuthState.instance.verificationDocs,
+      preferredMaterials: AuthState.instance.preferredMaterials,
+      verificationStatus: AuthState.instance.verificationStatus,
+      digitalBadgeUrl: AuthState.instance.digitalBadgeUrl,
+      avgRating: AuthState.instance.avgRating,
+      currentLatitude: lat,
+      currentLongitude: lon,
+      onlineStatus: AuthState.instance.onlineStatus,
+    );
+  }
+
   Future<void> signOut() async {
     await _auth.signOut();
     if (await _googleSignIn.isSignedIn()) {

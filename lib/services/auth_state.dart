@@ -121,7 +121,17 @@ class AuthState {
     _onlineStatus = false;
   }
 
-  bool canAccess(String route) => RolePermissions.canAccessRoute(_role, route);
+  // 'VerifiedCollector' is a permission tier, not a stored Role value —
+  // Firestore's Role field only ever holds Household/Collector/Admin (Table
+  // 7). It's computed here from the collector's actual Verification_Status
+  // instead, so accept_pickup only unlocks once they're really verified.
+  String? get _effectiveRole =>
+      _role == 'Collector' && _verificationStatus == 'Verified'
+          ? 'VerifiedCollector'
+          : _role;
+
+  bool canAccess(String route) =>
+      RolePermissions.canAccessRoute(_effectiveRole, route);
   bool hasPermission(String permission) =>
-      RolePermissions.hasPermission(_role, permission);
+      RolePermissions.hasPermission(_effectiveRole, permission);
 }

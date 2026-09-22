@@ -102,6 +102,7 @@ class MyPickupsScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                     builder: (_) => TrackingScreen(
+                        collectorId: b.collectorId,
                         collectorName: data.collectorName,
                         bookingId: _shortId(b.bookingId),
                         vehicleType: b.vehicleRequirement,

@@ -19,10 +19,13 @@ class MaterialPreferences {
       'tire_car',
       'tire_truck',
       'cast_iron_bathtub',
+      'copper',
+      'motorcycle_block',
+      'vehicle_part_big',
     ],
-    'Plastic': ['plastic_bottle_1L', 'plastic_bottle_500ml'],
+    'Plastic': ['plastic_bottle_1L', 'plastic_bottle_500ml', 'plastic_hdpe', 'plastic_pet'],
     'Glass': ['glass_bottle_1L', 'glass_bottle_330ml'],
-    'Cardboard': ['cardboard_box_large', 'cardboard_box_small'],
+    'Cardboard': ['cardboard_box_large', 'cardboard_box_small', 'cardboard'],
     'Appliances': [
       'refrigerator_standard',
       'washing_machine',
@@ -36,6 +39,7 @@ class MaterialPreferences {
       'vacuum_cleaner',
       'electric_fan',
       'splittype_aircon',
+      'hair_dryer',
     ],
     'E-Waste': [
       'crt_television',
@@ -52,6 +56,9 @@ class MaterialPreferences {
       'car_battery',
       'mouse',
       'keyboard',
+      'battery',
+      'electronic_battery',
+      'electronic_waste',
     ],
   };
 

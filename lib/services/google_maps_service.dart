@@ -123,6 +123,24 @@ class GoogleMapsService {
     } catch (_) {}
   }
 
+  static Future<String?> reverseGeocode(double lat, double lon) async {
+    if (AppConstants.googleMapsApiKey == 'YOUR_GOOGLE_MAPS_API_KEY') return null;
+    try {
+      final uri = Uri.parse(
+          'https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lon&key=${AppConstants.googleMapsApiKey}');
+      final response = await http.get(uri).timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) return null;
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      if (json['status'] != 'OK') return null;
+      final results = json['results'] as List?;
+      if (results == null || results.isEmpty) return null;
+      return (results.first as Map<String, dynamic>)['formatted_address']
+          as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+
   static String formatDistance(double km) {
     if (km < 1) return '${(km * 1000).round()} m';
     return '${km.toStringAsFixed(1)} km';

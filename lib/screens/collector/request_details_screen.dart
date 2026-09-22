@@ -123,6 +123,34 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                     destLon: booking.pickupGps.longitude,
                     height: 180,
                   ),
+                  const SizedBox(height: 16),
+                  if (booking.photoUrl.isNotEmpty)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.network(
+                        booking.photoUrl,
+                        height: 180,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, progress) {
+                          if (progress == null) return child;
+                          return Container(
+                            height: 180,
+                            color: const Color(0xFFF3F4F6),
+                            child: const Center(
+                                child: CircularProgressIndicator(
+                                    color: AppColors.buyerBlue)),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          height: 180,
+                          color: const Color(0xFFF3F4F6),
+                          child: const Center(
+                              child: Icon(Icons.broken_image_outlined,
+                                  color: Color(0xFF9CA3AF), size: 32)),
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 24),
                   Container(
                     padding: const EdgeInsets.all(20),

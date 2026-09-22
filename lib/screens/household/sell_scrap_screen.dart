@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/scrap_weight_service.dart';
 import '../../services/ml/capacity_matcher.dart';
+import '../../services/ml/pipeline.dart';
 import '../../services/firestore_service.dart';
 import '../../services/auth_state.dart';
 import 'address_entry_page.dart';
@@ -35,11 +36,16 @@ class _SellItem {
 class _SellScrapScreenState extends State<SellScrapScreen> {
   XFile? _photo;
   late String _address = AuthState.instance.address;
+  bool _detecting = false;
+  String? _detectionError;
+  double _spatialAreaRatio = 0.0;
 
   // scrapClass -> quantity, with a user-editable weight (kg) and optional
-  // detail annotation per item. No trained detection model yet, so items are
-  // entered manually (see MOLO Training Plan in .claude plan history).
+  // detail annotation per item. Pre-filled from on-device detection when
+  // available; always user-editable/addable regardless (human-in-the-loop
+  // confirmation, per the paper's 2.1.3.1.3).
   final List<_SellItem> _selectedItems = [];
+  final MoloPipeline _pipeline = MoloPipeline();
   String _pendingClass = ScrapWeightService.supportedClasses.first;
   final _bookingNotesCtrl = TextEditingController();
 
@@ -77,8 +83,56 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
   Future<void> _pickPhoto() async {
     final result = await Navigator.push<XFile?>(context,
         MaterialPageRoute(builder: (_) => const CameraPrototypeScreen()));
-    if (result != null) {
-      setState(() => _photo = result);
+    if (result == null) return;
+    setState(() {
+      _photo = result;
+      _detectionError = null;
+      _spatialAreaRatio = 0.0;
+    });
+    if (!kIsWeb) await _runDetection(result);
+  }
+
+  Future<void> _runDetection(XFile photo) async {
+    setState(() => _detecting = true);
+    try {
+      final result = await _pipeline.run(File(photo.path));
+      final counts = <String, int>{};
+      for (final d in result.detections) {
+        counts[d.className] = (counts[d.className] ?? 0) + 1;
+      }
+      final areaRatio = result.detections
+          .fold<double>(0.0, (total, d) => total + (d.w * d.h))
+          .clamp(0.0, 1.0);
+
+      if (!mounted) return;
+      setState(() {
+        _spatialAreaRatio = areaRatio;
+        for (final entry in counts.entries) {
+          final existing =
+              _selectedItems.where((e) => e.className == entry.key);
+          if (existing.isNotEmpty) {
+            existing.first.quantity += entry.value;
+          } else {
+            _selectedItems.add(_SellItem(
+              className: entry.key,
+              quantity: entry.value,
+              weightCtrl: TextEditingController(),
+              notesCtrl: TextEditingController(),
+            ));
+          }
+        }
+        if (counts.isEmpty) {
+          _detectionError =
+              'No known items detected — add items manually below.';
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _detectionError = 'Detection failed: $e — add items manually below.';
+      });
+    } finally {
+      if (mounted) setState(() => _detecting = false);
     }
   }
 
@@ -115,17 +169,21 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
       final firestoreService = FirestoreService();
       final auth = AuthState.instance;
 
+      String photoUrl = '';
+      if (!kIsWeb && _photo != null) {
+        photoUrl = await firestoreService.uploadBookingPhoto(File(_photo!.path));
+      }
+
       final bookingId = await firestoreService.createBooking({
         'Seller_ID': auth.uid,
         'Collector_ID': '',
         'Status': 'Pending',
         'VehicleRequirement': _selectedVehicle,
-        // Placeholder — real value needs YOLO bounding-box coverage from a
-        // trained MOLO model (see MOLO Training Plan).
-        'SpatialAreaRatio': 0.0,
+        'SpatialAreaRatio': double.parse(_spatialAreaRatio.toStringAsFixed(4)),
         'PickupGPS': GeoPoint(position.latitude, position.longitude),
         'PickupAddress': _address,
         'Notes': _bookingNotesCtrl.text.trim(),
+        'PhotoURL': photoUrl,
       });
 
       for (final item in _selectedItems) {
@@ -300,6 +358,54 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  if (_detecting)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                          color: const Color(0xFFF0FDF4),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFBBF7D0))),
+                      child: const Row(
+                        children: [
+                          SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: AppColors.sellerGreen)),
+                          SizedBox(width: 10),
+                          Text('Scanning photo for items...',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF166534))),
+                        ],
+                      ),
+                    )
+                  else if (_detectionError != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                          color: const Color(0xFFFFFBEB),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFFDE68A))),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_outline,
+                              size: 18, color: Color(0xFFB45309)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                              child: Text(_detectionError!,
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFFB45309)))),
+                        ],
+                      ),
+                    ),
+                  if (_detecting || _detectionError != null)
+                    const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
@@ -382,14 +488,10 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                             if (existing.isNotEmpty) {
                               existing.first.quantity++;
                             } else {
-                              final defaultWeight = ScrapWeightService.instance
-                                      .getWeight(_pendingClass) ??
-                                  0;
                               _selectedItems.add(_SellItem(
                                 className: _pendingClass,
                                 quantity: 1,
-                                weightCtrl: TextEditingController(
-                                    text: defaultWeight.toStringAsFixed(2)),
+                                weightCtrl: TextEditingController(),
                                 notesCtrl: TextEditingController(),
                               ));
                             }
