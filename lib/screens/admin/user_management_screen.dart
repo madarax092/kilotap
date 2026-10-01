@@ -48,13 +48,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Users (${allUsers.length})',
-                            style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF111827))),
                         GestureDetector(
                           onTap: () => Navigator.pop(context),
                           child: Container(
@@ -63,10 +57,16 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                             decoration: BoxDecoration(
                                 color: const Color(0xFFF3F4F6),
                                 borderRadius: BorderRadius.circular(12)),
-                            child: const Icon(Icons.close,
+                            child: const Icon(Icons.arrow_back,
                                 color: Color(0xFF6B7280), size: 20),
                           ),
                         ),
+                        const SizedBox(width: 12),
+                        Text('Users (${allUsers.length})',
+                            style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF111827))),
                       ],
                     ),
                     const SizedBox(height: 4),

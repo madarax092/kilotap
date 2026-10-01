@@ -174,15 +174,19 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(label,
             style:
                 const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-        Text(value,
-            style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary)),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(value,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary)),
+        ),
       ]),
     );
   }

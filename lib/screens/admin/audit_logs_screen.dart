@@ -27,13 +27,7 @@ class AuditLogsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Security Audit Logs',
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF111827))),
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
                       child: Container(
@@ -42,10 +36,16 @@ class AuditLogsScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                             color: const Color(0xFFF3F4F6),
                             borderRadius: BorderRadius.circular(12)),
-                        child: const Icon(Icons.close,
+                        child: const Icon(Icons.arrow_back,
                             color: Color(0xFF6B7280), size: 20),
                       ),
                     ),
+                    const SizedBox(width: 12),
+                    const Text('Security Audit Logs',
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF111827))),
                   ],
                 ),
                 const SizedBox(height: 4),

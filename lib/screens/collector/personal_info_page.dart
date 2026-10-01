@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth_service.dart';
 import '../../services/auth_state.dart';
@@ -15,7 +16,6 @@ class _CollectorPersonalInfoPageState extends State<CollectorPersonalInfoPage> {
   late final _nameCtrl =
       TextEditingController(text: AuthState.instance.displayName);
   late final _phoneCtrl = TextEditingController(text: AuthState.instance.phone);
-  String _language = 'Bisaya';
   bool _saving = false;
 
   Future<void> _save() async {
@@ -59,40 +59,17 @@ class _CollectorPersonalInfoPageState extends State<CollectorPersonalInfoPage> {
               style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
           const SizedBox(height: 20),
           _Field(label: 'Full Name', controller: _nameCtrl),
-          _Field(label: 'Phone Number', controller: _phoneCtrl),
+          _Field(
+            label: 'Phone Number',
+            controller: _phoneCtrl,
+            keyboardType: TextInputType.phone,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(11),
+            ],
+          ),
           _Field(
               label: 'Email', value: AuthState.instance.email, readOnly: true),
-          const SizedBox(height: 10),
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListTile(
-              leading: const Icon(Icons.language,
-                  color: AppColors.textSecondary, size: 22),
-              title: const Text('Language',
-                  style: TextStyle(fontSize: 14, color: AppColors.textPrimary)),
-              trailing: SizedBox(
-                width: 130,
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _language,
-                    isDense: true,
-                    style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary),
-                    items: ['Bisaya', 'Tagalog', 'English']
-                        .map((l) => DropdownMenuItem(value: l, child: Text(l)))
-                        .toList(),
-                    onChanged: (v) => setState(() => _language = v!),
-                  ),
-                ),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            ),
-          ),
           const SizedBox(height: 30),
           SizedBox(
             width: double.infinity,
@@ -127,11 +104,15 @@ class _Field extends StatelessWidget {
   final TextEditingController? controller;
   final String? value;
   final bool readOnly;
+  final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
   const _Field(
       {required this.label,
       this.controller,
       this.value,
-      this.readOnly = false});
+      this.readOnly = false,
+      this.keyboardType,
+      this.inputFormatters});
 
   @override
   Widget build(BuildContext context) {
@@ -163,6 +144,8 @@ class _Field extends StatelessWidget {
                         fontSize: 13, color: AppColors.textSecondary)),
                 TextField(
                   controller: controller,
+                  keyboardType: keyboardType,
+                  inputFormatters: inputFormatters,
                   style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,

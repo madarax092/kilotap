@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/auth_service.dart';
 import 'login_screen.dart';
 
 // ─── Landing Screen ───
@@ -24,10 +25,16 @@ class _LandingScreenState extends State<LandingScreen>
   late final AnimationController _exitController;
   late final Animation<double> _logoFade;
   late final Animation<double> _mottoFade;
+  // Kicked off in parallel with the animation below so it's (almost always)
+  // already resolved by the time _startExitSequence needs it — restoring an
+  // existing Firebase session shouldn't add a visible delay on top of the
+  // splash animation that's already playing.
+  late final Future<String?> _restoreFuture;
 
   @override
   void initState() {
     super.initState();
+    _restoreFuture = AuthService.instance.tryRestoreSession();
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -65,6 +72,19 @@ class _LandingScreenState extends State<LandingScreen>
     if (!mounted) return;
     await _exitController.forward();
     if (!mounted) return;
+
+    final restoredRole = await _restoreFuture;
+    if (!mounted) return;
+    if (restoredRole != null) {
+      final route = restoredRole == 'Collector'
+          ? '/collector'
+          : restoredRole == 'Admin'
+              ? '/admin'
+              : '/household';
+      Navigator.of(context).pushNamedAndRemoveUntil(route, (r) => false);
+      return;
+    }
+
     Navigator.of(context).pushReplacement(PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 500),
       pageBuilder: (_, __, ___) => const LoginScreen(),

@@ -47,6 +47,22 @@ class AuthService {
     }
   }
 
+  // Firebase keeps the sign-in session across app restarts, but AuthState
+  // (the in-memory role/profile cache) starts empty every cold start — this
+  // re-hydrates it from the still-valid session so the app can skip straight
+  // past the login screen instead of showing it to an already-signed-in user.
+  Future<String?> tryRestoreSession() async {
+    final user = _auth.currentUser;
+    if (user == null) return null;
+    try {
+      final doc = await _firestore.collection(colAccount).doc(user.uid).get();
+      if (!doc.exists) return null;
+      return _loadUserDataIntoState(user.uid, doc.data()!);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<GoogleAuthResult?> signInWithGoogle() async {
     try {
       final googleUser = await _googleSignIn.signIn();

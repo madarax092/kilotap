@@ -23,6 +23,8 @@ class GoogleMapsService {
       'https://routes.googleapis.com/directions/v2:computeRoutes';
   static const String _routeBox = 'route_cache';
   static const int _maxCachedRoutes = 20;
+  static const String _geocodeBox = 'geocode_cache';
+  static const int _maxCachedGeocodes = 30;
 
   static Future<RouteInfo?> getRoute({
     required double originLat,
@@ -124,6 +126,13 @@ class GoogleMapsService {
   }
 
   static Future<String?> reverseGeocode(double lat, double lon) async {
+    // ~11m grid — tight enough that a dragged pin still resolves to its
+    // own street address, loose enough to absorb GPS/tap jitter on repeat
+    // visits to roughly the same spot without hitting the network again.
+    final cacheKey = '${(lat * 10000).round()},${(lon * 10000).round()}';
+    final cached = await _getCachedGeocode(cacheKey);
+    if (cached != null) return cached;
+
     if (AppConstants.googleMapsApiKey == 'YOUR_GOOGLE_MAPS_API_KEY') return null;
     try {
       final uri = Uri.parse(
@@ -134,11 +143,35 @@ class GoogleMapsService {
       if (json['status'] != 'OK') return null;
       final results = json['results'] as List?;
       if (results == null || results.isEmpty) return null;
-      return (results.first as Map<String, dynamic>)['formatted_address']
-          as String?;
+      final address =
+          (results.first as Map<String, dynamic>)['formatted_address']
+              as String?;
+      if (address != null && address.isNotEmpty) {
+        await _cacheGeocode(cacheKey, address);
+      }
+      return address;
     } catch (_) {
       return null;
     }
+  }
+
+  static Future<String?> _getCachedGeocode(String key) async {
+    try {
+      final box = await Hive.openBox(_geocodeBox);
+      return box.get(key) as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<void> _cacheGeocode(String key, String address) async {
+    try {
+      final box = await Hive.openBox(_geocodeBox);
+      if (box.length >= _maxCachedGeocodes && !box.containsKey(key)) {
+        await box.deleteAt(0);
+      }
+      await box.put(key, address);
+    } catch (_) {}
   }
 
   static String formatDistance(double km) {

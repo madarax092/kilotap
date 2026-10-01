@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -22,6 +23,7 @@ class _AddressEntryPageState extends State<AddressEntryPage> {
   bool _loadingLocation = true;
   bool _geocoding = false;
   bool _saving = false;
+  Timer? _geocodeDebounce;
 
   @override
   void initState() {
@@ -31,6 +33,7 @@ class _AddressEntryPageState extends State<AddressEntryPage> {
 
   @override
   void dispose() {
+    _geocodeDebounce?.cancel();
     _addrCtrl.dispose();
     super.dispose();
   }
@@ -56,7 +59,7 @@ class _AddressEntryPageState extends State<AddressEntryPage> {
       // user's already-saved, trusted address shouldn't get silently
       // overwritten just because their GPS reading drifted slightly.
       if (_addrCtrl.text.trim().isEmpty) {
-        await _updatePin(pos);
+        _updatePin(pos);
       } else {
         setState(() => _pin = pos);
       }
@@ -65,11 +68,20 @@ class _AddressEntryPageState extends State<AddressEntryPage> {
     }
   }
 
-  Future<void> _updatePin(LatLng position) async {
+  // Moves the pin immediately for responsive dragging/tapping, but debounces
+  // the actual reverse-geocode call — otherwise a user exploring the map
+  // with several taps before settling burns one Geocoding API call per tap.
+  void _updatePin(LatLng position) {
     setState(() {
       _pin = position;
       _geocoding = true;
     });
+    _geocodeDebounce?.cancel();
+    _geocodeDebounce =
+        Timer(const Duration(milliseconds: 600), () => _geocodeNow(position));
+  }
+
+  Future<void> _geocodeNow(LatLng position) async {
     final address =
         await GoogleMapsService.reverseGeocode(position.latitude, position.longitude);
     if (!mounted) return;
