@@ -1,10 +1,49 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import 'collector_register_screen.dart';
+import 'household_register_screen.dart';
 
 // ─── Role Selection Screen ───
 
 class RolePickerScreen extends StatelessWidget {
-  const RolePickerScreen({super.key});
+  final String? googleUid;
+  final String? googleEmail;
+  final String? googleDisplayName;
+
+  const RolePickerScreen({
+    super.key,
+    this.googleUid,
+    this.googleEmail,
+    this.googleDisplayName,
+  });
+
+  void _goToHousehold(BuildContext context) {
+    if (googleUid != null) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => HouseholdRegisterScreen(
+                  googleUid: googleUid,
+                  googleEmail: googleEmail,
+                  googleDisplayName: googleDisplayName)));
+    } else {
+      Navigator.pushNamed(context, '/register-household');
+    }
+  }
+
+  void _goToCollector(BuildContext context) {
+    if (googleUid != null) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => CollectorRegisterScreen(
+                  googleUid: googleUid,
+                  googleEmail: googleEmail,
+                  googleDisplayName: googleDisplayName)));
+    } else {
+      Navigator.pushNamed(context, '/register-collector');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +58,7 @@ class RolePickerScreen extends StatelessWidget {
                 width: 72,
                 height: 72,
                 decoration: BoxDecoration(
-                    color: AppColors.sellerGreen.withOpacity(0.08),
+                    color: AppColors.sellerGreen.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(20)),
                 child: const Icon(Icons.person_add,
                     size: 36, color: AppColors.sellerGreen),
@@ -36,22 +75,21 @@ class RolePickerScreen extends StatelessWidget {
                       TextStyle(fontSize: 13, color: AppColors.textSecondary)),
               const SizedBox(height: 36),
               GestureDetector(
-                onTap: () =>
-                    Navigator.pushNamed(context, '/register-household'),
+                onTap: () => _goToHousehold(context),
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                       color: AppColors.pureWhite,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                          color: AppColors.sellerGreen.withOpacity(0.3),
+                          color: AppColors.sellerGreen.withValues(alpha: 0.3),
                           width: 2)),
                   child: Row(children: [
                     Container(
                         width: 52,
                         height: 52,
                         decoration: BoxDecoration(
-                            color: AppColors.sellerGreen.withOpacity(0.1),
+                            color: AppColors.sellerGreen.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(14)),
                         child: const Icon(Icons.home,
                             color: AppColors.sellerGreen, size: 28)),
@@ -78,22 +116,21 @@ class RolePickerScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               GestureDetector(
-                onTap: () =>
-                    Navigator.pushNamed(context, '/register-collector'),
+                onTap: () => _goToCollector(context),
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                       color: AppColors.pureWhite,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                          color: AppColors.buyerBlue.withOpacity(0.3),
+                          color: AppColors.buyerBlue.withValues(alpha: 0.3),
                           width: 2)),
                   child: Row(children: [
                     Container(
                         width: 52,
                         height: 52,
                         decoration: BoxDecoration(
-                            color: AppColors.buyerBlue.withOpacity(0.1),
+                            color: AppColors.buyerBlue.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(14)),
                         child: const Icon(Icons.delivery_dining,
                             color: AppColors.buyerBlue, size: 28)),

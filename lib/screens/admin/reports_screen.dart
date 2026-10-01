@@ -26,13 +26,7 @@ class ReportsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Reports & Disputes',
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF111827))),
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
                       child: Container(
@@ -41,10 +35,16 @@ class ReportsScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                             color: const Color(0xFFF3F4F6),
                             borderRadius: BorderRadius.circular(12)),
-                        child: const Icon(Icons.close,
+                        child: const Icon(Icons.arrow_back,
                             color: Color(0xFF6B7280), size: 20),
                       ),
                     ),
+                    const SizedBox(width: 12),
+                    const Text('Reports & Disputes',
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF111827))),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -57,13 +57,13 @@ class ReportsScreen extends StatelessWidget {
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              children: [
+              children: const [
                 _RCard(
                     '#RPT-0018',
                     'INVESTIGATE',
                     AppColors.warning,
                     'Collector No-Show',
-                    const [
+                    [
                       'Reported by: Maria S. (Household)',
                       'Against: Juan D. (Collector)',
                       'Pickup: #PKP-0035 · June 29, 2026',
@@ -71,18 +71,18 @@ class ReportsScreen extends StatelessWidget {
                     ],
                     response:
                         'Collector response: "Traffic po, nag-message ako sa household"',
-                    actions: const [
+                    actions: [
                       _Act('RESOLVE', AppColors.success, true),
                       _Act('WARN', AppColors.warning, false),
                       _Act('SUSPEND', AppColors.error, false)
                     ]),
                 _RCard('#RPT-0017', 'RESOLVED', AppColors.success,
-                    'Wrong Items Collected', const [
+                    'Wrong Items Collected', [
                   'Reported by: Jose R. (Household)',
                   'Against: Pedro R. (Collector)',
                   'Pickup: #PKP-0032 · June 28, 2026'
                 ]),
-                const SizedBox(height: 30),
+                SizedBox(height: 30),
               ],
             ),
           ),
@@ -123,7 +123,7 @@ class _RCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.08),
+                          color: statusColor.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(8)),
                       child: Text(status,
                           style: TextStyle(
@@ -174,7 +174,7 @@ class _RCard extends StatelessWidget {
                                     style: ElevatedButton.styleFrom(
                                         backgroundColor: a.primary
                                             ? a.color
-                                            : a.color.withOpacity(0.08),
+                                            : a.color.withValues(alpha: 0.08),
                                         foregroundColor:
                                             a.primary ? Colors.white : a.color,
                                         padding: const EdgeInsets.symmetric(

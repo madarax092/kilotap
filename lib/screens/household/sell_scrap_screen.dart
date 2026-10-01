@@ -1,8 +1,16 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/scrap_weight_service.dart';
-import '../../core/volume_classifier.dart';
-import '../../models/booking_item.dart';
+import '../../services/ml/capacity_matcher.dart';
+import '../../services/ml/pipeline.dart';
+import '../../services/firestore_service.dart';
+import '../../services/auth_state.dart';
+import 'address_entry_page.dart';
 import 'booking_summary_screen.dart';
 import 'camera_prototype_screen.dart';
 
@@ -12,24 +20,210 @@ class SellScrapScreen extends StatefulWidget {
   State<SellScrapScreen> createState() => _SellScrapScreenState();
 }
 
+class _SellItem {
+  final String className;
+  int quantity;
+  final TextEditingController weightCtrl;
+  final TextEditingController notesCtrl;
+  _SellItem({
+    required this.className,
+    required this.quantity,
+    required this.weightCtrl,
+    required this.notesCtrl,
+  });
+}
+
 class _SellScrapScreenState extends State<SellScrapScreen> {
-  late String _selectedVehicle;
+  XFile? _photo;
+  late String _address = AuthState.instance.address;
+  bool _detecting = false;
+  String? _detectionError;
+  double _spatialAreaRatio = 0.0;
+
+  // scrapClass -> quantity, with a user-editable weight (kg) and optional
+  // detail annotation per item. Pre-filled from on-device detection when
+  // available; always user-editable/addable regardless (human-in-the-loop
+  // confirmation, per the paper's 2.1.3.1.3).
+  final List<_SellItem> _selectedItems = [];
+  final MoloPipeline _pipeline = MoloPipeline();
+  String _pendingClass = ScrapWeightService.supportedClasses.first;
+  final _bookingNotesCtrl = TextEditingController();
+
+  String? _vehicleOverride;
   bool _isAsap = true;
   DateTime? _scheduledDate;
+  bool _submitting = false;
 
-  List<String> _detections = [];
+  double get _totalWeight {
+    double total = 0;
+    for (final item in _selectedItems) {
+      total += double.tryParse(item.weightCtrl.text) ?? 0;
+    }
+    return double.parse(total.toStringAsFixed(2));
+  }
 
-  String get _totalVolume => VolumeClassifier.getTotalVolume(_detections);
-  double get _totalWeight => VolumeClassifier.getTotalWeight(_detections);
+  List<String> get _sizeClasses => _selectedItems
+      .map((item) => ScrapWeightService.instance.getSizeClass(item.className))
+      .toList();
+
   String get _recommendedVehicle =>
-      VolumeClassifier.getRecommendedVehicle(_totalVolume);
-  List<String> get _availableVehicles =>
-      VolumeClassifier.getAvailableVehicles(_totalVolume);
+      CapacityMatcher.match(totalKg: _totalWeight, sizeClasses: _sizeClasses)
+          .label;
+
+  String get _selectedVehicle => _vehicleOverride ?? _recommendedVehicle;
+
+  String _humanize(String key) {
+    return key.split('_').map((w) {
+      if (w.isEmpty) return w;
+      if (w.contains(RegExp(r'[0-9]'))) return w;
+      return w[0].toUpperCase() + w.substring(1);
+    }).join(' ');
+  }
+
+  Future<void> _pickPhoto() async {
+    final result = await Navigator.push<XFile?>(context,
+        MaterialPageRoute(builder: (_) => const CameraPrototypeScreen()));
+    if (result == null) return;
+    setState(() {
+      _photo = result;
+      _detectionError = null;
+      _spatialAreaRatio = 0.0;
+    });
+    if (!kIsWeb) await _runDetection(result);
+  }
+
+  Future<void> _runDetection(XFile photo) async {
+    setState(() => _detecting = true);
+    try {
+      final result = await _pipeline.run(File(photo.path));
+      final counts = <String, int>{};
+      for (final d in result.detections) {
+        counts[d.className] = (counts[d.className] ?? 0) + 1;
+      }
+      final areaRatio = result.detections
+          .fold<double>(0.0, (total, d) => total + (d.w * d.h))
+          .clamp(0.0, 1.0);
+
+      if (!mounted) return;
+      setState(() {
+        _spatialAreaRatio = areaRatio;
+        for (final entry in counts.entries) {
+          final existing =
+              _selectedItems.where((e) => e.className == entry.key);
+          if (existing.isNotEmpty) {
+            existing.first.quantity += entry.value;
+          } else {
+            _selectedItems.add(_SellItem(
+              className: entry.key,
+              quantity: entry.value,
+              weightCtrl: TextEditingController(),
+              notesCtrl: TextEditingController(),
+            ));
+          }
+        }
+        if (counts.isEmpty) {
+          _detectionError =
+              'No known items detected — add items manually below.';
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _detectionError = 'Detection failed: $e — add items manually below.';
+      });
+    } finally {
+      if (mounted) setState(() => _detecting = false);
+    }
+  }
+
+  Future<Position> _getCurrentPosition() async {
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      throw Exception(
+          'Location permission is required to submit a pickup request.');
+    }
+    if (!await Geolocator.isLocationServiceEnabled()) {
+      throw Exception('Please enable location services and try again.');
+    }
+    return Geolocator.getCurrentPosition(
+        locationSettings:
+            const LocationSettings(accuracy: LocationAccuracy.high));
+  }
+
+  Future<void> _submit() async {
+    if (_selectedItems.isEmpty || _photo == null || _submitting) return;
+    if (_selectedItems
+        .any((item) => (double.tryParse(item.weightCtrl.text) ?? 0) <= 0)) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Enter a valid weight (kg) for every item.')));
+      return;
+    }
+    setState(() => _submitting = true);
+
+    try {
+      final position = await _getCurrentPosition();
+      final firestoreService = FirestoreService();
+      final auth = AuthState.instance;
+
+      String photoUrl = '';
+      if (!kIsWeb && _photo != null) {
+        photoUrl = await firestoreService.uploadBookingPhoto(File(_photo!.path));
+      }
+
+      final bookingId = await firestoreService.createBooking({
+        'Seller_ID': auth.uid,
+        'Collector_ID': '',
+        'Status': 'Pending',
+        'VehicleRequirement': _selectedVehicle,
+        'SpatialAreaRatio': double.parse(_spatialAreaRatio.toStringAsFixed(4)),
+        'PickupGPS': GeoPoint(position.latitude, position.longitude),
+        'PickupAddress': _address,
+        'Notes': _bookingNotesCtrl.text.trim(),
+        'PhotoURL': photoUrl,
+      });
+
+      for (final item in _selectedItems) {
+        final weight = double.tryParse(item.weightCtrl.text) ?? 0;
+        await firestoreService.createBookingItem({
+          'Booking_ID': bookingId,
+          'ItemName': _humanize(item.className),
+          'Quantity': item.quantity,
+          'SizeClass': ScrapWeightService.instance.getSizeClass(item.className),
+          'EstimatedWeightKg': double.parse(weight.toStringAsFixed(2)),
+          'ScrapClass': item.className,
+          'Notes': item.notesCtrl.text.trim(),
+        });
+      }
+
+      if (!mounted) return;
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => BookingSummaryScreen(
+                  bookingId: bookingId, photoPath: _photo?.path)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Could not submit pickup request: $e'),
+        backgroundColor: Colors.red,
+      ));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
 
   @override
-  void initState() {
-    super.initState();
-    _selectedVehicle = _recommendedVehicle;
+  void dispose() {
+    for (final item in _selectedItems) {
+      item.weightCtrl.dispose();
+      item.notesCtrl.dispose();
+    }
+    _bookingNotesCtrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -71,30 +265,18 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                const Text('Snap a photo and get instant AI estimates',
+                const Text('Take a photo, then add the items you\'re selling',
                     style: TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
               ],
             ),
           ),
-
           Expanded(
             child: ListView(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                 children: [
                   GestureDetector(
-                    onTap: () async {
-                      final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const CameraPrototypeScreen()));
-                      if (result != null && result is List<String>) {
-                        setState(() {
-                          _detections = result;
-                          _selectedVehicle = _recommendedVehicle;
-                        });
-                      }
-                    },
+                    onTap: _pickPhoto,
                     child: Container(
                       height: 220,
                       decoration: BoxDecoration(
@@ -108,34 +290,122 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                                 blurRadius: 10,
                                 offset: Offset(0, 4))
                           ]),
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                                width: 72,
-                                height: 72,
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppColors.sellerGreen
-                                        .withOpacity(0.08)),
-                                child: const Icon(Icons.camera_rounded,
-                                    color: AppColors.sellerGreen, size: 32)),
-                            const SizedBox(height: 16),
-                            const Text('Take a Photo',
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF111827))),
-                            const SizedBox(height: 4),
-                            const Text('Point camera at your scrap items',
-                                style: TextStyle(
-                                    fontSize: 12, color: Color(0xFF6B7280))),
-                          ]),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(18.5),
+                        child: _photo == null
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                    Container(
+                                        width: 72,
+                                        height: 72,
+                                        decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: AppColors.sellerGreen
+                                                .withValues(alpha: 0.08)),
+                                        child: const Icon(Icons.camera_rounded,
+                                            color: AppColors.sellerGreen,
+                                            size: 32)),
+                                    const SizedBox(height: 16),
+                                    const Text('Take a Photo',
+                                        style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w700,
+                                            color: Color(0xFF111827))),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                        'Point camera at your scrap items',
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            color: Color(0xFF6B7280))),
+                                  ])
+                            : Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  kIsWeb
+                                      ? Image.network(_photo!.path,
+                                          fit: BoxFit.cover)
+                                      : Image.file(File(_photo!.path),
+                                          fit: BoxFit.cover),
+                                  Positioned(
+                                    right: 8,
+                                    top: 8,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10, vertical: 6),
+                                      decoration: BoxDecoration(
+                                          color: Colors.black54,
+                                          borderRadius:
+                                              BorderRadius.circular(20)),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.refresh,
+                                              color: Colors.white, size: 14),
+                                          SizedBox(width: 4),
+                                          Text('Retake',
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600)),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ),
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
+                  if (_detecting)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                          color: const Color(0xFFF0FDF4),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFBBF7D0))),
+                      child: const Row(
+                        children: [
+                          SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: AppColors.sellerGreen)),
+                          SizedBox(width: 10),
+                          Text('Scanning photo for items...',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF166534))),
+                        ],
+                      ),
+                    )
+                  else if (_detectionError != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                          color: const Color(0xFFFFFBEB),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFFDE68A))),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_outline,
+                              size: 18, color: Color(0xFFB45309)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                              child: Text(_detectionError!,
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFFB45309)))),
+                        ],
+                      ),
+                    ),
+                  if (_detecting || _detectionError != null)
+                    const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
@@ -143,8 +413,8 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                         color: const Color(0xFFFEF2F2),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: const Color(0xFFFCA5A5))),
-                    child: Row(
-                      children: const [
+                    child: const Row(
+                      children: [
                         Icon(Icons.lock_outline,
                             size: 18, color: Color(0xFFEF4444)),
                         SizedBox(width: 10),
@@ -158,60 +428,94 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
-                  if (_detections.isEmpty)
-                    _Card(children: const [
-                      Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
-                          child: Text('Take a photo to generate AI analysis.',
-                              style: TextStyle(
-                                  color: Color(0xFF6B7280), fontSize: 13)),
+                  _Card(children: [
+                    Row(
+                      children: [
+                        Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                                color: AppColors.sellerGreen
+                                    .withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8)),
+                            child: const Icon(Icons.inventory_2_outlined,
+                                color: AppColors.sellerGreen, size: 16)),
+                        const SizedBox(width: 10),
+                        const Text('SELECTED ITEMS',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF111827))),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border:
+                                    Border.all(color: const Color(0xFFE5E7EB))),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _pendingClass,
+                                isExpanded: true,
+                                icon: const Icon(Icons.keyboard_arrow_down,
+                                    color: Color(0xFF9CA3AF)),
+                                style: const TextStyle(
+                                    fontSize: 13, color: Color(0xFF111827)),
+                                items: ScrapWeightService.supportedClasses
+                                    .map((c) => DropdownMenuItem(
+                                        value: c,
+                                        child: Text(_humanize(c),
+                                            overflow: TextOverflow.ellipsis)))
+                                    .toList(),
+                                onChanged: (v) =>
+                                    setState(() => _pendingClass = v!),
+                              ),
+                            ),
+                          ),
                         ),
-                      )
-                    ])
-                  else
-                    _Card(children: [
-                      Row(
-                        children: [
-                          Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                  color: AppColors.sellerGreen.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8)),
-                              child: const Icon(Icons.auto_awesome,
-                                  color: AppColors.sellerGreen, size: 16)),
-                          const SizedBox(width: 10),
-                          const Text('AI ANALYSIS',
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w800,
-                                  color: Color(0xFF111827))),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      ..._buildAnalysisRows(),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: () => setState(() {
+                            final existing = _selectedItems
+                                .where((e) => e.className == _pendingClass);
+                            if (existing.isNotEmpty) {
+                              existing.first.quantity++;
+                            } else {
+                              _selectedItems.add(_SellItem(
+                                className: _pendingClass,
+                                quantity: 1,
+                                weightCtrl: TextEditingController(),
+                                notesCtrl: TextEditingController(),
+                              ));
+                            }
+                          }),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.sellerGreen,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10))),
+                          child: const Icon(Icons.add, size: 20),
+                        ),
+                      ],
+                    ),
+                    if (_selectedItems.isNotEmpty) ...[
                       const Padding(
                           padding: EdgeInsets.symmetric(vertical: 12),
                           child: Divider(color: Color(0xFFF3F4F6), height: 1)),
-                      Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Total Volume',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF6B7280),
-                                    fontSize: 13)),
-                            Text(_totalVolume,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.sellerGreen,
-                                    fontSize: 14)),
-                          ]),
-                      const SizedBox(height: 8),
+                      ..._buildItemRows(),
+                      const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          child: Divider(color: Color(0xFFF3F4F6), height: 1)),
                       Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -248,38 +552,16 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                                   color: AppColors.sellerGreen)),
                         ]),
                       ),
-                    ]),
-
-                  const SizedBox(height: 24),
-
-                  _Card(children: [
-                    Row(
-                      children: [
-                        Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                                color: const Color(0xFFF3F4F6),
-                                borderRadius: BorderRadius.circular(8)),
-                            child: const Icon(Icons.info_outline,
-                                color: Color(0xFF6B7280), size: 16)),
-                        const SizedBox(width: 10),
-                        const Text('AUTO-ARCHIVED METADATA',
+                    ] else
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Text(
+                            'No items added yet — pick a class above and tap +.',
                             style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF4B5563),
-                                letterSpacing: 0.5)),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    const _MetaRow('GPS', '7.0712, 125.6089 (Maa)'),
-                    const _MetaRow('Timestamp', '2026-07-01 14:30:52'),
-                    const _MetaRow('Device', 'Samsung A54 · Android 14'),
+                                color: Color(0xFF6B7280), fontSize: 13)),
+                      ),
                   ]),
-
                   const SizedBox(height: 24),
-
                   const Text('PICKUP DETAILS',
                       style: TextStyle(
                           fontSize: 12,
@@ -287,7 +569,6 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                           fontWeight: FontWeight.w800,
                           letterSpacing: 1)),
                   const SizedBox(height: 12),
-
                   Row(children: [
                     Expanded(
                       child: GestureDetector(
@@ -382,9 +663,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                       ),
                     ),
                   ]),
-
                   const SizedBox(height: 16),
-
                   Row(children: [
                     Expanded(
                       child: Container(
@@ -405,12 +684,12 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF111827)),
-                            items: _availableVehicles
+                            items: ScrapWeightService.vehicleTypes
                                 .map((v) =>
                                     DropdownMenuItem(value: v, child: Text(v)))
                                 .toList(),
                             onChanged: (v) =>
-                                setState(() => _selectedVehicle = v!),
+                                setState(() => _vehicleOverride = v),
                           ),
                         ),
                       ),
@@ -426,17 +705,66 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
-                      onPressed: () => setState(
-                          () => _selectedVehicle = _recommendedVehicle),
+                      onPressed: () => setState(() => _vehicleOverride = null),
                       child: const Text('Reset',
                           style: TextStyle(
                               fontSize: 13, fontWeight: FontWeight.w700)),
                     ),
                   ]),
-
                   const SizedBox(height: 16),
-
+                  GestureDetector(
+                    onTap: () async {
+                      final result = await Navigator.push<String>(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  AddressEntryPage(initialAddress: _address)));
+                      if (result != null) setState(() => _address = result);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFE5E7EB))),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.location_on_outlined,
+                              size: 20, color: Color(0xFF6B7280)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Pickup Address',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF6B7280),
+                                        fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 2),
+                                Text(
+                                    _address.isEmpty
+                                        ? 'Tap to set address'
+                                        : _address,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF111827))),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right,
+                              color: Color(0xFF9CA3AF), size: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   TextField(
+                      controller: _bookingNotesCtrl,
                       decoration: InputDecoration(
                           hintText: 'Notes: Gate code, instructions...',
                           hintStyle: const TextStyle(
@@ -457,9 +785,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                               borderSide: const BorderSide(
                                   color: AppColors.sellerGreen, width: 1.5))),
                       maxLines: 2),
-
                   const SizedBox(height: 32),
-
                   SizedBox(
                       width: double.infinity,
                       height: 54,
@@ -468,61 +794,38 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                               backgroundColor: AppColors.sellerGreen,
                               foregroundColor: Colors.white,
                               disabledBackgroundColor:
-                                  AppColors.sellerGreen.withOpacity(0.3),
+                                  AppColors.sellerGreen.withValues(alpha: 0.3),
                               disabledForegroundColor:
-                                  Colors.white.withOpacity(0.5),
+                                  Colors.white.withValues(alpha: 0.5),
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16))),
-                          onPressed: _detections.isEmpty
+                          onPressed: _selectedItems.isEmpty ||
+                                  _photo == null ||
+                                  _submitting
                               ? null
-                              : () {
-                                  final items = <BookingItem>[
-                                    BookingItem(
-                                      itemId: 'ITM-001',
-                                      bookingId: 'BKG-001',
-                                      itemName: 'Standard Refrigerator',
-                                      quantity: 1,
-                                      sizeClass: 'Heavy Override',
-                                      estimatedWeightKg: 100,
-                                      scrapClass: 'refrigerator_standard',
-                                    ),
-                                    BookingItem(
-                                      itemId: 'ITM-002',
-                                      bookingId: 'BKG-001',
-                                      itemName: 'Plastic Bottles',
-                                      quantity: 3,
-                                      sizeClass: 'Small',
-                                      estimatedWeightKg: 0.12,
-                                      scrapClass: 'plastic_bottle_1L',
-                                    ),
-                                    BookingItem(
-                                      itemId: 'ITM-003',
-                                      bookingId: 'BKG-001',
-                                      itemName: 'Metal Pipe',
-                                      quantity: 1,
-                                      sizeClass: 'Large',
-                                      estimatedWeightKg: 68,
-                                      scrapClass: 'metal_pipe_1m',
-                                    ),
-                                  ];
-
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (_) => BookingSummaryScreen(
-                                                totalVolume: _totalVolume,
-                                                totalWeight: _totalWeight,
-                                                selectedVehicle:
-                                                    _selectedVehicle,
-                                                items: items,
-                                              )));
-                                },
-                          child: const Text('SUBMIT PICKUP REQUEST',
-                              style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.5)))),
+                              : _submit,
+                          child: _submitting
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                      color: Colors.white, strokeWidth: 2.5))
+                              : const Text('SUBMIT PICKUP REQUEST',
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.5)))),
+                  if (_photo == null || _selectedItems.isEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                        _photo == null
+                            ? 'Take a photo of your scrap to continue.'
+                            : 'Add at least one item to continue.',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 12, color: Color(0xFF9CA3AF))),
+                  ],
                   const SizedBox(height: 30),
                 ]),
           ),
@@ -544,7 +847,9 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
             onTap: (i) {
               if (i == 0) Navigator.pushReplacementNamed(context, '/household');
               if (i == 2) Navigator.pushReplacementNamed(context, '/pickups');
-              if (i == 3) Navigator.pushReplacementNamed(context, '/chat');
+              if (i == 3) {
+                Navigator.pushReplacementNamed(context, '/chat_collector');
+              }
               if (i == 4) Navigator.pushReplacementNamed(context, '/profile');
             },
             items: const [
@@ -564,33 +869,122 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
     );
   }
 
-  List<Widget> _buildAnalysisRows() {
-    if (_detections.isEmpty) return [];
-
-    final counts = <String, int>{};
-    for (var d in _detections) {
-      counts[d] = (counts[d] ?? 0) + 1;
-    }
-
+  List<Widget> _buildItemRows() {
     final rows = <Widget>[];
-    counts.forEach((key, count) {
-      String label = key
-          .replaceAll('_', ' ')
-          .split(' ')
-          .map((w) => w[0].toUpperCase() + w.substring(1))
-          .join(' ');
-      if (key.contains('plastic_bottle')) label = 'Plastic Bottles';
-      if (key.contains('refrigerator')) label = 'Refrigerator';
-      if (key.contains('metal_pipe')) label = 'Metal Pipe';
+    for (final item in _selectedItems) {
+      final sizeClass =
+          ScrapWeightService.instance.getSizeClass(item.className);
 
-      final sizeClass = ScrapWeightService.instance.getSizeClass(key);
-      final weightPerItem = ScrapWeightService.instance.getWeight(key) ?? 0;
-      final totalWeight = weightPerItem * count;
-
-      rows.add(_AnalysisRow(label, '$count pc${count > 1 ? 's' : ''}',
-          '$sizeClass · $totalWeight kg'));
-    });
-
+      rows.add(Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                      Text(_humanize(item.className),
+                          style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF111827))),
+                      const SizedBox(height: 2),
+                      Text(sizeClass,
+                          style: const TextStyle(
+                              fontSize: 11, color: Color(0xFF6B7280))),
+                    ])),
+                IconButton(
+                  icon: const Icon(Icons.remove_circle_outline,
+                      size: 20, color: Color(0xFF9CA3AF)),
+                  onPressed: () => setState(() {
+                    if (item.quantity > 1) {
+                      item.quantity--;
+                    } else {
+                      item.weightCtrl.dispose();
+                      item.notesCtrl.dispose();
+                      _selectedItems.remove(item);
+                    }
+                  }),
+                ),
+                Text('${item.quantity}',
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w700)),
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline,
+                      size: 20, color: AppColors.sellerGreen),
+                  onPressed: () => setState(() => item.quantity++),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 90,
+                  child: TextField(
+                    controller: item.weightCtrl,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    onChanged: (_) => setState(() {}),
+                    style: const TextStyle(fontSize: 13),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      suffixText: 'kg',
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 10),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE5E7EB))),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE5E7EB))),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                              color: AppColors.sellerGreen, width: 1.5)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: item.notesCtrl,
+                    style: const TextStyle(fontSize: 13),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: 'Notes (optional)',
+                      hintStyle: const TextStyle(
+                          fontSize: 13, color: Color(0xFF9CA3AF)),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 10),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE5E7EB))),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE5E7EB))),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                              color: AppColors.sellerGreen, width: 1.5)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ));
+    }
     return rows;
   }
 }
@@ -611,52 +1005,4 @@ class _Card extends StatelessWidget {
           ]),
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start, children: children));
-}
-
-class _MetaRow extends StatelessWidget {
-  final String k, v;
-  const _MetaRow(this.k, this.v);
-  @override
-  Widget build(BuildContext context) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text(k, style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
-        Text(v,
-            style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF111827)))
-      ]));
-}
-
-class _AnalysisRow extends StatelessWidget {
-  final String label, qty, details;
-  const _AnalysisRow(this.label, this.qty, this.details);
-  @override
-  Widget build(BuildContext context) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Expanded(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF111827))),
-          const SizedBox(height: 2),
-          Text(details,
-              style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280))),
-        ])),
-        Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-                color: const Color(0xFFF3F4F6),
-                borderRadius: BorderRadius.circular(6)),
-            child: Text(qty,
-                style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF4B5563)))),
-      ]));
 }

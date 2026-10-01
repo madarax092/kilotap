@@ -50,6 +50,24 @@ class ScrapWeightService {
     'cardboard_box_small':   _ItemWeight(weightKg: 0.3, sizeClass: 'Small'),
     'plastic_bottle_1L':     _ItemWeight(weightKg: 0.04, sizeClass: 'Small'),
     'plastic_bottle_500ml':  _ItemWeight(weightKg: 0.03, sizeClass: 'Small'),
+
+    'electric_fan':          _ItemWeight(weightKg: 3.4, sizeClass: 'Small'),
+    'splittype_aircon':      _ItemWeight(weightKg: 35.0, sizeClass: 'Large'),
+    'flatscreentv':          _ItemWeight(weightKg: 6.0, sizeClass: 'Medium'),
+    'car_battery':           _ItemWeight(weightKg: 19.0, sizeClass: 'Medium'),
+    'mouse':                 _ItemWeight(weightKg: 0.1, sizeClass: 'Small'),
+    'keyboard':              _ItemWeight(weightKg: 0.7, sizeClass: 'Small'),
+
+    'battery':               _ItemWeight(weightKg: 19.0, sizeClass: 'Medium'),
+    'cardboard':             _ItemWeight(weightKg: 0.6, sizeClass: 'Medium'),
+    'copper':                _ItemWeight(weightKg: 1.0, sizeClass: 'Small'),
+    'electronic_battery':    _ItemWeight(weightKg: 0.3, sizeClass: 'Small'),
+    'electronic_waste':      _ItemWeight(weightKg: 1.0, sizeClass: 'Small'),
+    'hair_dryer':            _ItemWeight(weightKg: 1.0, sizeClass: 'Small'),
+    'motorcycle_block':      _ItemWeight(weightKg: 15.0, sizeClass: 'Medium'),
+    'plastic_hdpe':          _ItemWeight(weightKg: 0.1, sizeClass: 'Small'),
+    'plastic_pet':           _ItemWeight(weightKg: 0.05, sizeClass: 'Small'),
+    'vehicle_part_big':      _ItemWeight(weightKg: 10.0, sizeClass: 'Large'),
   };
 
   double? getWeight(String className) {
@@ -70,6 +88,11 @@ class ScrapWeightService {
     'metal_pipe_1m', 'metal_rod_1m', 'metal_bolt', 'cardboard_box_large',
     'glass_bottle_1L', 'glass_bottle_330ml', 'cardboard_box_small',
     'plastic_bottle_1L', 'plastic_bottle_500ml',
+    'electric_fan', 'splittype_aircon', 'flatscreentv', 'car_battery',
+    'mouse', 'keyboard',
+    'battery', 'cardboard', 'copper', 'electronic_battery',
+    'electronic_waste', 'hair_dryer', 'motorcycle_block', 'plastic_hdpe',
+    'plastic_pet', 'vehicle_part_big',
   ];
 
   static const List<String> vehicleTypes = [

@@ -38,18 +38,18 @@ class HouseholdProfileScreen extends StatelessWidget {
                         Icon(Icons.person, color: Color(0xFF1A85C8), size: 33)),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(AuthState.instance.displayName.isEmpty ? 'User' : AuthState.instance.displayName,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF111827))),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(AuthState.instance.email.isEmpty ? 'user@kilotap.com' : AuthState.instance.email,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 12,
                             color: Color(0xFF6B7280),
                             fontWeight: FontWeight.w500)),
@@ -73,18 +73,18 @@ class HouseholdProfileScreen extends StatelessWidget {
                   style:
                       TextStyle(fontSize: 13, color: AppColors.textSecondary)),
               const SizedBox(height: 16),
-              _MenuCard(items: [
-                const _MenuItem(
+              const _MenuCard(items: [
+                _MenuItem(
                   icon: Icons.person_outline,
                   label: 'Personal Information',
                   pageBuilder: HouseholdPersonalInfoPage.new,
                 ),
-                const _MenuItem(
+                _MenuItem(
                   icon: Icons.schedule_outlined,
                   label: 'Pickup Preferences',
                   pageBuilder: PickupPrefsPage.new,
                 ),
-                const _MenuItem(
+                _MenuItem(
                   icon: Icons.eco_outlined,
                   label: 'Recycling Impact',
                   pageBuilder: ImpactPage.new,
@@ -140,11 +140,14 @@ class HouseholdProfileScreen extends StatelessWidget {
             child: BottomNavigationBar(
               currentIndex: 4,
               onTap: (i) {
-                if (i == 0)
+                if (i == 0) {
                   Navigator.pushReplacementNamed(context, '/household');
+                }
                 if (i == 1) Navigator.pushReplacementNamed(context, '/sell');
                 if (i == 2) Navigator.pushReplacementNamed(context, '/pickups');
-                if (i == 3) Navigator.pushReplacementNamed(context, '/chat');
+                if (i == 3) {
+                  Navigator.pushReplacementNamed(context, '/chat_collector');
+                }
               },
               selectedItemColor: AppColors.sellerGreen,
               unselectedItemColor: const Color(0xFFBBBBBB),
@@ -195,8 +198,9 @@ class HouseholdProfileScreen extends StatelessWidget {
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10))),
-                    onPressed: () {
-                      AuthService.instance.signOut();
+                    onPressed: () async {
+                      await AuthService.instance.signOut();
+                      if (!context.mounted) return;
                       Navigator.pushNamedAndRemoveUntil(
                           context, '/', (r) => false);
                     },

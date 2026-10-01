@@ -35,7 +35,6 @@ class RolePermissions {
   static const Map<String, String> routePermissions = {
     '/sell': sellScrap,
     '/pickups': viewPickups,
-    '/rate': rateCollector,
     '/profile': manageProfile,
     '/find': findScrap,
     '/idcard': viewIdCard,
@@ -55,7 +54,7 @@ class RolePermissions {
   }
 
   static bool canAccessRoute(String? role, String route) {
-    if (route == '/' || route == '/register' || route == '/register-household' || route == '/register-collector') return true;
+    if (route == '/' || route == '/login' || route == '/register' || route == '/register-household' || route == '/register-collector') return true;
     if (role == 'Admin') return true;
     final required = routePermissions[route];
     if (required == null) return true;

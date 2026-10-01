@@ -2,7 +2,7 @@
 
 enum VehicleSize {
   pushcart('Pushcart'),
-  tricycle('Tricycle Sidecar'),
+  tricycle('Tricycle'),
   multicab('Multicab'),
   truck('Truck');
 

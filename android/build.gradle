@@ -1,17 +1,3 @@
-buildscript {
-    ext.kotlin_version = '1.9.0'
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.gms:google-services:4.4.0'
-    }
-}
-
 allprojects {
     repositories {
         google()
@@ -19,12 +5,28 @@ allprojects {
     }
 }
 
-rootProject.buildDir = '../build'
+rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 subprojects {
-    project.evaluationDependsOn(':app')
+    project.evaluationDependsOn(":app")
+}
+
+subprojects {
+    // tflite_flutter's own module leaves Java/Kotlin JVM targets unset, and they
+    // resolve to different defaults (Java 11 vs Kotlin 21) on this toolchain,
+    // which Gradle rejects. Align Kotlin down to match Java's already-working
+    // target. Scoped to this one plugin only — other plugins (e.g.
+    // google_maps_flutter_android) set their own correct, often higher, targets
+    // and must not be overridden.
+    if (project.name == "tflite_flutter") {
+        project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            kotlinOptions {
+                jvmTarget = "11"
+            }
+        }
+    }
 }
 
 tasks.register("clean", Delete) {

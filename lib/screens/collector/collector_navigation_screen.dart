@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/auth_service.dart';
 import '../../services/auth_state.dart';
+import '../../services/firestore_service.dart';
 import '../../services/google_maps_service.dart';
+import '../../widgets/live_route_map.dart';
 
 // ─── Collector Navigation Screen ───
 
@@ -20,35 +25,40 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchRoute();
+    _refreshLocation();
   }
 
-  Future<void> _fetchRoute() async {
-    final args = ModalRoute.of(context)?.settings.arguments
-        as Map<String, dynamic>?;
-    final householdLat = (args?['lat'] as num?)?.toDouble() ?? 7.0750;
-    final householdLon = (args?['lon'] as num?)?.toDouble() ?? 125.6130;
+  Future<void> _refreshLocation() async {
+    try {
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever ||
+          !await Geolocator.isLocationServiceEnabled()) {
+        return;
+      }
+      final position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
+      await AuthService.instance
+          .updateCollectorLocation(position.latitude, position.longitude);
+      if (mounted) setState(() {});
+    } catch (_) {
+      // Non-fatal — falls back to whatever location was already on file.
+    }
+  }
 
-    final auth = AuthState.instance;
-    final collectorLat = auth.currentLatitude != 0
-        ? auth.currentLatitude
-        : 7.0800;
-    final collectorLon = auth.currentLongitude != 0
-        ? auth.currentLongitude
-        : 125.6050;
-
-    final route = await GoogleMapsService.getRoute(
-      originLat: collectorLat,
-      originLon: collectorLon,
-      destLat: householdLat,
-      destLon: householdLon,
-    );
-
-    if (!mounted) return;
-    setState(() {
-      _route = route;
-      _loading = false;
-    });
+  Future<void> _openInGoogleMaps(double lat, double lon) async {
+    final uri = Uri.parse('google.navigation:q=$lat,$lon');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+      return;
+    }
+    // Fallback for devices without the Google Maps app installed.
+    final webUri = Uri.parse(
+        'https://www.google.com/maps/dir/?api=1&destination=$lat,$lon');
+    await launchUrl(webUri, mode: LaunchMode.externalApplication);
   }
 
   @override
@@ -56,18 +66,19 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
     final args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
             {
-              'initials': 'MS',
-              'name': 'Maria Santos',
-              'location': 'Maa · 0.3 km away',
-              'pcs': '12 pcs',
-              'material': 'Plastic',
-              'weight': '15 kg',
-              'time': 'ASAP',
-              'imagePath': 'assets/images/multiple_scrap_sample.png',
+              'initials': '?',
+              'name': 'Household',
+              'location': 'Address not provided',
+              'material': 'Vehicle not specified',
               'mapPath': 'assets/images/davao_nav_map.png',
               'lat': 7.0750,
               'lon': 125.6130,
             };
+    final destLat = (args['lat'] as num).toDouble();
+    final destLon = (args['lon'] as num).toDouble();
+    final auth = AuthState.instance;
+    final hasCollectorLocation =
+        auth.currentLatitude != 0 && auth.currentLongitude != 0;
 
     final String etaStr;
     final String distanceStr;
@@ -87,12 +98,22 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: Image.asset(
-              args['mapPath'],
-              fit: BoxFit.cover,
+            child: LiveRouteMap(
+              destLat: destLat,
+              destLon: destLon,
+              originLat: hasCollectorLocation ? auth.currentLatitude : null,
+              originLon: hasCollectorLocation ? auth.currentLongitude : null,
+              height: double.infinity,
+              borderRadius: BorderRadius.zero,
+              onRouteLoaded: (route) {
+                if (!mounted) return;
+                setState(() {
+                  _route = route;
+                  _loading = false;
+                });
+              },
             ),
           ),
-
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             left: 16,
@@ -115,49 +136,43 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
               ),
             ),
           ),
-
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             left: 80,
             right: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: AppColors.buyerBlue,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: const [
-                  BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 10,
-                      offset: Offset(0, 4))
-                ],
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.turn_right, color: Colors.white, size: 32),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text('200 m',
-                            style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600)),
-                        Text('Turn right onto Maa Road',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800)),
-                      ],
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => _openInGoogleMaps(destLat, destLon),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.buyerBlue,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [
+                    BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 10,
+                        offset: Offset(0, 4))
+                  ],
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.navigation, color: Colors.white, size: 28),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Text('Open turn-by-turn in Google Maps',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800)),
                     ),
-                  ),
-                ],
+                    Icon(Icons.chevron_right, color: Colors.white70),
+                  ],
+                ),
               ),
             ),
           ),
-
           Positioned(
             bottom: 0,
             left: 0,
@@ -221,7 +236,7 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.buyerBlue.withOpacity(0.1),
+                          color: AppColors.buyerBlue.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.phone,
@@ -232,7 +247,6 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
                   const SizedBox(height: 20),
                   const Divider(color: AppColors.divider, height: 1),
                   const SizedBox(height: 20),
-
                   Row(
                     children: [
                       Container(
@@ -261,8 +275,7 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
                                     fontSize: 16,
                                     color: AppColors.textPrimary)),
                             const SizedBox(height: 4),
-                            Text(
-                                'Pickup: ${args['weight']} ${args['material']}',
+                            Text('Vehicle needed: ${args['material']}',
                                 style: const TextStyle(
                                     fontSize: 13,
                                     color: AppColors.textSecondary)),
@@ -272,7 +285,6 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-
                   SizedBox(
                     width: double.infinity,
                     height: 54,
@@ -285,7 +297,24 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
                         ),
                         elevation: 0,
                       ),
-                      onPressed: () {
+                      onPressed: () async {
+                        final bookingId = args['bookingId'] as String?;
+                        if (bookingId != null) {
+                          final svc = FirestoreService();
+                          await svc.updateBookingStatus(bookingId, 'Completed');
+                          final booking = await svc.getBooking(bookingId);
+                          if (booking != null) {
+                            await svc.sendNotification({
+                              'Recipient_ID': booking.sellerId,
+                              'Booking_ID': bookingId,
+                              'Title': 'Pickup completed',
+                              'Message':
+                                  'Your scrap pickup was completed. Rate your collector!',
+                              'Type': 'completed',
+                            });
+                          }
+                        }
+                        if (!context.mounted) return;
                         Navigator.pushReplacementNamed(context, '/collector');
                       },
                       child: const Text(

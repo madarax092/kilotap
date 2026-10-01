@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import '../core/constants/app_constants.dart';
 
-// ─── Google Maps Service: Distance + ETA ───
+// ─── Google Maps Service: Distance + ETA + Route Polyline (Routes API) ───
 
 class RouteInfo {
   final double distanceKm;
@@ -18,7 +19,12 @@ class RouteInfo {
 class GoogleMapsService {
   GoogleMapsService._();
 
-  static const String _baseUrl = 'https://maps.googleapis.com/maps/api/distancematrix/json';
+  static const String _baseUrl =
+      'https://routes.googleapis.com/directions/v2:computeRoutes';
+  static const String _routeBox = 'route_cache';
+  static const int _maxCachedRoutes = 20;
+  static const String _geocodeBox = 'geocode_cache';
+  static const int _maxCachedGeocodes = 30;
 
   static Future<RouteInfo?> getRoute({
     required double originLat,
@@ -26,46 +32,146 @@ class GoogleMapsService {
     required double destLat,
     required double destLon,
   }) async {
+    final cacheKey = _cacheKey(originLat, originLon, destLat, destLon);
+
+    // No API key configured → serve cached route only
     if (AppConstants.googleMapsApiKey == 'YOUR_GOOGLE_MAPS_API_KEY') {
-      return null;
+      return _getCachedRoute(cacheKey);
     }
 
     try {
-      final uri = Uri.parse(_baseUrl).replace(queryParameters: {
-        'origins': '$originLat,$originLon',
-        'destinations': '$destLat,$destLon',
-        'mode': 'driving',
-        'key': AppConstants.googleMapsApiKey,
-      });
+      final response = await http
+          .post(
+            Uri.parse(_baseUrl),
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Goog-Api-Key': AppConstants.googleMapsApiKey,
+              'X-Goog-FieldMask':
+                  'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline',
+            },
+            body: jsonEncode({
+              'origin': {
+                'location': {
+                  'latLng': {'latitude': originLat, 'longitude': originLon}
+                }
+              },
+              'destination': {
+                'location': {
+                  'latLng': {'latitude': destLat, 'longitude': destLon}
+                }
+              },
+              'travelMode': 'DRIVE',
+            }),
+          )
+          .timeout(const Duration(seconds: 8));
 
-      final response = await http.get(uri).timeout(const Duration(seconds: 8));
-
-      if (response.statusCode != 200) return null;
+      if (response.statusCode != 200) return _getCachedRoute(cacheKey);
 
       final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final status = json['status'] as String?;
-      if (status != 'OK') return null;
+      final routes = json['routes'] as List?;
+      if (routes == null || routes.isEmpty) return _getCachedRoute(cacheKey);
 
-      final rows = json['rows'] as List?;
-      if (rows == null || rows.isEmpty) return null;
+      final route = routes.first as Map<String, dynamic>;
+      final distanceMeters = (route['distanceMeters'] as num?)?.toInt() ?? 0;
+      final durationStr = route['duration'] as String? ?? '0s';
+      final durationSeconds =
+          int.tryParse(durationStr.replaceAll('s', '')) ?? 0;
+      final encodedPolyline =
+          (route['polyline'] as Map?)?['encodedPolyline'] as String? ?? '';
 
-      final elements = (rows.first as Map)['elements'] as List?;
-      if (elements == null || elements.isEmpty) return null;
+      final routeInfo = RouteInfo(
+        distanceKm: distanceMeters / 1000.0,
+        etaMinutes: durationSeconds / 60.0,
+        polyline: encodedPolyline,
+      );
+      await _cacheRoute(cacheKey, routeInfo);
+      return routeInfo;
+    } catch (_) {
+      return _getCachedRoute(cacheKey);
+    }
+  }
 
-      final element = elements.first as Map;
-      final elementStatus = element['status'] as String?;
-      if (elementStatus != 'OK') return null;
+  static String _cacheKey(double lat1, double lon1, double lat2, double lon2) {
+    String r(double v) => (v * 1000).round().toString();
+    return '${r(lat1)},${r(lon1)}|${r(lat2)},${r(lon2)}';
+  }
 
-      final distance = (element['distance'] as Map)['value'] as int? ?? 0;
-      final duration = (element['duration'] as Map)['value'] as int? ?? 0;
-
+  static Future<RouteInfo?> _getCachedRoute(String key) async {
+    try {
+      final box = await Hive.openBox(_routeBox);
+      final data = box.get(key) as Map?;
+      if (data == null) return null;
       return RouteInfo(
-        distanceKm: distance / 1000.0,
-        etaMinutes: duration / 60.0,
+        distanceKm: (data['distanceKm'] as num).toDouble(),
+        etaMinutes: (data['etaMinutes'] as num).toDouble(),
+        polyline: (data['polyline'] as String?) ?? '',
       );
     } catch (_) {
       return null;
     }
+  }
+
+  static Future<void> _cacheRoute(String key, RouteInfo route) async {
+    try {
+      final box = await Hive.openBox(_routeBox);
+      if (box.length >= _maxCachedRoutes && !box.containsKey(key)) {
+        await box.deleteAt(0);
+      }
+      await box.put(key, {
+        'distanceKm': route.distanceKm,
+        'etaMinutes': route.etaMinutes,
+        'polyline': route.polyline,
+      });
+    } catch (_) {}
+  }
+
+  static Future<String?> reverseGeocode(double lat, double lon) async {
+    // ~11m grid — tight enough that a dragged pin still resolves to its
+    // own street address, loose enough to absorb GPS/tap jitter on repeat
+    // visits to roughly the same spot without hitting the network again.
+    final cacheKey = '${(lat * 10000).round()},${(lon * 10000).round()}';
+    final cached = await _getCachedGeocode(cacheKey);
+    if (cached != null) return cached;
+
+    if (AppConstants.googleMapsApiKey == 'YOUR_GOOGLE_MAPS_API_KEY') return null;
+    try {
+      final uri = Uri.parse(
+          'https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lon&key=${AppConstants.googleMapsApiKey}');
+      final response = await http.get(uri).timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) return null;
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      if (json['status'] != 'OK') return null;
+      final results = json['results'] as List?;
+      if (results == null || results.isEmpty) return null;
+      final address =
+          (results.first as Map<String, dynamic>)['formatted_address']
+              as String?;
+      if (address != null && address.isNotEmpty) {
+        await _cacheGeocode(cacheKey, address);
+      }
+      return address;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<String?> _getCachedGeocode(String key) async {
+    try {
+      final box = await Hive.openBox(_geocodeBox);
+      return box.get(key) as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<void> _cacheGeocode(String key, String address) async {
+    try {
+      final box = await Hive.openBox(_geocodeBox);
+      if (box.length >= _maxCachedGeocodes && !box.containsKey(key)) {
+        await box.deleteAt(0);
+      }
+      await box.put(key, address);
+    } catch (_) {}
   }
 
   static String formatDistance(double km) {

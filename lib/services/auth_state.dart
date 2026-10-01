@@ -29,6 +29,8 @@ class AuthState {
 
   String _vehicleType = '';
   double _vehicleCapacityKg = 0;
+  List<Map<String, dynamic>> _vehicles = [];
+  List<Map<String, dynamic>> _verificationDocs = [];
   List<String> _preferredMaterials = [];
   String _verificationStatus = 'Pending';
   String _digitalBadgeUrl = '';
@@ -39,6 +41,8 @@ class AuthState {
 
   String get vehicleType => _vehicleType;
   double get vehicleCapacityKg => _vehicleCapacityKg;
+  List<Map<String, dynamic>> get vehicles => _vehicles;
+  List<Map<String, dynamic>> get verificationDocs => _verificationDocs;
   List<String> get preferredMaterials => _preferredMaterials;
   String get verificationStatus => _verificationStatus;
   String get digitalBadgeUrl => _digitalBadgeUrl;
@@ -73,6 +77,8 @@ class AuthState {
   void setCollectorProfile({
     String vehicleType = '',
     double vehicleCapacityKg = 0,
+    List<Map<String, dynamic>> vehicles = const [],
+    List<Map<String, dynamic>> verificationDocs = const [],
     List<String> preferredMaterials = const [],
     String verificationStatus = 'Pending',
     String digitalBadgeUrl = '',
@@ -83,6 +89,8 @@ class AuthState {
   }) {
     _vehicleType = vehicleType;
     _vehicleCapacityKg = vehicleCapacityKg;
+    _vehicles = vehicles;
+    _verificationDocs = verificationDocs;
     _preferredMaterials = preferredMaterials;
     _verificationStatus = verificationStatus;
     _digitalBadgeUrl = digitalBadgeUrl;
@@ -102,6 +110,8 @@ class AuthState {
     _preferredSchedule = 'ASAP';
     _vehicleType = '';
     _vehicleCapacityKg = 0;
+    _vehicles = [];
+    _verificationDocs = [];
     _preferredMaterials = [];
     _verificationStatus = 'Pending';
     _digitalBadgeUrl = '';
@@ -111,6 +121,17 @@ class AuthState {
     _onlineStatus = false;
   }
 
-  bool canAccess(String route) => RolePermissions.canAccessRoute(_role, route);
-  bool hasPermission(String permission) => RolePermissions.hasPermission(_role, permission);
+  // 'VerifiedCollector' is a permission tier, not a stored Role value —
+  // Firestore's Role field only ever holds Household/Collector/Admin (Table
+  // 7). It's computed here from the collector's actual Verification_Status
+  // instead, so accept_pickup only unlocks once they're really verified.
+  String? get _effectiveRole =>
+      _role == 'Collector' && _verificationStatus == 'Verified'
+          ? 'VerifiedCollector'
+          : _role;
+
+  bool canAccess(String route) =>
+      RolePermissions.canAccessRoute(_effectiveRole, route);
+  bool hasPermission(String permission) =>
+      RolePermissions.hasPermission(_effectiveRole, permission);
 }

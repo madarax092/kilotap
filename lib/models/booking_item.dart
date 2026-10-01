@@ -7,6 +7,7 @@ class BookingItem {
   final String sizeClass;
   final double estimatedWeightKg;
   final String scrapClass;
+  final String notes;
 
   const BookingItem({
     required this.itemId,
@@ -16,15 +17,17 @@ class BookingItem {
     required this.sizeClass,
     required this.estimatedWeightKg,
     required this.scrapClass,
+    this.notes = '',
   });
 
   factory BookingItem.fromMap(Map<String, dynamic> m) => BookingItem(
-    itemId: m['Item_ID'] ?? '',
-    bookingId: m['Booking_ID'] ?? '',
-    itemName: m['ItemName'] ?? '',
-    quantity: m['Quantity'] ?? 1,
-    sizeClass: m['SizeClass'] ?? 'Small',
-    estimatedWeightKg: (m['EstimatedWeightKg'] ?? 0.0).toDouble(),
-    scrapClass: m['ScrapClass'] ?? '',
-  );
+        itemId: m['Item_ID'] ?? '',
+        bookingId: m['Booking_ID'] ?? '',
+        itemName: m['ItemName'] ?? '',
+        quantity: m['Quantity'] ?? 1,
+        sizeClass: m['SizeClass'] ?? 'Small',
+        estimatedWeightKg: (m['EstimatedWeightKg'] ?? 0.0).toDouble(),
+        scrapClass: m['ScrapClass'] ?? '',
+        notes: m['Notes'] ?? '',
+      );
 }

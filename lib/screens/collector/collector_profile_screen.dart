@@ -39,18 +39,18 @@ class CollectorProfileScreen extends StatelessWidget {
                         Icon(Icons.person, color: Color(0xFF1A85C8), size: 33)),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(AuthState.instance.displayName.isEmpty ? 'User' : AuthState.instance.displayName,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF111827))),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(AuthState.instance.email.isEmpty ? 'user@kilotap.com' : AuthState.instance.email,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 12,
                             color: Color(0xFF6B7280),
                             fontWeight: FontWeight.w500)),
@@ -168,15 +168,19 @@ class CollectorProfileScreen extends StatelessWidget {
             child: BottomNavigationBar(
               currentIndex: 4,
               onTap: (i) {
-                if (i == 0)
+                if (i == 0) {
                   Navigator.pushReplacementNamed(context, '/collector');
+                }
                 if (i == 1) Navigator.pushReplacementNamed(context, '/find');
-                if (i == 2)
-                  Navigator.pushReplacementNamed(context, '/chat_collector');
-                if (i == 3)
+                if (i == 2) {
+                  Navigator.pushReplacementNamed(context, '/chat');
+                }
+                if (i == 3) {
                   Navigator.pushReplacementNamed(context, '/earnings');
-                if (i == 4)
+                }
+                if (i == 4) {
                   Navigator.pushReplacementNamed(context, '/collector_profile');
+                }
               },
               selectedItemColor: AppColors.buyerBlue,
               unselectedItemColor: const Color(0xFFBBBBBB),
@@ -228,8 +232,9 @@ void _confirmLogout(BuildContext context) {
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10))),
-                  onPressed: () {
-                    AuthService.instance.signOut();
+                  onPressed: () async {
+                    await AuthService.instance.signOut();
+                    if (!context.mounted) return;
                     Navigator.pushNamedAndRemoveUntil(
                         context, '/', (r) => false);
                   },

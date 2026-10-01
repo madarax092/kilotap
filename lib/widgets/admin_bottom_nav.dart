@@ -22,16 +22,21 @@ class AdminBottomNav extends StatelessWidget {
               elevation: 0,
               type: BottomNavigationBarType.fixed,
               onTap: (i) {
-                if (i == 0 && current != 0)
+                if (i == 0 && current != 0) {
                   Navigator.pushReplacementNamed(c, '/admin');
-                if (i == 1 && current != 1)
+                }
+                if (i == 1 && current != 1) {
                   Navigator.pushReplacementNamed(c, '/verify');
-                if (i == 2 && current != 2)
+                }
+                if (i == 2 && current != 2) {
                   Navigator.pushReplacementNamed(c, '/reports');
-                if (i == 3 && current != 3)
+                }
+                if (i == 3 && current != 3) {
                   Navigator.pushReplacementNamed(c, '/audit');
-                if (i == 4 && current != 4)
+                }
+                if (i == 4 && current != 4) {
                   Navigator.pushReplacementNamed(c, '/admin_profile');
+                }
               },
               items: const [
                 BottomNavigationBarItem(

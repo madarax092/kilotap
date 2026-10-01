@@ -15,6 +15,9 @@ dependencies:
   firebase_auth: ^5.3.1
   cloud_firestore: ^5.4.4
 
+  # Google Sign-In
+  google_sign_in: ^6.2.2
+
   # Maps
   google_maps_flutter: ^2.10.0
   google_maps_flutter_web: ^0.5.10
@@ -26,8 +29,19 @@ dependencies:
   # HTTP (Google Maps Distance Matrix API)
   http: ^1.2.0
 
+  # Real device GPS for PickupGPS, real camera capture for scrap photos
+  geolocator: ^13.0.0
+  image_picker: ^1.1.2
+
+  # Launch real turn-by-turn navigation in the Google Maps app
+  url_launcher: ^6.3.0
+
   # Fonts
   google_fonts: ^6.3.1
+  tflite_flutter: ^0.12.1
+  image: ^4.10.1
+  google_maps_flutter_android: ^2.19.13
+  google_maps_flutter_platform_interface: ^2.17.0
 
 dev_dependencies:
   flutter_test:
@@ -39,6 +53,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/models/
 
   # fonts:
   #   - family: NunitoSans

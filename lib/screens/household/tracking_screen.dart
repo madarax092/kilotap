@@ -1,15 +1,67 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/firestore_service.dart';
+import '../../services/google_maps_service.dart';
+import '../../widgets/live_route_map.dart';
 
-class TrackingScreen extends StatelessWidget {
+class TrackingScreen extends StatefulWidget {
+  final String collectorId;
   final String collectorName;
   final String bookingId;
+  final String vehicleType;
+  final double destLat;
+  final double destLon;
 
-  const TrackingScreen(
-      {super.key, required this.collectorName, required this.bookingId});
+  const TrackingScreen({
+    super.key,
+    required this.collectorId,
+    required this.collectorName,
+    required this.bookingId,
+    required this.destLat,
+    required this.destLon,
+    this.vehicleType = '',
+  });
+
+  @override
+  State<TrackingScreen> createState() => _TrackingScreenState();
+}
+
+class _TrackingScreenState extends State<TrackingScreen> {
+  double? _collectorLat;
+  double? _collectorLon;
+  RouteInfo? _route;
+
+  @override
+  void initState() {
+    super.initState();
+    // Loads once on open — deliberately not polling, to avoid repeated
+    // Firestore reads and Google Routes API calls while this screen is open.
+    _refreshCollectorLocation();
+  }
+
+  Future<void> _refreshCollectorLocation() async {
+    final profile =
+        await FirestoreService().collectorProfile(widget.collectorId);
+    if (profile == null || !mounted) return;
+    final lat = (profile['Current_Latitude'] as num?)?.toDouble() ?? 0;
+    final lon = (profile['Current_Longitude'] as num?)?.toDouble() ?? 0;
+    if (lat == 0 && lon == 0) return;
+    setState(() {
+      _collectorLat = lat;
+      _collectorLon = lon;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final etaLabel =
+        _route != null ? GoogleMapsService.formatEta(_route!.etaMinutes) : '—';
+    final distanceLabel = _route != null
+        ? GoogleMapsService.formatDistance(_route!.distanceKm)
+        : (_collectorLat == null
+            ? 'Waiting for collector location...'
+            : 'Calculating...');
+
     return Scaffold(
         backgroundColor: const Color(0xFFF9FAFB),
         appBar: AppBar(
@@ -19,7 +71,7 @@ class TrackingScreen extends StatelessWidget {
             icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
             onPressed: () => Navigator.pop(context),
           ),
-          title: Text('Track $bookingId',
+          title: Text('Track ${widget.bookingId}',
               style: const TextStyle(
                   color: Color(0xFF111827),
                   fontWeight: FontWeight.w800,
@@ -32,69 +84,19 @@ class TrackingScreen extends StatelessWidget {
         body: Column(
           children: [
             Expanded(
-              child: Container(
-                  width: double.infinity,
-                  color: const Color(0xFFE5E7EB),
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                          child: Opacity(
-                        opacity: 0.5,
-                        child: Image.asset(
-                          'assets/images/davao_nav_map.png',
-                          fit: BoxFit.cover,
-                        ),
-                      )),
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.location_on,
-                                color: AppColors.error, size: 40),
-                            const SizedBox(height: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                        color: Colors.black12, blurRadius: 4)
-                                  ]),
-                              child: const Text('Your Location',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 12,
-                                      color: Color(0xFF111827))),
-                            ),
-                            const SizedBox(height: 40),
-                            const Icon(Icons.local_shipping,
-                                color: AppColors.sellerGreen, size: 40),
-                            const SizedBox(height: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                  color: AppColors.sellerGreen,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                        color: Colors.black12, blurRadius: 4)
-                                  ]),
-                              child: Text(collectorName,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 12,
-                                      color: Colors.white)),
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
-                  )),
+              child: LiveRouteMap(
+                destLat: widget.destLat,
+                destLon: widget.destLon,
+                originLat: _collectorLat,
+                originLon: _collectorLon,
+                height: double.infinity,
+                borderRadius: BorderRadius.zero,
+                onRouteLoaded: (route) {
+                  if (!mounted) return;
+                  setState(() => _route = route);
+                },
+              ),
             ),
-
             Container(
               padding: const EdgeInsets.all(24),
               decoration: const BoxDecoration(
@@ -117,19 +119,23 @@ class TrackingScreen extends StatelessWidget {
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text('Arriving in',
+                      children: [
+                        const Text('Live ETA',
                             style: TextStyle(
                                 fontSize: 14,
                                 color: Color(0xFF6B7280),
                                 fontWeight: FontWeight.w600)),
-                        Text('5 min',
-                            style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
+                        Text(etaLabel,
+                            style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
                                 color: AppColors.sellerGreen)),
                       ],
                     ),
+                    const SizedBox(height: 4),
+                    Text(distanceLabel,
+                        style: const TextStyle(
+                            fontSize: 12, color: Color(0xFF9CA3AF))),
                     const SizedBox(height: 16),
                     const Divider(color: Color(0xFFF3F4F6), height: 1),
                     const SizedBox(height: 16),
@@ -141,7 +147,15 @@ class TrackingScreen extends StatelessWidget {
                             color: Colors.blueAccent, shape: BoxShape.circle),
                         child: Center(
                             child: Text(
-                                collectorName.substring(0, 2).toUpperCase(),
+                                widget.collectorName.isEmpty
+                                    ? '?'
+                                    : widget.collectorName
+                                        .substring(
+                                            0,
+                                            widget.collectorName.length >= 2
+                                                ? 2
+                                                : 1)
+                                        .toUpperCase(),
                                 style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -152,14 +166,17 @@ class TrackingScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(collectorName,
+                            Text(widget.collectorName,
                                 style: const TextStyle(
                                     fontWeight: FontWeight.w800,
                                     fontSize: 16,
                                     color: Color(0xFF111827))),
                             const SizedBox(height: 4),
-                            const Text('Tricycle \u00b7 ABC-1234',
-                                style: TextStyle(
+                            Text(
+                                widget.vehicleType.isEmpty
+                                    ? 'Collector'
+                                    : widget.vehicleType,
+                                style: const TextStyle(
                                     fontSize: 13, color: Color(0xFF6B7280))),
                           ],
                         ),
@@ -181,23 +198,4 @@ class TrackingScreen extends StatelessWidget {
           ],
         ));
   }
-}
-
-class _GridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black26
-      ..strokeWidth = 1;
-
-    for (double i = 0; i < size.width; i += 40) {
-      canvas.drawLine(Offset(i, 0), Offset(i, size.height), paint);
-    }
-    for (double i = 0; i < size.height; i += 40) {
-      canvas.drawLine(Offset(0, i), Offset(size.width, i), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

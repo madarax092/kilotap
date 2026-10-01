@@ -28,9 +28,9 @@ class TermsServiceScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5)),
-            child: Column(
+            child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text('1. Acceptance of Terms', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF111827))),
                 SizedBox(height: 8),
                 Text('By accessing and using KiloTap, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.', style: TextStyle(fontSize: 14, color: Color(0xFF4B5563), height: 1.5)),

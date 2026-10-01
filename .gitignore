@@ -46,6 +46,24 @@ firebase_options.dart
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local-only (never commit — machine-specific)
+android/local.properties
+android/.gradle/
+/android/build/
+
+# Local-only — Claude Code tooling, not part of the app or the paper deliverable
 .hermes/plans/
+.claude/
+
 # Agent/markdown files — local only
 **/*.md
+# CLAUDE.md carries standing project instructions and travels with the repo.
+!/CLAUDE.md
+
+# ML training-only artifacts — not used by the shipped app (only assets/models/
+# is loaded at runtime); keep these out of the repo, regenerate locally if needed
+weights/
+yolov8n.pt
+calibration_image_sample_data_*.npy
+out.txt

@@ -29,11 +29,15 @@ class AppConstants {
   ];
 
   // ─── Firestore Collections (Tables 6-13) ───────────────────────────────────
+  static const String colAccount = 'UserAccount';
+  static const String colSeller = 'ScrapSeller';
+  static const String colCollector = 'ScrapCollector';
   static const String colBookings = 'bookings';
   static const String colBookingItems = 'bookingItems';
   static const String colRatings = 'ratings';
   static const String colNotifications = 'notifications';
   static const String colAuditLogs = 'auditLogs';
+  static const String colMessages = 'messages';
 
   // ─── Audit Action Types ────────────────────────────────────────────────────
   static const String auditVerifyCollector = 'VERIFY_COLLECTOR';
@@ -45,4 +49,8 @@ class AppConstants {
 
   // ─── Google Maps API (replace with real key on your local machine) ─────────
   static const String googleMapsApiKey = 'YOUR_GOOGLE_MAPS_API_KEY';
+
+  // ─── Cloudinary (unsigned upload, for chat photo attachments) ──────────────
+  static const String cloudinaryCloudName = 'iqsnzgli';
+  static const String cloudinaryUploadPreset = 'iqsnzgli';
 }

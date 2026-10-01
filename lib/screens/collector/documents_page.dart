@@ -1,50 +1,63 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/auth_state.dart';
 
 class DocumentsPage extends StatelessWidget {
   const DocumentsPage({super.key});
 
+  Color _statusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'verified':
+        return AppColors.success;
+      case 'rejected':
+        return AppColors.error;
+      default:
+        return AppColors.warning;
+    }
+  }
+
+  String _statusLabel(String status) {
+    if (status.isEmpty) return 'Pending';
+    return status[0].toUpperCase() + status.substring(1).toLowerCase();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final docs = AuthState.instance.verificationDocs;
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text('Verification Documents',
-            style: TextStyle(color: Color(0xFF111827), fontWeight: FontWeight.w800, fontSize: 16)),
+            style: TextStyle(
+                color: AppColors.textPrimary, fontWeight: FontWeight.w700)),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.5),
-          child: Container(color: const Color(0xFFE5E7EB), height: 1.5),
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         children: [
+          const SizedBox(height: 12),
           const Text(
             'These documents are verified by the system administrator before you can receive bookings.',
-            style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
-          const SizedBox(height: 24),
-          _DocCard(
-            title: 'Valid Government ID',
-            status: 'Verified',
-            statusColor: AppColors.success,
-          ),
-          _DocCard(
-            title: 'Vehicle Photo',
-            status: 'Verified',
-            statusColor: AppColors.success,
-          ),
-          _DocCard(
-            title: 'Profile Photo Match',
-            status: 'Verified',
-            statusColor: AppColors.success,
-          ),
+          const SizedBox(height: 20),
+          if (docs.isEmpty)
+            const Text('No verification documents on file yet.',
+                style: TextStyle(color: AppColors.textSecondary))
+          else
+            ...docs.map((d) {
+              final status = (d['status'] as String? ?? 'pending');
+              return _DocCard(
+                title: d['type'] as String? ?? 'Document',
+                status: _statusLabel(status),
+                statusColor: _statusColor(status),
+              );
+            }),
         ],
       ),
     );
@@ -64,31 +77,32 @@ class _DocCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
-        ),
-        child: ListTile(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
         leading: Container(
-          width: 32, height: 32,
+          width: 24,
+          height: 24,
           decoration: BoxDecoration(
-            color: statusColor.withOpacity(0.1),
+            color: statusColor,
             shape: BoxShape.circle,
           ),
-          child: Icon(Icons.check_circle, size: 20, color: statusColor),
+          child: const Icon(Icons.check, size: 14, color: Colors.white),
         ),
         title: Text(title,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+            style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary)),
         subtitle: Text(status,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: statusColor)),
-        trailing: const Icon(Icons.chevron_right, color: Color(0xFF9CA3AF), size: 20),
+            style: TextStyle(
+                fontSize: 12, fontWeight: FontWeight.w600, color: statusColor)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-        onTap: () {},
       ),
-    ));
+    );
   }
 }
