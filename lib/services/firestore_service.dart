@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import '../core/constants/app_constants.dart';
+import '../core/vehicle_verification.dart';
+import '../core/verification_docs.dart';
 import '../models/booking.dart';
 import '../models/booking_item.dart';
 import '../models/rating.dart';
@@ -22,6 +25,26 @@ class FirestoreService {
     data['Created_At'] = FieldValue.serverTimestamp();
     await ref.set(data);
     return ref.id;
+  }
+
+  // Writes the booking (Table 10) and all its items (Table 11) in one atomic
+  // batch, so the new-booking Cloud Function always sees the items when it
+  // fires and can match them against collector material preferences.
+  Future<String> createBookingWithItems(
+      Map<String, dynamic> booking, List<Map<String, dynamic>> items) async {
+    final batch = _db.batch();
+    final bookingRef = _db.collection(AppConstants.colBookings).doc();
+    booking['Booking_ID'] = bookingRef.id;
+    booking['Created_At'] = FieldValue.serverTimestamp();
+    batch.set(bookingRef, booking);
+    for (final item in items) {
+      final itemRef = _db.collection(AppConstants.colBookingItems).doc();
+      item['Item_ID'] = itemRef.id;
+      item['Booking_ID'] = bookingRef.id;
+      batch.set(itemRef, item);
+    }
+    await batch.commit();
+    return bookingRef.id;
   }
 
   Future<Booking?> getBooking(String id) async {
@@ -171,17 +194,35 @@ class FirestoreService {
     await ref.set(data);
   }
 
-  Future<String> uploadChatImage(
-      File file, String senderId, String recipientId) async {
+  // Hard cap enforced client-side before any Cloudinary upload — the
+  // unsigned preset itself has no server-side size limit.
+  static const int maxUploadBytes = 5 * 1024 * 1024;
+
+  // Smaller cap for the Digital ID photo — it's shown as a small thumbnail,
+  // and the picker already downscales it well under this.
+  static const int maxIdPhotoBytes = 2 * 1024 * 1024;
+
+  Future<String> _uploadToCloudinary(File file,
+      {String resourceType = 'image', int maxBytes = maxUploadBytes}) async {
+    if (await file.length() > maxBytes) {
+      throw Exception(
+          'File is larger than ${maxBytes ~/ (1024 * 1024)}MB — please choose a smaller one.');
+    }
+    return _postToCloudinary(
+        await http.MultipartFile.fromPath('file', file.path), resourceType);
+  }
+
+  Future<String> _postToCloudinary(
+      http.MultipartFile upload, String resourceType) async {
     if (AppConstants.cloudinaryCloudName == 'YOUR_CLOUDINARY_CLOUD_NAME') {
       throw Exception(
           'Cloudinary is not configured — set cloudinaryCloudName and cloudinaryUploadPreset in app_constants.dart');
     }
     final uri = Uri.parse(
-        'https://api.cloudinary.com/v1_1/${AppConstants.cloudinaryCloudName}/image/upload');
+        'https://api.cloudinary.com/v1_1/${AppConstants.cloudinaryCloudName}/$resourceType/upload');
     final request = http.MultipartRequest('POST', uri)
       ..fields['upload_preset'] = AppConstants.cloudinaryUploadPreset
-      ..files.add(await http.MultipartFile.fromPath('file', file.path));
+      ..files.add(upload);
     final response = await request.send();
     final body = await response.stream.bytesToString();
     if (response.statusCode != 200) {
@@ -191,23 +232,76 @@ class FirestoreService {
     return data['secure_url'] as String;
   }
 
-  Future<String> uploadBookingPhoto(File file) async {
-    if (AppConstants.cloudinaryCloudName == 'YOUR_CLOUDINARY_CLOUD_NAME') {
-      throw Exception(
-          'Cloudinary is not configured — set cloudinaryCloudName and cloudinaryUploadPreset in app_constants.dart');
+  Future<String> uploadChatImage(
+          File file, String senderId, String recipientId) =>
+      _uploadToCloudinary(file);
+
+  Future<String> uploadBookingPhoto(File file) => _uploadToCloudinary(file);
+
+  // Photo for one entry of ScrapCollector.Vehicles — needed for an admin to
+  // approve a vehicle added after the collector was already verified.
+  Future<String> uploadVehiclePhoto(File file) => _uploadToCloudinary(file);
+
+  // ─── Digital ID (ScrapCollector, Table 9) ──────────────────────
+
+  Future<String> uploadIdPhoto(File file) =>
+      _uploadToCloudinary(file, maxBytes: maxIdPhotoBytes);
+
+  // Signature is drawn in-app and exported straight to PNG bytes, so it
+  // never touches the filesystem.
+  Future<String> uploadSignature(Uint8List pngBytes) => _postToCloudinary(
+      http.MultipartFile.fromBytes('file', pngBytes, filename: 'signature.png'),
+      'image');
+
+  // ─── Verification Documents (part of ScrapCollector, Table 9) ──────
+
+  // 'auto' lets Cloudinary route photos through its image pipeline (so they
+  // still get thumbnail/transform support) while PDFs/Word docs go through
+  // as raw files — same endpoint handles both since the collector can pick
+  // either a camera photo or a document file for any of the three doc types.
+  Future<String> uploadVerificationDoc(File file) =>
+      _uploadToCloudinary(file, resourceType: 'auto');
+
+  // Verification_Docs is a plain array field (not subdocuments), so a
+  // single-entry change means reading the whole array, replacing the
+  // matching {type, url, status} map, and writing it back.
+  Future<void> setVerificationDocUrl(
+      String uid, String docType, String url) async {
+    final ref = _db
+        .collection(AppConstants.colAccount)
+        .doc(uid)
+        .collection(AppConstants.colCollector)
+        .doc(uid);
+    final doc = await ref.get();
+    final docs = normalizeVerificationDocs(List<Map<String, dynamic>>.from(
+        (doc.data()?['Verification_Docs'] as List<dynamic>? ?? [])
+            .map((d) => Map<String, dynamic>.from(d as Map))));
+    final i = docs.indexWhere((d) => d['type'] == docType);
+    final updated = {'type': docType, 'url': url, 'status': 'pending'};
+    if (i >= 0) {
+      docs[i] = updated;
+    } else {
+      docs.add(updated);
     }
-    final uri = Uri.parse(
-        'https://api.cloudinary.com/v1_1/${AppConstants.cloudinaryCloudName}/image/upload');
-    final request = http.MultipartRequest('POST', uri)
-      ..fields['upload_preset'] = AppConstants.cloudinaryUploadPreset
-      ..files.add(await http.MultipartFile.fromPath('file', file.path));
-    final response = await request.send();
-    final body = await response.stream.bytesToString();
-    if (response.statusCode != 200) {
-      throw Exception('Cloudinary upload failed: $body');
-    }
-    final data = jsonDecode(body) as Map<String, dynamic>;
-    return data['secure_url'] as String;
+    await ref.update({'Verification_Docs': docs});
+  }
+
+  // Applies the admin's overall decision to every individual document's
+  // status, instead of leaving them stuck on 'pending' forever.
+  Future<void> setAllVerificationDocsStatus(String uid, String status) async {
+    final ref = _db
+        .collection(AppConstants.colAccount)
+        .doc(uid)
+        .collection(AppConstants.colCollector)
+        .doc(uid);
+    final doc = await ref.get();
+    final docs = List<Map<String, dynamic>>.from(
+        (doc.data()?['Verification_Docs'] as List<dynamic>? ?? [])
+            .map((d) => Map<String, dynamic>.from(d as Map)));
+    final updated = docs
+        .map((d) => {...d, 'status': status.toLowerCase()})
+        .toList();
+    await ref.update({'Verification_Docs': updated});
   }
 
   // Sorted in Dart, not via .orderBy() — combining array-contains with
@@ -273,6 +367,11 @@ class FirestoreService {
     return doc.data();
   }
 
+  // Role stays 'Collector' regardless of verification outcome —
+  // 'VerifiedCollector' is a computed permission tier derived in
+  // AuthState._effectiveRole from Verification_Status, never a value stored
+  // in Firestore's Role field (see auth_state.dart). Writing it there breaks
+  // every `role == 'Collector'` routing check in the app.
   Future<void> setCollectorVerification(String uid, String status) async {
     await _db
         .collection(AuthService.colAccount)
@@ -280,7 +379,46 @@ class FirestoreService {
         .collection(AuthService.colCollector)
         .doc(uid)
         .update({'Verification_Status': status});
-    await _db.collection(AuthService.colAccount).doc(uid).update(
-        {'Role': status == 'Verified' ? 'VerifiedCollector' : 'Collector'});
+  }
+
+  // ─── Per-vehicle approval (ScrapCollector.Verified_Vehicles) ───────
+
+  DocumentReference<Map<String, dynamic>> _collectorRef(String uid) => _db
+      .collection(AuthService.colAccount)
+      .doc(uid)
+      .collection(AuthService.colCollector)
+      .doc(uid);
+
+  // On full verification every vehicle the collector registered so far is
+  // approved — the admin reviewed them as part of the application.
+  Future<void> approveAllVehicles(String uid) async {
+    final data = (await _collectorRef(uid).get()).data() ?? {};
+    final types = (data['Vehicles'] as List<dynamic>? ?? const [])
+        .map((v) => (v as Map)['Vehicle_Type'] as String? ?? '')
+        .where((t) => t.isNotEmpty)
+        .toSet();
+    final active = data['Vehicle_Type'];
+    if (active is String && active.isNotEmpty) types.add(active);
+    await _collectorRef(uid).update({'Verified_Vehicles': types.toList()});
+  }
+
+  // Read-modify-write rather than arrayUnion: a collector verified before
+  // this field existed has no stored list yet, and arrayUnion would drop
+  // their implicitly-approved active vehicle.
+  Future<void> approveVehicle(String uid, String vehicleType) async {
+    final data = (await _collectorRef(uid).get()).data();
+    final approved = {...effectiveVerifiedVehicles(data), vehicleType};
+    await _collectorRef(uid).update({'Verified_Vehicles': approved.toList()});
+  }
+
+  // A rejected vehicle is removed from the collector's list, so they can
+  // re-add it with a clearer photo instead of it sitting pending forever.
+  Future<void> rejectVehicle(String uid, String vehicleType) async {
+    final data = (await _collectorRef(uid).get()).data() ?? {};
+    final vehicles = (data['Vehicles'] as List<dynamic>? ?? const [])
+        .map((v) => Map<String, dynamic>.from(v as Map))
+        .where((v) => v['Vehicle_Type'] != vehicleType)
+        .toList();
+    await _collectorRef(uid).update({'Vehicles': vehicles});
   }
 }

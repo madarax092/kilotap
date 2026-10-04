@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth_service.dart';
+import '../../services/auth_state.dart';
 import 'login_screen.dart';
 
 // ─── Landing Screen ───
@@ -75,15 +76,14 @@ class _LandingScreenState extends State<LandingScreen>
 
     final restoredRole = await _restoreFuture;
     if (!mounted) return;
-    if (restoredRole != null) {
-      final route = restoredRole == 'Collector'
-          ? '/collector'
-          : restoredRole == 'Admin'
-              ? '/admin'
-              : '/household';
+    final route = routeForRole(restoredRole);
+    if (route != null) {
       Navigator.of(context).pushNamedAndRemoveUntil(route, (r) => false);
       return;
     }
+    // restoredRole == null (no session) or an unrecognized role (data
+    // corruption) both fall through to the normal login flow below rather
+    // than guessing a dashboard.
 
     Navigator.of(context).pushReplacement(PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 500),

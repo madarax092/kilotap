@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "ScrapCollector",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {"fieldPath": "Verification_Status", "order": "ASCENDING"},
+        {"fieldPath": "Online_Status", "order": "ASCENDING"}
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

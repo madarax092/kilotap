@@ -5,6 +5,7 @@ import '../../services/auth_state.dart';
 import '../../services/firestore_service.dart';
 import 'booking_summary_screen.dart';
 import 'chat_detail_screen.dart';
+import 'pickup_checklist_screen.dart';
 import 'rate_collector_screen.dart';
 import 'tracking_screen.dart';
 
@@ -110,6 +111,20 @@ class MyPickupsScreen extends StatelessWidget {
                         destLon: b.pickupGps.longitude))),
           ),
           (
+            'Prepare',
+            Icons.checklist_outlined,
+            Colors.white,
+            const Color(0xFF2C2C2C),
+            true,
+            () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => PickupChecklistScreen(
+                        bookingId: b.bookingId,
+                        collectorName: data.collectorName,
+                        vehicleType: b.vehicleRequirement))),
+          ),
+          (
             'Message',
             Icons.chat_bubble_outline,
             Colors.white,
@@ -121,6 +136,14 @@ class MyPickupsScreen extends StatelessWidget {
                     builder: (_) => ChatDetailScreen(
                         otherUserId: b.collectorId,
                         otherUserName: data.collectorName))),
+          ),
+          (
+            'Cancel',
+            Icons.close,
+            Colors.white,
+            AppColors.error,
+            true,
+            () => _cancelAccepted(context, svc, b, data.collectorName),
           ),
         ];
       case 'Completed':
@@ -144,6 +167,51 @@ class MyPickupsScreen extends StatelessWidget {
       default:
         return const [];
     }
+  }
+
+  Future<void> _cancelAccepted(BuildContext context, FirestoreService svc,
+      Booking b, String collectorName) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Cancel this pickup?',
+            style: TextStyle(fontWeight: FontWeight.w800)),
+        content: Text(
+            '$collectorName already accepted this booking and will be '
+            'notified that it\'s cancelled.',
+            style: const TextStyle(color: Color(0xFF4B5563))),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Keep Booking',
+                style: TextStyle(
+                    fontWeight: FontWeight.w700, color: Color(0xFF6B7280))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape:
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Cancel Booking',
+                style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await svc.updateBookingStatus(b.bookingId, 'Cancelled');
+    await svc.sendNotification({
+      'Recipient_ID': b.collectorId,
+      'Booking_ID': b.bookingId,
+      'Title': 'Booking cancelled',
+      'Message': 'The household cancelled a pickup you accepted.',
+      'Type': 'booking_cancelled',
+    });
   }
 
   @override
@@ -436,51 +504,61 @@ class _PickupCard extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: 16),
                 child: Divider(color: Color(0xFFF3F4F6), height: 1),
               ),
-              Row(
-                children: actions
-                    .map((a) => Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 5),
-                            child: a.$5
-                                ? OutlinedButton.icon(
-                                    icon: Icon(a.$2, size: 18),
-                                    label: Text(a.$1,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.w600)),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: a.$4,
-                                      backgroundColor: a.$3,
-                                      side: const BorderSide(
-                                          color: Color(0xFFE5E7EB)),
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 12),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10)),
-                                    ),
-                                    onPressed: a.$6,
-                                  )
-                                : ElevatedButton.icon(
-                                    icon: Icon(a.$2, size: 18),
-                                    label: Text(a.$1,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.w600)),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: a.$3,
-                                      foregroundColor: a.$4,
-                                      elevation: 0,
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 12),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10)),
-                                    ),
-                                    onPressed: a.$6,
-                                  ),
-                          ),
-                        ))
-                    .toList(),
-              ),
+              // Rows of at most 3 — a 4th action (e.g. Cancel on an Accepted
+              // booking) wraps to its own row instead of cramming 4 equal-
+              // width buttons into one.
+              for (var i = 0; i < actions.length; i += 3)
+                Padding(
+                  padding: EdgeInsets.only(top: i == 0 ? 0 : 8),
+                  child: Row(
+                    children: actions
+                        .skip(i)
+                        .take(3)
+                        .map((a) => Expanded(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                child: a.$5
+                                    ? OutlinedButton.icon(
+                                        icon: Icon(a.$2, size: 18),
+                                        label: Text(a.$1,
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.w600)),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: a.$4,
+                                          backgroundColor: a.$3,
+                                          side: const BorderSide(
+                                              color: Color(0xFFE5E7EB)),
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 12),
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10)),
+                                        ),
+                                        onPressed: a.$6,
+                                      )
+                                    : ElevatedButton.icon(
+                                        icon: Icon(a.$2, size: 18),
+                                        label: Text(a.$1,
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.w600)),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: a.$3,
+                                          foregroundColor: a.$4,
+                                          elevation: 0,
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 12),
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10)),
+                                        ),
+                                        onPressed: a.$6,
+                                      ),
+                              ),
+                            ))
+                        .toList(),
+                  ),
+                ),
             ],
           ],
         ),

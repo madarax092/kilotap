@@ -12,6 +12,7 @@ import 'screens/collector/collector_id_card.dart';
 import 'screens/collector/my_collection_screen.dart';
 import 'screens/collector/my_route_screen.dart';
 import 'screens/collector/collector_profile_screen.dart';
+import 'screens/collector/documents_page.dart';
 import 'screens/admin/admin_dashboard.dart';
 import 'screens/admin/user_management_screen.dart';
 import 'screens/admin/verify_collector_screen.dart';
@@ -51,6 +52,7 @@ class AppRouter {
       case '/chat_collector': return _tab(const ChatCollectorScreen());
       case '/earnings': return _tab(const MyCollectionScreen());
       case '/collector_profile': return _tab(const CollectorProfileScreen());
+      case '/documents': return _page(const DocumentsPage());
 
       case '/admin': return _page(const AdminDashboard());
       case '/idcard': return _page(const CollectorIDCard());

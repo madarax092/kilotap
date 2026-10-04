@@ -1,6 +1,13 @@
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/auth_service.dart';
 import '../../services/auth_state.dart';
+import '../../services/firestore_service.dart';
+import '../../widgets/address_entry_page.dart';
+import '../../widgets/signature_pad_page.dart';
 
 class CollectorIDCard extends StatefulWidget {
   const CollectorIDCard({super.key});
@@ -10,6 +17,103 @@ class CollectorIDCard extends StatefulWidget {
 
 class _CollectorIDCardState extends State<CollectorIDCard> {
   int _mode = 0;
+  // Which ID detail is mid-save ('photo' / 'birthdate' / 'signature').
+  String? _saving;
+
+  static const _months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  String _formatDate(DateTime d) =>
+      '${_months[d.month - 1]} ${d.day.toString().padLeft(2, '0')}, ${d.year}';
+
+  Future<void> _run(String field, Future<void> Function() action) async {
+    setState(() => _saving = field);
+    try {
+      await action();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Could not save: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _saving = null);
+    }
+  }
+
+  Future<void> _changePhoto() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetContext) => SafeArea(
+        child: Wrap(children: [
+          ListTile(
+            leading: const Icon(Icons.camera_alt_outlined),
+            title: const Text('Take Photo'),
+            onTap: () => Navigator.pop(sheetContext, ImageSource.camera),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_library_outlined),
+            title: const Text('Choose from Gallery'),
+            onTap: () => Navigator.pop(sheetContext, ImageSource.gallery),
+          ),
+        ]),
+      ),
+    );
+    if (source == null) return;
+    // Downscaled on pick so it lands far under the 2MB ID photo cap.
+    final photo = await ImagePicker().pickImage(
+        source: source,
+        maxWidth: 600,
+        maxHeight: 600,
+        imageQuality: 80,
+        preferredCameraDevice: CameraDevice.front);
+    if (photo == null) return;
+    await _run('photo', () async {
+      final url = await FirestoreService().uploadIdPhoto(File(photo.path));
+      await AuthService.instance.updateCollectorIdDetails(profilePhotoUrl: url);
+    });
+  }
+
+  Future<void> _pickBirthdate() async {
+    final now = DateTime.now();
+    // Collectors must be adults.
+    final latest = DateTime(now.year - 18, now.month, now.day);
+    final current = AuthState.instance.birthdate;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: current != null && !current.isAfter(latest) ? current : latest,
+      firstDate: DateTime(1940),
+      lastDate: latest,
+      helpText: 'Select your birthdate',
+    );
+    if (picked == null) return;
+    await _run('birthdate', () {
+      return AuthService.instance.updateCollectorIdDetails(birthdate: picked);
+    });
+  }
+
+  Future<void> _drawSignature() async {
+    final bytes = await Navigator.push<Uint8List>(context,
+        MaterialPageRoute(builder: (_) => const SignaturePadPage()));
+    if (bytes == null) return;
+    await _run('signature', () async {
+      final url = await FirestoreService().uploadSignature(bytes);
+      await AuthService.instance.updateCollectorIdDetails(signatureUrl: url);
+    });
+  }
+
+  Future<void> _editAddress() async {
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => AddressEntryPage(
+                initialAddress: AuthState.instance.collectorAddress,
+                onSave: AuthService.instance.updateCollectorAddress)));
+    if (mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,11 +167,7 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
                 child: Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [
-                        Color(0xFF1A85C8),
-                        Color(0xFF0D5F8A),
-                        Color(0xFF1A85C8)
-                      ]),
+                      color: AppColors.buyerBlue,
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: _mode == 1
                           ? [
@@ -107,19 +207,33 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
                             ]),
                         const SizedBox(height: 18),
                         Row(children: [
-                          Container(
-                              width: 70,
-                              height: 70,
-                              decoration: BoxDecoration(
-                                  color: Colors.white24,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: Colors.white30)),
-                              child: Center(
-                                  child: Text(initials,
-                                      style: const TextStyle(
-                                          fontSize: 28,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white)))),
+                          GestureDetector(
+                            onTap: _saving == null ? _changePhoto : null,
+                            child: Container(
+                                width: 76,
+                                height: 90,
+                                clipBehavior: Clip.antiAlias,
+                                decoration: BoxDecoration(
+                                    color: Colors.white24,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                        color: Colors.white, width: 2)),
+                                child: _saving == 'photo'
+                                    ? const Center(
+                                        child: SizedBox(
+                                            width: 22,
+                                            height: 22,
+                                            child: CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 2)))
+                                    : auth.profilePhotoUrl.isNotEmpty
+                                        ? Image.network(auth.profilePhotoUrl,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) =>
+                                                _InitialsBox(initials))
+                                        : _InitialsBox(initials,
+                                            showAddHint: true)),
+                          ),
                           const SizedBox(width: 16),
                           Expanded(
                               child: Column(
@@ -142,7 +256,19 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
                                         fontSize: 14, color: AppColors.star)),
                               ])),
                         ]),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 16),
+                        _CardField(
+                            'ADDRESS',
+                            auth.collectorAddress.isEmpty
+                                ? 'Not set'
+                                : auth.collectorAddress),
+                        const SizedBox(height: 8),
+                        _CardField(
+                            'BIRTHDATE',
+                            auth.birthdate == null
+                                ? 'Not set'
+                                : _formatDate(auth.birthdate!)),
+                        const SizedBox(height: 16),
                         Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
@@ -172,6 +298,29 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
                                             fontSize: 9,
                                             color: AppColors.textMuted)),
                                   ])),
+                              Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      width: 90,
+                                      height: 36,
+                                      child: auth.signatureUrl.isNotEmpty
+                                          ? Image.network(auth.signatureUrl,
+                                              fit: BoxFit.contain,
+                                              errorBuilder: (_, __, ___) =>
+                                                  const SizedBox.shrink())
+                                          : null,
+                                    ),
+                                    Container(
+                                        width: 90,
+                                        height: 1,
+                                        color: AppColors.textMuted),
+                                    const SizedBox(height: 2),
+                                    const Text('Signature',
+                                        style: TextStyle(
+                                            fontSize: 9,
+                                            color: AppColors.textMuted)),
+                                  ]),
                             ])),
                       ]),
                 )),
@@ -218,6 +367,40 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
                                 fontWeight: FontWeight.w600)))
                   ])),
             ],
+            const SizedBox(height: 20),
+            const _SectionTitle('ID DETAILS'),
+            _DetailTile(
+              icon: Icons.photo_camera_outlined,
+              label: 'ID Photo',
+              value: auth.profilePhotoUrl.isEmpty ? 'Add photo' : 'Change photo',
+              busy: _saving == 'photo',
+              onTap: _saving == null ? _changePhoto : null,
+            ),
+            _DetailTile(
+              icon: Icons.cake_outlined,
+              label: 'Birthdate',
+              value: auth.birthdate == null
+                  ? 'Set birthdate'
+                  : _formatDate(auth.birthdate!),
+              busy: _saving == 'birthdate',
+              onTap: _saving == null ? _pickBirthdate : null,
+            ),
+            _DetailTile(
+              icon: Icons.draw_outlined,
+              label: 'Signature',
+              value: auth.signatureUrl.isEmpty ? 'Draw signature' : 'Redraw',
+              busy: _saving == 'signature',
+              onTap: _saving == null ? _drawSignature : null,
+            ),
+            _DetailTile(
+              icon: Icons.home_outlined,
+              label: 'Address',
+              value: auth.collectorAddress.isEmpty
+                  ? 'Set address'
+                  : auth.collectorAddress,
+              busy: false,
+              onTap: _saving == null ? _editAddress : null,
+            ),
             const SizedBox(height: 20),
             const _SectionTitle('VERIFICATION STATUS'),
             if (auth.verificationDocs.isEmpty)
@@ -294,6 +477,108 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
             ]),
             const SizedBox(height: 30),
           ]),
+    );
+  }
+}
+
+class _InitialsBox extends StatelessWidget {
+  final String initials;
+  final bool showAddHint;
+  const _InitialsBox(this.initials, {this.showAddHint = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(initials,
+            style: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.w900,
+                color: Colors.white)),
+        if (showAddHint) ...[
+          const SizedBox(height: 4),
+          const Icon(Icons.add_a_photo_outlined,
+              size: 14, color: Colors.white70),
+        ],
+      ],
+    );
+  }
+}
+
+class _CardField extends StatelessWidget {
+  final String label;
+  final String value;
+  const _CardField(this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+                color: Colors.white60,
+                letterSpacing: 1)),
+        const SizedBox(height: 2),
+        Text(value,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.white)),
+      ],
+    );
+  }
+}
+
+class _DetailTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool busy;
+  final VoidCallback? onTap;
+  const _DetailTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.busy,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5)),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          onTap: onTap,
+          leading: Icon(icon, color: AppColors.buyerBlue),
+          title: Text(label,
+              style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: Color(0xFF111827))),
+          subtitle: Text(value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+          trailing: busy
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2))
+              : const Icon(Icons.chevron_right, color: AppColors.textMuted),
+        ),
+      ),
     );
   }
 }

@@ -1,0 +1,244 @@
+rules_version = '2';
+
+// KiloTap Firestore Security Rules
+// Mirrors the paper's Tables 7-15 schema (see CLAUDE.md). Client-side role
+// checks in lib/services/role_permissions.dart gate the UI only — these
+// rules are the actual authorization boundary.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helpers ────────────────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function isOwner(id) {
+      return isSignedIn() && uid() == id;
+    }
+
+    function myRole() {
+      return isSignedIn()
+        ? get(/databases/$(database)/documents/UserAccount/$(uid())).data.Role
+        : null;
+    }
+
+    function isAdmin() {
+      return myRole() == 'Admin';
+    }
+
+    function bookingDoc(bookingId) {
+      return get(/databases/$(database)/documents/bookings/$(bookingId)).data;
+    }
+
+    // Signed-in and either the seller or the collector on that booking.
+    function isBookingParty(booking) {
+      return isSignedIn() &&
+        (booking.Seller_ID == uid() || booking.Collector_ID == uid());
+    }
+
+    function myCollectorDoc() {
+      return get(/databases/$(database)/documents/UserAccount/$(uid())/ScrapCollector/$(uid())).data;
+    }
+
+    // Only admin-verified collectors may browse item details of open jobs or
+    // claim them (paper 2.1.3: dispatch goes to verified collectors only).
+    function isVerifiedCollector() {
+      return isSignedIn() && myCollectorDoc().Verification_Status == 'Verified';
+    }
+
+    // Admin-approved vehicle types. Collectors verified before per-vehicle
+    // approval existed have no list yet — their active vehicle counts as
+    // approved (mirrors lib/core/vehicle_verification.dart).
+    function approvedVehicles(collector) {
+      return collector.get('Verified_Vehicles', [collector.Vehicle_Type]);
+    }
+
+    // Mirrors vehicleCanHandle() in lib/services/routing_service.dart —
+    // unknown types (-1) are let through, same as the app.
+    function vehicleTier(v) {
+      return {'Pushcart': 0, 'Tricycle': 1, 'Multicab': 2, 'Truck': 3}.get(v, -1);
+    }
+
+    // The claiming collector's active vehicle must be admin-approved and big
+    // enough for the booking's recommended vehicle.
+    function canHandleBooking(booking) {
+      let c = myCollectorDoc();
+      return c.Vehicle_Type in approvedVehicles(c)
+        && (vehicleTier(c.Vehicle_Type) == -1
+            || vehicleTier(booking.VehicleRequirement) == -1
+            || vehicleTier(c.Vehicle_Type) >= vehicleTier(booking.VehicleRequirement));
+    }
+
+    // Parties to a booking, or a verified collector browsing it while it is
+    // still an open Pending job (needed to match material preferences).
+    function canReadItemsOf(booking) {
+      return isBookingParty(booking)
+        || (booking.Status == 'Pending' && isVerifiedCollector());
+    }
+
+    function onlyChangedKeys(allowed) {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(allowed);
+    }
+
+    // ─── UserAccount (Table 7) ──────────────────────────────────────────
+    match /UserAccount/{userId} {
+      // Any signed-in user can look up another user's display name/contact
+      // (chat, booking cards, matching) — a deliberate tradeoff for this
+      // project's scope rather than splitting a public/private profile doc.
+      allow read: if isSignedIn();
+
+      allow create: if isOwner(userId)
+        && request.resource.data.Auth_UID == userId
+        && request.resource.data.Role in ['Household', 'Collector'];
+
+      // Owner can edit their own account fields but never self-promote role.
+      // Admin can change anything (e.g. collector verification promotion).
+      allow update: if isAdmin()
+        || (isOwner(userId)
+            && request.resource.data.Role == resource.data.Role
+            && request.resource.data.Auth_UID == resource.data.Auth_UID);
+
+      allow delete: if isAdmin();
+
+      match /ScrapSeller/{sellerId} {
+        allow read: if isSignedIn();
+        allow create: if isOwner(userId) && sellerId == userId;
+        allow update: if isOwner(userId) || isAdmin();
+        allow delete: if isAdmin();
+      }
+
+      match /ScrapCollector/{collectorId} {
+        allow read: if isSignedIn();
+        allow create: if isOwner(userId) && collectorId == userId
+          && request.resource.data.Verification_Status == 'Pending';
+        // Owner can update vehicle/location/materials, but only Admin can
+        // flip Verification_Status or Verified_Vehicles (self-approval would
+        // be a loophole). Once verified, the owner can only make an
+        // admin-approved vehicle their active Vehicle_Type.
+        allow update: if isAdmin()
+          || (isOwner(userId)
+              && request.resource.data.Verification_Status
+                 == resource.data.Verification_Status
+              && request.resource.data.get('Verified_Vehicles', null)
+                 == resource.data.get('Verified_Vehicles', null)
+              && (resource.data.Verification_Status != 'Verified'
+                  || request.resource.data.Vehicle_Type
+                     == resource.data.Vehicle_Type
+                  || request.resource.data.Vehicle_Type
+                     in approvedVehicles(resource.data)));
+        allow delete: if isAdmin();
+      }
+    }
+
+    // ─── Bookings (Table 10) ────────────────────────────────────────────
+    match /bookings/{bookingId} {
+      // Any signed-in user can see unclaimed Pending jobs (collector
+      // browsing); a booking's two matched parties can see it at any status.
+      allow read: if isAdmin()
+        || resource.data.Status == 'Pending'
+        || isBookingParty(resource.data);
+
+      allow create: if isSignedIn()
+        && request.resource.data.Seller_ID == uid()
+        && request.resource.data.Status == 'Pending'
+        && request.resource.data.Collector_ID == '';
+
+      // A verified collector claiming an unassigned Pending booking, or
+      // either already-matched party updating it further (status changes).
+      allow update: if isAdmin()
+        || isBookingParty(resource.data)
+        || (resource.data.Status == 'Pending'
+            && resource.data.Collector_ID == ''
+            && request.resource.data.Collector_ID == uid()
+            && isVerifiedCollector()
+            && canHandleBooking(resource.data));
+
+      allow delete: if isAdmin();
+    }
+
+    // ─── BookingItems (Table 11) — top-level, linked by Booking_ID ──────
+    match /bookingItems/{itemId} {
+      allow read: if isAdmin()
+        || canReadItemsOf(bookingDoc(resource.data.Booking_ID));
+
+      // Only the seller who owns the parent booking adds items to it.
+      // getAfter (not get) so the booking and its items can be written in
+      // one batch — the booking doc doesn't exist yet before that commit.
+      allow create: if getAfter(/databases/$(database)/documents/bookings/$(request.resource.data.Booking_ID)).data.Seller_ID == uid()
+        || isAdmin();
+
+      allow update, delete: if isAdmin();
+    }
+
+    // ─── Ratings (Table 13) ─────────────────────────────────────────────
+    match /ratings/{ratingId} {
+      allow read: if isSignedIn();
+
+      // Only the seller on a Completed booking can rate it, once.
+      allow create: if isSignedIn()
+        && request.resource.data.Seller_ID == uid()
+        && bookingDoc(request.resource.data.Booking_ID).Seller_ID == uid()
+        && bookingDoc(request.resource.data.Booking_ID).Status == 'Completed'
+        && request.resource.data.Score is int
+        && request.resource.data.Score >= 1
+        && request.resource.data.Score <= 5;
+
+      allow update, delete: if isAdmin();
+    }
+
+    // ─── Notifications (Table 15) ───────────────────────────────────────
+    match /notifications/{notifId} {
+      allow read: if isAdmin() || isOwner(resource.data.Recipient_ID);
+
+      // Sender must be the other party on the referenced booking — stops
+      // one user from spamming notifications into someone else's inbox.
+      allow create: if isAdmin()
+        || (isSignedIn()
+            && request.resource.data.Recipient_ID != uid()
+            && isBookingParty(bookingDoc(request.resource.data.Booking_ID)));
+
+      // Recipient can only flip IsRead — nothing else.
+      allow update: if isOwner(resource.data.Recipient_ID)
+        && onlyChangedKeys(['IsRead']);
+
+      allow delete: if isAdmin();
+    }
+
+    // ─── AuditLogs (Table 14) — admin only, both ways ───────────────────
+    match /auditLogs/{logId} {
+      allow read, create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // ─── Messages (chat, not a numbered paper table) ────────────────────
+    match /messages/{messageId} {
+      allow read: if isSignedIn() && uid() in resource.data.Participants;
+
+      allow create: if isSignedIn()
+        && request.resource.data.Sender_ID == uid()
+        && uid() in request.resource.data.Participants
+        && request.resource.data.Participants.size() == 2
+        && request.resource.data.Recipient_ID in request.resource.data.Participants;
+
+      allow update, delete: if false;
+    }
+
+    // ─── ScrapWeights (Table 12) — reference lookup table ───────────────
+    match /scrapWeights/{classId} {
+      allow read: if isSignedIn();
+      // Seeded only via scripts/recreate_firestore.py (service account,
+      // bypasses rules entirely) — no client write path exists.
+      allow write: if isAdmin();
+    }
+
+    // Deny anything not explicitly matched above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

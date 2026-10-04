@@ -4,6 +4,7 @@ import '../../models/booking.dart';
 import '../../models/booking_item.dart';
 import '../../services/auth_state.dart';
 import '../../services/firestore_service.dart';
+import '../../services/role_permissions.dart';
 import '../../widgets/live_route_map.dart';
 
 class RequestDetailsScreen extends StatefulWidget {
@@ -48,6 +49,17 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
         'lat': booking.pickupGps.latitude,
         'lon': booking.pickupGps.longitude,
       });
+    } catch (_) {
+      // Firestore rules only let a Verified collector claim a still-unclaimed
+      // Pending booking, so a denied write almost always means another
+      // collector accepted it first.
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content:
+            Text('This request was already taken by another collector.'),
+        behavior: SnackBarBehavior.floating,
+      ));
+      Navigator.pop(context);
     } finally {
       if (mounted) setState(() => _accepting = false);
     }
@@ -91,6 +103,12 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
       body: FutureBuilder<Booking?>(
         future: firestoreService.getBooking(bookingId),
         builder: (context, bookingSnap) {
+          // Once another collector claims it, the booking is no longer
+          // Pending and rules deny the read — same outcome as it vanishing.
+          if (bookingSnap.hasError) {
+            return const Center(
+                child: Text('This request is no longer available.'));
+          }
           if (!bookingSnap.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -105,6 +123,16 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
               firestoreService.bookingItems(bookingId).first,
             ]),
             builder: (context, dataSnap) {
+              if (dataSnap.hasError) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text('Could not load this request: ${dataSnap.error}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Color(0xFF6B7280))),
+                  ),
+                );
+              }
               if (!dataSnap.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
@@ -255,7 +283,18 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  if (!isViewOnly)
+                  if (!isViewOnly &&
+                      booking.status == 'Pending' &&
+                      !AuthState.instance
+                          .hasPermission(RolePermissions.acceptPickup))
+                    const Text(
+                        'Only verified collectors can accept pickup requests.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Color(0xFF6B7280))),
+                  if (!isViewOnly &&
+                      booking.status == 'Pending' &&
+                      AuthState.instance
+                          .hasPermission(RolePermissions.acceptPickup))
                     Row(
                       children: [
                         Expanded(

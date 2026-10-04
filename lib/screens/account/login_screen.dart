@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth_service.dart';
+import '../../services/auth_state.dart';
 import 'role_picker_screen.dart';
 
 // ─── Login Screen ───
@@ -64,13 +65,12 @@ class _LoginScreenState extends State<LoginScreen>
     if (!mounted) return;
     setState(() => _loading = false);
 
-    if (role != null) {
-      final route = role == 'Collector'
-          ? '/collector'
-          : role == 'Admin'
-              ? '/admin'
-              : '/household';
+    final route = routeForRole(role);
+    if (route != null) {
       Navigator.of(context).pushNamedAndRemoveUntil(route, (r) => false);
+    } else if (role != null) {
+      _showError(
+          'This account has an invalid role ($role) — contact support.');
     } else {
       _showError('Invalid email or password. Please try again.');
     }
@@ -99,12 +99,13 @@ class _LoginScreenState extends State<LoginScreen>
       return;
     }
 
-    final route = result.role == 'Collector'
-        ? '/collector'
-        : result.role == 'Admin'
-            ? '/admin'
-            : '/household';
-    Navigator.of(context).pushNamedAndRemoveUntil(route, (r) => false);
+    final route = routeForRole(result.role);
+    if (route != null) {
+      Navigator.of(context).pushNamedAndRemoveUntil(route, (r) => false);
+    } else {
+      _showError(
+          'This account has an invalid role (${result.role}) — contact support.');
+    }
   }
 
   Future<void> _forgotPassword() async {

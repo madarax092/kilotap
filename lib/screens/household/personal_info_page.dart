@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth_service.dart';
 import '../../services/auth_state.dart';
+import '../../widgets/address_entry_page.dart';
 
 class HouseholdPersonalInfoPage extends StatefulWidget {
   const HouseholdPersonalInfoPage({super.key});
@@ -16,8 +17,6 @@ class _HouseholdPersonalInfoPageState extends State<HouseholdPersonalInfoPage> {
   late final _nameCtrl =
       TextEditingController(text: AuthState.instance.displayName);
   late final _phoneCtrl = TextEditingController(text: AuthState.instance.phone);
-  late final _addrCtrl =
-      TextEditingController(text: AuthState.instance.address);
   bool _saving = false;
 
   Future<void> _save() async {
@@ -26,19 +25,24 @@ class _HouseholdPersonalInfoPageState extends State<HouseholdPersonalInfoPage> {
       displayName: _nameCtrl.text.trim(),
       phone: _phoneCtrl.text.trim(),
     );
-    await AuthService.instance.updateSellerProfile(
-      address: _addrCtrl.text.trim(),
-    );
     if (!mounted) return;
     setState(() => _saving = false);
     Navigator.pop(context);
+  }
+
+  Future<void> _editAddress() async {
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) =>
+                AddressEntryPage(initialAddress: AuthState.instance.address)));
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
-    _addrCtrl.dispose();
     super.dispose();
   }
 
@@ -76,7 +80,11 @@ class _HouseholdPersonalInfoPageState extends State<HouseholdPersonalInfoPage> {
           ),
           _Field(
               label: 'Email', value: AuthState.instance.email, readOnly: true),
-          _Field(label: 'Address', controller: _addrCtrl),
+          _Field(
+              label: 'Address',
+              value: AuthState.instance.address,
+              readOnly: true,
+              onTap: _editAddress),
           const SizedBox(height: 30),
           SizedBox(
             width: double.infinity,
@@ -113,13 +121,15 @@ class _Field extends StatelessWidget {
   final bool readOnly;
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
+  final VoidCallback? onTap;
   const _Field(
       {required this.label,
       this.controller,
       this.value,
       this.readOnly = false,
       this.keyboardType,
-      this.inputFormatters});
+      this.inputFormatters,
+      this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -133,10 +143,17 @@ class _Field extends StatelessWidget {
       child: readOnly
           ? ListTile(
               contentPadding: EdgeInsets.zero,
+              onTap: onTap,
+              trailing: onTap != null
+                  ? const Icon(Icons.chevron_right, color: AppColors.textMuted)
+                  : null,
               title: Text(label,
                   style: const TextStyle(
                       fontSize: 13, color: AppColors.textSecondary)),
-              subtitle: Text(value ?? '',
+              subtitle: Text(
+                  (value ?? '').isEmpty && onTap != null
+                      ? 'Tap to set address'
+                      : (value ?? ''),
                   style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,

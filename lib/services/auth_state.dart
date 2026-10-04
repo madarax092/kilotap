@@ -1,5 +1,26 @@
 import 'role_permissions.dart';
 
+// Shared by every post-login navigation site (login_screen.dart,
+// landing_screen.dart's session restore) so there's one place that decides
+// where a role lands — rather than each site re-guessing with its own
+// ternary, where an unrecognized role (e.g. data corruption writing
+// 'VerifiedCollector' into Role instead of 'Collector') used to silently
+// fall through to '/household'. Returns null for anything that isn't
+// exactly Household/Collector/Admin (Table 7) so callers can surface that
+// as an error instead of misrouting.
+String? routeForRole(String? role) {
+  switch (role) {
+    case 'Household':
+      return '/household';
+    case 'Collector':
+      return '/collector';
+    case 'Admin':
+      return '/admin';
+    default:
+      return null;
+  }
+}
+
 class AuthState {
   AuthState._();
   static final AuthState _instance = AuthState._();
@@ -38,6 +59,7 @@ class AuthState {
   double _currentLatitude = 0;
   double _currentLongitude = 0;
   bool _onlineStatus = false;
+  String _collectorAddress = '';
 
   String get vehicleType => _vehicleType;
   double get vehicleCapacityKg => _vehicleCapacityKg;
@@ -50,6 +72,40 @@ class AuthState {
   double get currentLatitude => _currentLatitude;
   double get currentLongitude => _currentLongitude;
   bool get onlineStatus => _onlineStatus;
+  String get collectorAddress => _collectorAddress;
+
+  // Digital ID details (ScrapCollector Profile_Photo_URL / Birthdate /
+  // Signature_URL). Kept out of setCollectorProfile on purpose — its many
+  // re-call sites would otherwise each have to carry these through.
+  String _profilePhotoUrl = '';
+  DateTime? _birthdate;
+  String _signatureUrl = '';
+
+  String get profilePhotoUrl => _profilePhotoUrl;
+  DateTime? get birthdate => _birthdate;
+  String get signatureUrl => _signatureUrl;
+
+  // Admin-approved vehicle types (ScrapCollector.Verified_Vehicles, with the
+  // legacy fallback from core/vehicle_verification.dart already applied).
+  List<String> _verifiedVehicles = [];
+  List<String> get verifiedVehicles => _verifiedVehicles;
+
+  bool isVehicleApproved(String vehicleType) =>
+      _verifiedVehicles.contains(vehicleType);
+
+  void setVerifiedVehicles(List<String> types) {
+    _verifiedVehicles = types;
+  }
+
+  void setIdDetails({
+    String? profilePhotoUrl,
+    DateTime? birthdate,
+    String? signatureUrl,
+  }) {
+    if (profilePhotoUrl != null) _profilePhotoUrl = profilePhotoUrl;
+    if (birthdate != null) _birthdate = birthdate;
+    if (signatureUrl != null) _signatureUrl = signatureUrl;
+  }
 
   void login(String role, String uid) {
     _role = role;
@@ -86,6 +142,7 @@ class AuthState {
     double currentLatitude = 0,
     double currentLongitude = 0,
     bool onlineStatus = false,
+    String collectorAddress = '',
   }) {
     _vehicleType = vehicleType;
     _vehicleCapacityKg = vehicleCapacityKg;
@@ -98,6 +155,25 @@ class AuthState {
     _currentLatitude = currentLatitude;
     _currentLongitude = currentLongitude;
     _onlineStatus = onlineStatus;
+    _collectorAddress = collectorAddress;
+  }
+
+  // Lets a single-field update (e.g. after saving the structured address
+  // form) skip re-supplying every other collector field via
+  // setCollectorProfile.
+  void updateCollectorAddress(String address) {
+    _collectorAddress = address;
+  }
+
+  void updateOnlineStatus(bool online) {
+    _onlineStatus = online;
+  }
+
+  // Lets a single-field update (e.g. after re-uploading a verification
+  // document) skip re-supplying every other collector field via
+  // setCollectorProfile.
+  void updateVerificationDocs(List<Map<String, dynamic>> docs) {
+    _verificationDocs = docs;
   }
 
   void logout() {
@@ -119,6 +195,11 @@ class AuthState {
     _currentLatitude = 0;
     _currentLongitude = 0;
     _onlineStatus = false;
+    _collectorAddress = '';
+    _profilePhotoUrl = '';
+    _birthdate = null;
+    _signatureUrl = '';
+    _verifiedVehicles = [];
   }
 
   // 'VerifiedCollector' is a permission tier, not a stored Role value —

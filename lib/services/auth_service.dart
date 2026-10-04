@@ -1,7 +1,11 @@
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../core/vehicle_verification.dart';
+import '../core/verification_docs.dart';
 import 'auth_state.dart';
+import 'push_notification_service.dart';
 
 // ─── Auth: Sign In / Sign Up / Sign Out (Tables 7-9) ───
 
@@ -101,9 +105,16 @@ class AuthService {
 
   Future<String?> _loadUserDataIntoState(
       String uid, Map<String, dynamic> data) async {
-    final role = data['Role'] as String? ?? 'Household';
+    // 'VerifiedCollector' was briefly (incorrectly) written to Firestore's
+    // Role field by a since-fixed bug in setCollectorVerification() — it's a
+    // computed permission tier (see AuthState._effectiveRole), never meant
+    // to be stored. Normalized here so any account already carrying that
+    // legacy value keeps working without a manual Firestore edit.
+    final rawRole = data['Role'] as String? ?? 'Household';
+    final role = rawRole == 'VerifiedCollector' ? 'Collector' : rawRole;
 
     AuthState.instance.login(role, uid);
+    unawaited(PushNotificationService.instance.registerDeviceToken(uid));
     AuthState.instance.setProfile(
       displayName: data['Display_Name'] ?? '',
       email: data['Email'] ?? '',
@@ -139,10 +150,11 @@ class AuthService {
               (c['Vehicles'] as List<dynamic>?)
                       ?.map((v) => Map<String, dynamic>.from(v)) ??
                   const []),
-          verificationDocs: List<Map<String, dynamic>>.from(
-              (c['Verification_Docs'] as List<dynamic>?)
-                      ?.map((v) => Map<String, dynamic>.from(v)) ??
-                  const []),
+          verificationDocs: normalizeVerificationDocs(
+              List<Map<String, dynamic>>.from(
+                  (c['Verification_Docs'] as List<dynamic>?)
+                          ?.map((v) => Map<String, dynamic>.from(v)) ??
+                      const [])),
           preferredMaterials: List<String>.from(c['Preferred_Materials'] ?? []),
           verificationStatus: c['Verification_Status'] ?? 'Pending',
           digitalBadgeUrl: c['Digital_Badge_URL'] ?? '',
@@ -150,7 +162,14 @@ class AuthService {
           currentLatitude: (c['Current_Latitude'] ?? 0).toDouble(),
           currentLongitude: (c['Current_Longitude'] ?? 0).toDouble(),
           onlineStatus: c['Online_Status'] ?? false,
+          collectorAddress: c['Address'] ?? '',
         );
+        AuthState.instance.setIdDetails(
+          profilePhotoUrl: c['Profile_Photo_URL'] ?? '',
+          birthdate: (c['Birthdate'] as Timestamp?)?.toDate(),
+          signatureUrl: c['Signature_URL'] ?? '',
+        );
+        AuthState.instance.setVerifiedVehicles(effectiveVerifiedVehicles(c));
       }
     }
     return role;
@@ -250,6 +269,7 @@ class AuthService {
         'Collector_ID': uid,
         'Account_Id': uid,
         'Full_Name': fullName,
+        'Address': address,
         'Vehicle_Type': 'Pushcart',
         'Vehicle_Capacity_Kg': 20.0,
         'Vehicles': [
@@ -257,11 +277,7 @@ class AuthService {
         ],
         'Preferred_Materials': [],
         'Verification_Status': 'Pending',
-        'Verification_Docs': [
-          {'type': 'Valid ID', 'url': '', 'status': 'pending'},
-          {'type': 'Vehicle Photo', 'url': '', 'status': 'pending'},
-          {'type': 'Profile Photo Match', 'url': '', 'status': 'pending'},
-        ],
+        'Verification_Docs': emptyVerificationDocs(),
         'Digital_Badge_URL': '',
         'Avg_Rating': 0.0,
         'Current_Latitude': 0.0,
@@ -271,6 +287,7 @@ class AuthService {
     }
 
     AuthState.instance.login(role, uid);
+    unawaited(PushNotificationService.instance.registerDeviceToken(uid));
     AuthState.instance.setProfile(
       displayName: fullName,
       email: email,
@@ -285,11 +302,8 @@ class AuthService {
         vehicles: const [
           {'Vehicle_Type': 'Pushcart', 'Vehicle_Capacity_Kg': 20.0},
         ],
-        verificationDocs: const [
-          {'type': 'Valid ID', 'url': '', 'status': 'pending'},
-          {'type': 'Vehicle Photo', 'url': '', 'status': 'pending'},
-          {'type': 'Profile Photo Match', 'url': '', 'status': 'pending'},
-        ],
+        verificationDocs: emptyVerificationDocs(),
+        collectorAddress: address,
       );
     }
   }
@@ -346,8 +360,7 @@ class AuthService {
     );
   }
 
-  Future<void> updateCollectorVehicles(
-      List<Map<String, dynamic>> vehicles) async {
+  Future<void> updateCollectorAddress(String address) async {
     final uid = AuthState.instance.uid;
     if (uid == null) return;
     await _firestore
@@ -355,10 +368,48 @@ class AuthService {
         .doc(uid)
         .collection(colCollector)
         .doc(uid)
-        .update({'Vehicles': vehicles});
+        .update({'Address': address});
+    AuthState.instance.updateCollectorAddress(address);
+  }
+
+  // The active Vehicle_Type/Vehicle_Capacity_Kg fields are what
+  // vehicleCanHandle() actually filters Find Scrap by — they're separate
+  // from the Vehicles array and used to go stale the moment a collector
+  // edited their vehicle here without also going through the multi-vehicle
+  // online-toggle picker. Keeping the first entry as "active" on every save
+  // closes that gap; a collector with 2 vehicles can still re-pick which is
+  // active via that picker when going online. Once verified, only an
+  // admin-approved vehicle can become active (enforced in firestore.rules
+  // too), so a newly added vehicle never silently takes over.
+  Future<void> updateCollectorVehicles(
+      List<Map<String, dynamic>> vehicles) async {
+    final uid = AuthState.instance.uid;
+    if (uid == null) return;
+    final auth = AuthState.instance;
+    final candidates = auth.verificationStatus == 'Verified'
+        ? vehicles
+            .where((v) => auth.isVehicleApproved(v['Vehicle_Type'] as String))
+            .toList()
+        : vehicles;
+    final active = candidates.isNotEmpty ? candidates.first : null;
+    final activeType = active?['Vehicle_Type'] as String? ??
+        AuthState.instance.vehicleType;
+    final activeCapacity = (active?['Vehicle_Capacity_Kg'] as num?)
+            ?.toDouble() ??
+        AuthState.instance.vehicleCapacityKg;
+    await _firestore
+        .collection(colAccount)
+        .doc(uid)
+        .collection(colCollector)
+        .doc(uid)
+        .update({
+      'Vehicles': vehicles,
+      'Vehicle_Type': activeType,
+      'Vehicle_Capacity_Kg': activeCapacity,
+    });
     AuthState.instance.setCollectorProfile(
-      vehicleType: AuthState.instance.vehicleType,
-      vehicleCapacityKg: AuthState.instance.vehicleCapacityKg,
+      vehicleType: activeType,
+      vehicleCapacityKg: activeCapacity,
       vehicles: vehicles,
       verificationDocs: AuthState.instance.verificationDocs,
       preferredMaterials: AuthState.instance.preferredMaterials,
@@ -368,6 +419,7 @@ class AuthService {
       currentLatitude: AuthState.instance.currentLatitude,
       currentLongitude: AuthState.instance.currentLongitude,
       onlineStatus: AuthState.instance.onlineStatus,
+      collectorAddress: AuthState.instance.collectorAddress,
     );
   }
 
@@ -402,6 +454,7 @@ class AuthService {
       currentLatitude: AuthState.instance.currentLatitude,
       currentLongitude: AuthState.instance.currentLongitude,
       onlineStatus: AuthState.instance.onlineStatus,
+      collectorAddress: AuthState.instance.collectorAddress,
     );
   }
 
@@ -426,10 +479,62 @@ class AuthService {
       currentLatitude: lat,
       currentLongitude: lon,
       onlineStatus: AuthState.instance.onlineStatus,
+      collectorAddress: AuthState.instance.collectorAddress,
     );
   }
 
+  // Digital ID fields — not in the paper's documented Table 9, added so the
+  // ID card can show who the collector actually is (see CLAUDE.md schema).
+  Future<void> updateCollectorIdDetails({
+    String? profilePhotoUrl,
+    DateTime? birthdate,
+    String? signatureUrl,
+  }) async {
+    final uid = AuthState.instance.uid;
+    if (uid == null) return;
+    await _firestore
+        .collection(colAccount)
+        .doc(uid)
+        .collection(colCollector)
+        .doc(uid)
+        .update({
+      if (profilePhotoUrl != null) 'Profile_Photo_URL': profilePhotoUrl,
+      if (birthdate != null) 'Birthdate': Timestamp.fromDate(birthdate),
+      if (signatureUrl != null) 'Signature_URL': signatureUrl,
+    });
+    AuthState.instance.setIdDetails(
+      profilePhotoUrl: profilePhotoUrl,
+      birthdate: birthdate,
+      signatureUrl: signatureUrl,
+    );
+  }
+
+  // Online_Status (Table 9) is what the new-booking Cloud Function filters
+  // on, so the Find Scrap toggle has to persist it, not just flip local UI.
+  Future<void> setOnlineStatus(bool online) async {
+    final uid = AuthState.instance.uid;
+    if (uid == null) return;
+    await _firestore
+        .collection(colAccount)
+        .doc(uid)
+        .collection(colCollector)
+        .doc(uid)
+        .update({'Online_Status': online});
+    AuthState.instance.updateOnlineStatus(online);
+  }
+
   Future<void> signOut() async {
+    final uid = AuthState.instance.uid;
+    if (uid != null) {
+      await PushNotificationService.instance.clearDeviceToken(uid);
+      if (AuthState.instance.isCollector && AuthState.instance.onlineStatus) {
+        try {
+          await setOnlineStatus(false);
+        } catch (_) {
+          // Non-fatal — sign-out must still go through.
+        }
+      }
+    }
     await _auth.signOut();
     if (await _googleSignIn.isSignedIn()) {
       await _googleSignIn.signOut();

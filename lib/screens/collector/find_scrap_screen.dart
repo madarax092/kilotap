@@ -18,12 +18,29 @@ class FindScrapScreen extends StatefulWidget {
 }
 
 class _FindScrapScreenState extends State<FindScrapScreen> {
-  bool _isOnline = true;
+  // Starts from the persisted Online_Status (Table 9) — the new-booking
+  // Cloud Function only notifies collectors whose stored status is online.
+  bool _isOnline = AuthState.instance.onlineStatus;
+
+  bool get _isVerified => AuthState.instance.verificationStatus == 'Verified';
 
   @override
   void initState() {
     super.initState();
-    if (_isOnline) _captureLocation();
+    if (_isOnline && _isVerified) _captureLocation();
+  }
+
+  Future<bool> _persistOnline(bool online) async {
+    try {
+      await AuthService.instance.setOnlineStatus(online);
+      return true;
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not update online status: $e')));
+      }
+      return false;
+    }
   }
 
   Future<void> _captureLocation() async {
@@ -49,11 +66,13 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
 
   Future<void> _handleOnlineToggle(bool val) async {
     if (!val) {
+      if (!await _persistOnline(false) || !mounted) return;
       setState(() => _isOnline = false);
       return;
     }
     final vehicles = AuthState.instance.vehicles;
     if (vehicles.length <= 1) {
+      if (!await _persistOnline(true) || !mounted) return;
       setState(() => _isOnline = true);
       unawaited(_captureLocation());
       return;
@@ -74,14 +93,24 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                         TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
               ),
               for (final v in vehicles)
-                ListTile(
-                  leading: const Icon(Icons.local_shipping_outlined,
-                      color: AppColors.buyerBlue),
-                  title: Text(v['Vehicle_Type'] as String? ?? 'Vehicle'),
-                  subtitle:
-                      Text('${v['Vehicle_Capacity_Kg'] ?? 0} kg capacity'),
-                  onTap: () => Navigator.pop(sheetContext, v),
-                ),
+                Builder(builder: (_) {
+                  // A vehicle added after verification can't be used until
+                  // an admin approves it (rules enforce this too).
+                  final approved = AuthState.instance
+                      .isVehicleApproved(v['Vehicle_Type'] as String? ?? '');
+                  return ListTile(
+                    enabled: approved,
+                    leading: Icon(Icons.local_shipping_outlined,
+                        color: approved
+                            ? AppColors.buyerBlue
+                            : AppColors.textMuted),
+                    title: Text(v['Vehicle_Type'] as String? ?? 'Vehicle'),
+                    subtitle: Text(approved
+                        ? '${v['Vehicle_Capacity_Kg'] ?? 0} kg capacity'
+                        : 'Pending admin approval'),
+                    onTap: () => Navigator.pop(sheetContext, v),
+                  );
+                }),
               const SizedBox(height: 12),
             ],
           ),
@@ -93,7 +122,7 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
       vehicleType: chosen['Vehicle_Type'] as String?,
       vehicleCapacityKg: (chosen['Vehicle_Capacity_Kg'] as num?)?.toDouble(),
     );
-    if (!mounted) return;
+    if (!await _persistOnline(true) || !mounted) return;
     setState(() => _isOnline = true);
     unawaited(_captureLocation());
   }
@@ -194,7 +223,7 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                         Switch(
                           value: _isOnline,
                           activeThumbColor: AppColors.buyerBlue,
-                          onChanged: _handleOnlineToggle,
+                          onChanged: _isVerified ? _handleOnlineToggle : null,
                         ),
                       ],
                     )
@@ -207,7 +236,19 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
             ),
           ),
           Expanded(
-            child: !_isOnline
+            child: !_isVerified
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Text(
+                          'Your account is pending verification. Upload your '
+                          'documents in Profile > Verification Documents. Once an admin '
+                          'verifies you, pickup requests will appear here.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Color(0xFF6B7280))),
+                    ),
+                  )
+                : !_isOnline
                 ? const Center(
                     child: Padding(
                       padding: EdgeInsets.all(24),
@@ -254,6 +295,18 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                         future:
                             _filterByPreferences(firestoreService, bookings),
                         builder: (context, matchSnap) {
+                          if (matchSnap.hasError) {
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Text(
+                                    'Could not load pickup items: ${matchSnap.error}',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        color: Color(0xFF6B7280))),
+                              ),
+                            );
+                          }
                           if (!matchSnap.hasData) {
                             return const Center(
                                 child: CircularProgressIndicator());

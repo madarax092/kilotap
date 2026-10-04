@@ -62,6 +62,14 @@ class MaterialPreferences {
     ],
   };
 
+  // Custom (freeform) items aren't one of the known classes, so the seller
+  // picks a material for them and that category name is stored as the
+  // item's ScrapClass instead. 'Other' is for sellers who don't know — it
+  // matches every collector so the booking is never stranded. Mirrored in
+  // functions/index.js — keep both in sync.
+  static const String other = 'Other';
+  static const List<String> customItemCategories = [...categories, other];
+
   static bool matchesPreference(
     List<String> detectedClasses,
     List<String> preferredCategories,
@@ -69,6 +77,8 @@ class MaterialPreferences {
     if (preferredCategories.isEmpty) return true;
 
     for (final className in detectedClasses) {
+      if (className == other) return true;
+      if (preferredCategories.contains(className)) return true;
       for (final category in preferredCategories) {
         final classList = categoryMap[category];
         if (classList != null && classList.contains(className)) {
@@ -82,6 +92,7 @@ class MaterialPreferences {
   static List<String> getCategoriesFor(List<String> detectedClasses) {
     final result = <String>{};
     for (final className in detectedClasses) {
+      if (categories.contains(className)) result.add(className);
       for (final entry in categoryMap.entries) {
         if (entry.value.contains(className)) {
           result.add(entry.key);

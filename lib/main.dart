@@ -8,6 +8,7 @@ import 'firebase_options.dart';
 import 'router.dart';
 import 'core/theme/app_colors.dart';
 import 'services/cache_service.dart';
+import 'services/push_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +28,9 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: true, cacheSizeBytes: 104857600);
+
+  await PushNotificationService.instance.init();
+
   runApp(const KiloTapApp());
 }
 
@@ -35,6 +39,7 @@ class KiloTapApp extends StatelessWidget {
 
   @override Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'KiloTap',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

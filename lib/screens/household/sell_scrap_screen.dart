@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../core/constants/material_preferences.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/scrap_weight_service.dart';
 import '../../services/ml/capacity_matcher.dart';
 import '../../services/ml/pipeline.dart';
 import '../../services/firestore_service.dart';
 import '../../services/auth_state.dart';
-import 'address_entry_page.dart';
+import '../../widgets/address_entry_page.dart';
 import 'booking_summary_screen.dart';
 import 'camera_prototype_screen.dart';
 
@@ -22,11 +23,17 @@ class SellScrapScreen extends StatefulWidget {
 
 class _SellItem {
   final String className;
+  final bool isCustom;
+  // Seller-chosen material for a custom item (one of
+  // MaterialPreferences.customItemCategories) — saved as its ScrapClass so
+  // collector preference matching still works. Always null for known classes.
+  String? category;
   int quantity;
   final TextEditingController weightCtrl;
   final TextEditingController notesCtrl;
   _SellItem({
     required this.className,
+    required this.isCustom,
     required this.quantity,
     required this.weightCtrl,
     required this.notesCtrl,
@@ -46,7 +53,8 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
   // confirmation, per the paper's 2.1.3.1.3).
   final List<_SellItem> _selectedItems = [];
   final MoloPipeline _pipeline = MoloPipeline();
-  String _pendingClass = ScrapWeightService.supportedClasses.first;
+  final _itemInputCtrl = TextEditingController();
+  final _itemInputFocus = FocusNode();
   final _bookingNotesCtrl = TextEditingController();
 
   String? _vehicleOverride;
@@ -78,6 +86,44 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
       if (w.contains(RegExp(r'[0-9]'))) return w;
       return w[0].toUpperCase() + w.substring(1);
     }).join(' ');
+  }
+
+  String _titleCase(String s) {
+    return s
+        .trim()
+        .split(RegExp(r'\s+'))
+        .map((w) =>
+            w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
+        .join(' ');
+  }
+
+  String _displayName(_SellItem item) =>
+      item.isCustom ? item.className : _humanize(item.className);
+
+  void _addItem(String rawInput) {
+    final text = rawInput.trim();
+    if (text.isEmpty) return;
+    final match = ScrapWeightService.supportedClasses.firstWhere(
+        (c) => _humanize(c).toLowerCase() == text.toLowerCase(),
+        orElse: () => '');
+    final isCustom = match.isEmpty;
+    final key = isCustom ? _titleCase(text) : match;
+    setState(() {
+      final existing = _selectedItems.where((e) =>
+          e.isCustom == isCustom && e.className.toLowerCase() == key.toLowerCase());
+      if (existing.isNotEmpty) {
+        existing.first.quantity++;
+      } else {
+        _selectedItems.add(_SellItem(
+          className: key,
+          isCustom: isCustom,
+          quantity: 1,
+          weightCtrl: TextEditingController(),
+          notesCtrl: TextEditingController(),
+        ));
+      }
+      _itemInputCtrl.clear();
+    });
   }
 
   Future<void> _pickPhoto() async {
@@ -115,6 +161,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
           } else {
             _selectedItems.add(_SellItem(
               className: entry.key,
+              isCustom: false,
               quantity: entry.value,
               weightCtrl: TextEditingController(),
               notesCtrl: TextEditingController(),
@@ -162,6 +209,12 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
           content: Text('Enter a valid weight (kg) for every item.')));
       return;
     }
+    if (_selectedItems.any((item) => item.isCustom && item.category == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'Choose a material type for every custom item (or "Other / Not sure").')));
+      return;
+    }
     setState(() => _submitting = true);
 
     try {
@@ -174,7 +227,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
         photoUrl = await firestoreService.uploadBookingPhoto(File(_photo!.path));
       }
 
-      final bookingId = await firestoreService.createBooking({
+      final bookingId = await firestoreService.createBookingWithItems({
         'Seller_ID': auth.uid,
         'Collector_ID': '',
         'Status': 'Pending',
@@ -184,20 +237,20 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
         'PickupAddress': _address,
         'Notes': _bookingNotesCtrl.text.trim(),
         'PhotoURL': photoUrl,
-      });
-
-      for (final item in _selectedItems) {
-        final weight = double.tryParse(item.weightCtrl.text) ?? 0;
-        await firestoreService.createBookingItem({
-          'Booking_ID': bookingId,
-          'ItemName': _humanize(item.className),
-          'Quantity': item.quantity,
-          'SizeClass': ScrapWeightService.instance.getSizeClass(item.className),
-          'EstimatedWeightKg': double.parse(weight.toStringAsFixed(2)),
-          'ScrapClass': item.className,
-          'Notes': item.notesCtrl.text.trim(),
-        });
-      }
+      }, [
+        for (final item in _selectedItems)
+          {
+            'ItemName': _displayName(item),
+            'Quantity': item.quantity,
+            'SizeClass':
+                ScrapWeightService.instance.getSizeClass(item.className),
+            'EstimatedWeightKg': double.parse(
+                (double.tryParse(item.weightCtrl.text) ?? 0)
+                    .toStringAsFixed(2)),
+            'ScrapClass': item.isCustom ? item.category! : item.className,
+            'Notes': item.notesCtrl.text.trim(),
+          },
+      ]);
 
       if (!mounted) return;
       Navigator.push(
@@ -223,6 +276,8 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
       item.notesCtrl.dispose();
     }
     _bookingNotesCtrl.dispose();
+    _itemInputCtrl.dispose();
+    _itemInputFocus.dispose();
     super.dispose();
   }
 
@@ -453,58 +508,132 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                border:
-                                    Border.all(color: const Color(0xFFE5E7EB))),
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton<String>(
-                                value: _pendingClass,
-                                isExpanded: true,
-                                icon: const Icon(Icons.keyboard_arrow_down,
-                                    color: Color(0xFF9CA3AF)),
-                                style: const TextStyle(
-                                    fontSize: 13, color: Color(0xFF111827)),
-                                items: ScrapWeightService.supportedClasses
-                                    .map((c) => DropdownMenuItem(
-                                        value: c,
-                                        child: Text(_humanize(c),
-                                            overflow: TextOverflow.ellipsis)))
-                                    .toList(),
-                                onChanged: (v) =>
-                                    setState(() => _pendingClass = v!),
-                              ),
-                            ),
+                          child: Autocomplete<String>(
+                            textEditingController: _itemInputCtrl,
+                            focusNode: _itemInputFocus,
+                            optionsBuilder: (TextEditingValue value) {
+                              final all = ScrapWeightService.supportedClasses
+                                  .map(_humanize);
+                              if (value.text.isEmpty) return all;
+                              final query = value.text.toLowerCase();
+                              return all.where(
+                                  (h) => h.toLowerCase().contains(query));
+                            },
+                            onSelected: _addItem,
+                            fieldViewBuilder:
+                                (context, controller, focusNode, onSubmit) {
+                              return Container(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 12),
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                        color: const Color(0xFFE5E7EB))),
+                                child: TextField(
+                                  controller: controller,
+                                  focusNode: focusNode,
+                                  style: const TextStyle(
+                                      fontSize: 13, color: Color(0xFF111827)),
+                                  decoration: const InputDecoration(
+                                    isDense: true,
+                                    border: InputBorder.none,
+                                    hintText: 'Type an item name...',
+                                    hintStyle: TextStyle(
+                                        fontSize: 13,
+                                        color: Color(0xFF9CA3AF)),
+                                    contentPadding:
+                                        EdgeInsets.symmetric(vertical: 14),
+                                  ),
+                                  onSubmitted: _addItem,
+                                ),
+                              );
+                            },
+                            optionsViewBuilder:
+                                (context, onSelected, options) {
+                              final typed = _itemInputCtrl.text.trim();
+                              return Align(
+                                alignment: Alignment.topLeft,
+                                child: Material(
+                                  elevation: 4,
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                        maxWidth: 260, maxHeight: 220),
+                                    child: options.isEmpty
+                                        ? (typed.isEmpty
+                                            ? const Padding(
+                                                padding: EdgeInsets.all(14),
+                                                child: Text(
+                                                    'Start typing an item name.',
+                                                    style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: Color(
+                                                            0xFF6B7280))),
+                                              )
+                                            : ListTile(
+                                                dense: true,
+                                                leading: const Icon(
+                                                    Icons.add_circle_outline,
+                                                    size: 18,
+                                                    color:
+                                                        AppColors.sellerGreen),
+                                                title: Text(
+                                                    'Add "$typed" as a new item',
+                                                    style: const TextStyle(
+                                                        fontSize: 13,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: AppColors
+                                                            .sellerGreen)),
+                                                onTap: () =>
+                                                    onSelected(typed),
+                                              ))
+                                        : ListView.builder(
+                                            padding: EdgeInsets.zero,
+                                            shrinkWrap: true,
+                                            itemCount: options.length,
+                                            itemBuilder: (context, i) {
+                                              final opt =
+                                                  options.elementAt(i);
+                                              return ListTile(
+                                                dense: true,
+                                                title: Text(opt,
+                                                    style: const TextStyle(
+                                                        fontSize: 13)),
+                                                onTap: () => onSelected(opt),
+                                              );
+                                            },
+                                          ),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                         const SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: () => setState(() {
-                            final existing = _selectedItems
-                                .where((e) => e.className == _pendingClass);
-                            if (existing.isNotEmpty) {
-                              existing.first.quantity++;
-                            } else {
-                              _selectedItems.add(_SellItem(
-                                className: _pendingClass,
-                                quantity: 1,
-                                weightCtrl: TextEditingController(),
-                                notesCtrl: TextEditingController(),
-                              ));
-                            }
-                          }),
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.sellerGreen,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10))),
-                          child: const Icon(Icons.add, size: 20),
+                        ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: _itemInputCtrl,
+                          builder: (context, value, _) {
+                            final enabled = value.text.trim().isNotEmpty;
+                            return ElevatedButton(
+                              onPressed:
+                                  enabled ? () => _addItem(_itemInputCtrl.text) : null,
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.sellerGreen,
+                                  foregroundColor: Colors.white,
+                                  disabledBackgroundColor: AppColors
+                                      .sellerGreen
+                                      .withValues(alpha: 0.3),
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(10))),
+                              child: const Icon(Icons.add, size: 20),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -887,7 +1016,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                      Text(_humanize(item.className),
+                      Text(_displayName(item),
                           style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
@@ -920,6 +1049,43 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                 ),
               ],
             ),
+            if (item.isCustom) ...[
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                key: ObjectKey(item),
+                initialValue: item.category,
+                isDense: true,
+                hint: const Text('Material type (required)',
+                    style: TextStyle(fontSize: 13, color: Color(0xFF9CA3AF))),
+                style: const TextStyle(fontSize: 13, color: Color(0xFF111827)),
+                decoration: InputDecoration(
+                  isDense: true,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
+                  enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                          color: item.category == null
+                              ? AppColors.error
+                              : const Color(0xFFE5E7EB))),
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(
+                          color: AppColors.sellerGreen, width: 1.5)),
+                ),
+                items: MaterialPreferences.customItemCategories
+                    .map((c) => DropdownMenuItem(
+                        value: c,
+                        child: Text(c == MaterialPreferences.other
+                            ? 'Other / Not sure'
+                            : c)))
+                    .toList(),
+                onChanged: (v) => setState(() => item.category = v),
+              ),
+            ],
             const SizedBox(height: 8),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
