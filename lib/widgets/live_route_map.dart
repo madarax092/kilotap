@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../services/google_maps_service.dart';
 import '../services/polyline_decoder.dart';
+import 'full_screen_map_page.dart';
 
 /// Real Google Map showing a destination pin, and — when [originLat]/[originLon]
 /// are supplied — the live route + polyline between origin and destination.
@@ -14,6 +15,11 @@ class LiveRouteMap extends StatefulWidget {
   final double height;
   final BorderRadius borderRadius;
   final void Function(RouteInfo?)? onRouteLoaded;
+  // For small maps inside scrolling pages: the inline map ignores pan/zoom
+  // (so it stops fighting the page scroll) and tapping it opens a full-screen
+  // version instead.
+  final bool expandable;
+  final String expandTitle;
 
   const LiveRouteMap({
     super.key,
@@ -24,6 +30,8 @@ class LiveRouteMap extends StatefulWidget {
     this.height = 220,
     this.borderRadius = const BorderRadius.all(Radius.circular(16)),
     this.onRouteLoaded,
+    this.expandable = false,
+    this.expandTitle = 'Pickup Location',
   });
 
   @override
@@ -153,24 +161,75 @@ class _LiveRouteMapState extends State<LiveRouteMap> {
       ));
     }
 
+    final interactive = !widget.expandable;
+    final map = GoogleMap(
+      initialCameraPosition: CameraPosition(target: destLatLng, zoom: 14),
+      markers: markers,
+      polylines: polylines,
+      zoomControlsEnabled: false,
+      myLocationButtonEnabled: false,
+      mapToolbarEnabled: false,
+      scrollGesturesEnabled: interactive,
+      zoomGesturesEnabled: interactive,
+      rotateGesturesEnabled: interactive,
+      tiltGesturesEnabled: interactive,
+      onMapCreated: (controller) {
+        _controller = controller;
+        if (_hasOrigin && _route != null && _route!.polyline.isNotEmpty) {
+          _fitBounds();
+        }
+      },
+    );
+
     return ClipRRect(
       borderRadius: widget.borderRadius,
       child: SizedBox(
         height: widget.height,
-        child: GoogleMap(
-          initialCameraPosition: CameraPosition(target: destLatLng, zoom: 14),
-          markers: markers,
-          polylines: polylines,
-          zoomControlsEnabled: false,
-          myLocationButtonEnabled: false,
-          onMapCreated: (controller) {
-            _controller = controller;
-            if (_hasOrigin && _route != null && _route!.polyline.isNotEmpty) {
-              _fitBounds();
-            }
-          },
-        ),
+        child: widget.expandable
+            ? Stack(
+                children: [
+                  Positioned.fill(child: IgnorePointer(child: map)),
+                  Positioned.fill(
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(onTap: _openFullScreen),
+                    ),
+                  ),
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: IgnorePointer(
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: const [
+                            BoxShadow(color: Color(0x33000000), blurRadius: 4)
+                          ],
+                        ),
+                        child: const Icon(Icons.open_in_full,
+                            size: 16, color: Color(0xFF374151)),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : map,
       ),
     );
+  }
+
+  void _openFullScreen() {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => FullScreenMapPage(
+                  title: widget.expandTitle,
+                  destLat: widget.destLat,
+                  destLon: widget.destLon,
+                  originLat: widget.originLat,
+                  originLon: widget.originLon,
+                )));
   }
 }

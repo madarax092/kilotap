@@ -7,8 +7,19 @@ import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platf
 import 'firebase_options.dart';
 import 'router.dart';
 import 'core/theme/app_colors.dart';
+import 'services/booking_outbox.dart';
 import 'services/cache_service.dart';
 import 'services/push_notification_service.dart';
+import 'services/sell_draft_store.dart';
+
+// Retries pickup requests saved offline whenever the app comes back to the
+// foreground (the outbox also retries on a timer while requests wait).
+class _OutboxOnResume with WidgetsBindingObserver {
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) BookingOutbox.instance.flush();
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +35,9 @@ void main() async {
   }
 
   await CacheService.instance.init();
+  await BookingOutbox.instance.init();
+  await SellDraftStore.init();
+  WidgetsBinding.instance.addObserver(_OutboxOnResume());
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 

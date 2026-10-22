@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../core/constants/material_preferences.dart';
+import '../../core/date_format.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/booking.dart';
 import '../../models/booking_item.dart';
@@ -345,8 +346,8 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                                     booking: b,
                                     sellerName: data.sellerName,
                                     itemsSummary: data.itemsSummary,
-                                    timeAgo: data.distanceLabel ??
-                                        _timeAgo(b.createdAt),
+                                    timeAgo:
+                                        '${pickupScheduleLabel(b)} · ${data.distanceLabel ?? _timeAgo(b.createdAt)}',
                                   );
                                 },
                               );

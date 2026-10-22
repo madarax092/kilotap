@@ -1,17 +1,24 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' show LatLng;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/constants/material_preferences.dart';
+import '../../core/date_format.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/scrap_weight_service.dart';
 import '../../services/ml/capacity_matcher.dart';
 import '../../services/ml/pipeline.dart';
 import '../../services/firestore_service.dart';
+import '../../services/auth_service.dart';
 import '../../services/auth_state.dart';
+import '../../services/booking_outbox.dart';
+import '../../services/sell_draft_store.dart';
 import '../../widgets/address_entry_page.dart';
+import '../../widgets/pickup_map_preview.dart';
+import '../../widgets/pin_location_page.dart';
 import 'booking_summary_screen.dart';
 import 'camera_prototype_screen.dart';
 
@@ -40,9 +47,21 @@ class _SellItem {
   });
 }
 
+// A row in the item suggestions: a category header, a known item (text is
+// its class key), or the "add as a new item" row for the typed text.
+class _PickerRow {
+  final String text;
+  final bool isHeader;
+  final bool isNewItem;
+  const _PickerRow(this.text, {this.isHeader = false, this.isNewItem = false});
+}
+
 class _SellScrapScreenState extends State<SellScrapScreen> {
   XFile? _photo;
   late String _address = AuthState.instance.address;
+  // Last-used pin, restored from the profile so a returning household only
+  // has to confirm or move it. Required before a request can be submitted.
+  late LatLng? _pin = _savedPin();
   bool _detecting = false;
   String? _detectionError;
   double _spatialAreaRatio = 0.0;
@@ -62,6 +81,174 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
   DateTime? _scheduledDate;
   bool _submitting = false;
 
+  // ─── Draft autosave: the form survives the app being closed ───
+  Timer? _draftTimer;
+  String? _draftPhotoPath;
+  // False until any saved draft is restored, and again once the request is
+  // sent, so neither moment overwrites the draft store.
+  bool _draftReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _bookingNotesCtrl.addListener(_scheduleDraftSave);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _restoreDraft());
+  }
+
+  // Every form change goes through setState, so this is the single place
+  // that queues an autosave.
+  @override
+  void setState(VoidCallback fn) {
+    super.setState(fn);
+    _scheduleDraftSave();
+  }
+
+  _SellItem _newItem(String className,
+      {required bool isCustom,
+      int quantity = 1,
+      String? category,
+      String weight = '',
+      String notes = ''}) {
+    final item = _SellItem(
+      className: className,
+      isCustom: isCustom,
+      quantity: quantity,
+      weightCtrl: TextEditingController(text: weight),
+      notesCtrl: TextEditingController(text: notes),
+    )..category = category;
+    item.weightCtrl.addListener(_scheduleDraftSave);
+    item.notesCtrl.addListener(_scheduleDraftSave);
+    return item;
+  }
+
+  void _scheduleDraftSave() {
+    if (!_draftReady || kIsWeb) return;
+    _draftTimer?.cancel();
+    _draftTimer = Timer(const Duration(milliseconds: 800), _saveDraft);
+  }
+
+  Future<void> _saveDraft() async {
+    final uid = AuthState.instance.uid;
+    if (uid == null || !mounted || !_draftReady) return;
+    if (_photo == null && _selectedItems.isEmpty) {
+      await SellDraftStore.clear(uid);
+      _draftPhotoPath = null;
+      return;
+    }
+    if (_photo != null && _photo!.path != _draftPhotoPath) {
+      final previous = _draftPhotoPath;
+      _draftPhotoPath = await SellDraftStore.keepPhoto(_photo!.path);
+      if (previous != null && previous != _draftPhotoPath) {
+        try {
+          File(previous).deleteSync();
+        } catch (_) {}
+      }
+    }
+    await SellDraftStore.save(uid, {
+      'photoPath': _photo == null ? null : _draftPhotoPath,
+      'items': [
+        for (final i in _selectedItems)
+          {
+            'className': i.className,
+            'isCustom': i.isCustom,
+            'category': i.category,
+            'quantity': i.quantity,
+            'weight': i.weightCtrl.text,
+            'notes': i.notesCtrl.text,
+          },
+      ],
+      'address': _address,
+      'pinLat': _pin?.latitude,
+      'pinLon': _pin?.longitude,
+      'isAsap': _isAsap,
+      'scheduledDate': _scheduledDate?.toIso8601String(),
+      'vehicleOverride': _vehicleOverride,
+      'bookingNotes': _bookingNotesCtrl.text,
+      'spatialAreaRatio': _spatialAreaRatio,
+    });
+  }
+
+  Future<void> _restoreDraft() async {
+    final uid = AuthState.instance.uid;
+    final draft = (uid == null || kIsWeb) ? null : SellDraftStore.load(uid);
+    if (draft != null && mounted) {
+      final photoPath = draft['photoPath'] as String?;
+      final items = (draft['items'] as List? ?? const []).whereType<Map>();
+      super.setState(() {
+        if (photoPath != null && File(photoPath).existsSync()) {
+          _photo = XFile(photoPath);
+          _draftPhotoPath = photoPath;
+        }
+        for (final m in items) {
+          _selectedItems.add(_newItem(m['className'] as String,
+              isCustom: m['isCustom'] == true,
+              quantity: (m['quantity'] as num?)?.toInt() ?? 1,
+              category: m['category'] as String?,
+              weight: m['weight'] as String? ?? '',
+              notes: m['notes'] as String? ?? ''));
+        }
+        final address = draft['address'] as String?;
+        if (address != null && address.isNotEmpty) _address = address;
+        final lat = draft['pinLat'], lon = draft['pinLon'];
+        if (lat is num && lon is num) {
+          _pin = LatLng(lat.toDouble(), lon.toDouble());
+        }
+        final scheduled = DateTime.tryParse(draft['scheduledDate'] ?? '');
+        _isAsap = draft['isAsap'] != false;
+        _scheduledDate = scheduled;
+        // A schedule that has already passed falls back to ASAP.
+        if (scheduled != null && scheduled.isBefore(DateTime.now())) {
+          _isAsap = true;
+          _scheduledDate = null;
+        }
+        _vehicleOverride = draft['vehicleOverride'] as String?;
+        _spatialAreaRatio =
+            (draft['spatialAreaRatio'] as num?)?.toDouble() ?? 0;
+      });
+      _bookingNotesCtrl.text = draft['bookingNotes'] as String? ?? '';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Restored your unfinished pickup request.'),
+        action: SnackBarAction(label: 'Discard', onPressed: _discardDraft),
+      ));
+    }
+    _draftReady = true;
+  }
+
+  Future<void> _discardDraft() async {
+    _draftTimer?.cancel();
+    final uid = AuthState.instance.uid;
+    if (uid != null) await SellDraftStore.clear(uid);
+    if (!mounted) return;
+    for (final i in _selectedItems) {
+      i.weightCtrl.dispose();
+      i.notesCtrl.dispose();
+    }
+    super.setState(() {
+      _selectedItems.clear();
+      _photo = null;
+      _draftPhotoPath = null;
+      _detectionError = null;
+      _spatialAreaRatio = 0;
+      _isAsap = true;
+      _scheduledDate = null;
+      _vehicleOverride = null;
+      _address = AuthState.instance.address;
+      _pin = _savedPin();
+    });
+    _bookingNotesCtrl.clear();
+  }
+
+  // Called once the request is sent or queued: the draft is no longer needed.
+  Future<void> _clearDraftAfterSend() async {
+    _draftReady = false;
+    _draftTimer?.cancel();
+    final uid = AuthState.instance.uid;
+    if (uid != null) {
+      await SellDraftStore.clear(uid,
+          deletePhoto: _photo == null || _photo!.path != _draftPhotoPath);
+    }
+  }
+
   double get _totalWeight {
     double total = 0;
     for (final item in _selectedItems) {
@@ -80,12 +267,31 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
 
   String get _selectedVehicle => _vehicleOverride ?? _recommendedVehicle;
 
-  String _humanize(String key) {
-    return key.split('_').map((w) {
-      if (w.isEmpty) return w;
-      if (w.contains(RegExp(r'[0-9]'))) return w;
-      return w[0].toUpperCase() + w.substring(1);
-    }).join(' ');
+  // Orders the item suggestions (class keys) by collector-preference
+  // category, with a header row per category, so the list is easy to scan.
+  // While the household is typing something that isn't an exact item name,
+  // an "add as a new item" row stays at the bottom so they can still choose
+  // their own wording over a suggestion.
+  List<_PickerRow> _groupedOptions(Iterable<String> options, String typed) {
+    final byCategory = <String, List<String>>{};
+    for (final key in options) {
+      final category = MaterialPreferences.categoryOf(key) ?? 'Other';
+      byCategory.putIfAbsent(category, () => []).add(key);
+    }
+    final order = [...MaterialPreferences.categories, 'Other'];
+    final rows = <_PickerRow>[];
+    for (final category in order) {
+      final items = byCategory[category];
+      if (items == null || items.isEmpty) continue;
+      rows.add(_PickerRow(category, isHeader: true));
+      items.sort((a, b) => ScrapWeightService.labelFor(a)
+          .compareTo(ScrapWeightService.labelFor(b)));
+      rows.addAll(items.map((i) => _PickerRow(i)));
+    }
+    if (typed.isNotEmpty && ScrapWeightService.resolveTyped(typed) == null) {
+      rows.add(_PickerRow(typed, isNewItem: true));
+    }
+    return rows;
   }
 
   String _titleCase(String s) {
@@ -97,33 +303,47 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
         .join(' ');
   }
 
-  String _displayName(_SellItem item) =>
-      item.isCustom ? item.className : _humanize(item.className);
+  String _displayName(_SellItem item) => item.isCustom
+      ? item.className
+      : ScrapWeightService.labelFor(item.className);
 
-  void _addItem(String rawInput) {
+  /// Adds typed text: an exact item name or alias becomes that known item
+  /// (so weight, size class and category still work); anything else becomes
+  /// a custom item, unless [asNewItem] forces it to stay custom.
+  void _addItem(String rawInput, {bool asNewItem = false}) {
     final text = rawInput.trim();
     if (text.isEmpty) return;
-    final match = ScrapWeightService.supportedClasses.firstWhere(
-        (c) => _humanize(c).toLowerCase() == text.toLowerCase(),
-        orElse: () => '');
-    final isCustom = match.isEmpty;
-    final key = isCustom ? _titleCase(text) : match;
+    final match = asNewItem ? null : ScrapWeightService.resolveTyped(text);
+    if (match != null) {
+      _addEntry(match, isCustom: false);
+    } else {
+      _addEntry(_titleCase(text), isCustom: true);
+    }
+  }
+
+  // Adding an item that is already in the list raises its quantity instead
+  // of creating a second row, and says so.
+  void _addEntry(String key, {required bool isCustom}) {
+    final existing = _selectedItems
+        .where((e) =>
+            e.isCustom == isCustom &&
+            e.className.toLowerCase() == key.toLowerCase())
+        .toList();
     setState(() {
-      final existing = _selectedItems.where((e) =>
-          e.isCustom == isCustom && e.className.toLowerCase() == key.toLowerCase());
       if (existing.isNotEmpty) {
         existing.first.quantity++;
       } else {
-        _selectedItems.add(_SellItem(
-          className: key,
-          isCustom: isCustom,
-          quantity: 1,
-          weightCtrl: TextEditingController(),
-          notesCtrl: TextEditingController(),
-        ));
+        _selectedItems.add(_newItem(key, isCustom: isCustom));
       }
       _itemInputCtrl.clear();
     });
+    if (existing.isNotEmpty) {
+      final item = existing.first;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${_displayName(item)} is already in your list '
+              '- quantity is now ${item.quantity}.')));
+    }
   }
 
   Future<void> _pickPhoto() async {
@@ -144,7 +364,8 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
       final result = await _pipeline.run(File(photo.path));
       final counts = <String, int>{};
       for (final d in result.detections) {
-        counts[d.className] = (counts[d.className] ?? 0) + 1;
+        final key = ScrapWeightService.pickerClassFor(d.className);
+        counts[key] = (counts[key] ?? 0) + 1;
       }
       final areaRatio = result.detections
           .fold<double>(0.0, (total, d) => total + (d.w * d.h))
@@ -159,13 +380,8 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
           if (existing.isNotEmpty) {
             existing.first.quantity += entry.value;
           } else {
-            _selectedItems.add(_SellItem(
-              className: entry.key,
-              isCustom: false,
-              quantity: entry.value,
-              weightCtrl: TextEditingController(),
-              notesCtrl: TextEditingController(),
-            ));
+            _selectedItems.add(_newItem(entry.key,
+                isCustom: false, quantity: entry.value));
           }
         }
         if (counts.isEmpty) {
@@ -183,26 +399,69 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
     }
   }
 
-  Future<Position> _getCurrentPosition() async {
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      throw Exception(
-          'Location permission is required to submit a pickup request.');
-    }
-    if (!await Geolocator.isLocationServiceEnabled()) {
-      throw Exception('Please enable location services and try again.');
-    }
-    return Geolocator.getCurrentPosition(
-        locationSettings:
-            const LocationSettings(accuracy: LocationAccuracy.high));
+  // The saved pin only counts while it belongs to the current address —
+  // AuthService clears it when the barangay or city changes.
+  LatLng? _savedPin() {
+    final auth = AuthState.instance;
+    return auth.hasAddressPin
+        ? LatLng(auth.addressLat!, auth.addressLon!)
+        : null;
   }
 
+  Future<String?> _editAddress() async {
+    final result = await Navigator.push<String>(
+        context,
+        MaterialPageRoute(
+            builder: (_) => AddressEntryPage(initialAddress: _address)));
+    if (result == null || !mounted) return null;
+    setState(() {
+      _address = result;
+      _pin = _savedPin();
+    });
+    return result;
+  }
+
+  Future<void> _openPinPage() async {
+    final picked = await Navigator.push<LatLng>(
+        context,
+        MaterialPageRoute(
+            builder: (_) => PinLocationPage(
+                initialPin: _pin,
+                address: _address,
+                onEditAddress: _editAddress)));
+    if (picked == null || !mounted) return;
+    setState(() => _pin = picked);
+    try {
+      await AuthService.instance
+          .updateSellerPin(picked.latitude, picked.longitude);
+    } catch (_) {
+      // Non-fatal — the pin still applies to this booking, it just won't be
+      // remembered for next time.
+    }
+  }
+
+  bool get _canSubmit =>
+      _selectedItems.isNotEmpty &&
+      _photo != null &&
+      _address.trim().isNotEmpty &&
+      _pin != null &&
+      !_submitting;
+
+  // First thing still blocking Submit, in the order the form is filled in.
+  String? get _missingStep {
+    if (_photo == null) return 'Take a photo of your scrap to continue.';
+    if (_selectedItems.isEmpty) return 'Add at least one item to continue.';
+    if (_address.trim().isEmpty) return 'Add your pickup address to continue.';
+    if (_pin == null) return 'Set your pickup pin on the map to continue.';
+    return null;
+  }
+
+  // Red-outlines the empty pin card once everything else is ready.
+  bool get _showPinError =>
+      _pin == null && _photo != null && _selectedItems.isNotEmpty;
+
   Future<void> _submit() async {
-    if (_selectedItems.isEmpty || _photo == null || _submitting) return;
+    if (!_canSubmit) return;
     if (_selectedItems
         .any((item) => (double.tryParse(item.weightCtrl.text) ?? 0) <= 0)) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -218,26 +477,27 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
     setState(() => _submitting = true);
 
     try {
-      final position = await _getCurrentPosition();
+      final pin = _pin!;
       final firestoreService = FirestoreService();
       final auth = AuthState.instance;
 
-      String photoUrl = '';
-      if (!kIsWeb && _photo != null) {
-        photoUrl = await firestoreService.uploadBookingPhoto(File(_photo!.path));
-      }
-
-      final bookingId = await firestoreService.createBookingWithItems({
+      final bookingId = firestoreService.newBookingId();
+      final booking = <String, dynamic>{
         'Seller_ID': auth.uid,
         'Collector_ID': '',
         'Status': 'Pending',
         'VehicleRequirement': _selectedVehicle,
         'SpatialAreaRatio': double.parse(_spatialAreaRatio.toStringAsFixed(4)),
-        'PickupGPS': GeoPoint(position.latitude, position.longitude),
+        'PickupGPS': GeoPoint(pin.latitude, pin.longitude),
         'PickupAddress': _address,
         'Notes': _bookingNotesCtrl.text.trim(),
-        'PhotoURL': photoUrl,
-      }, [
+        'PhotoURL': '',
+        'PickupType': _isAsap ? 'ASAP' : 'Scheduled',
+        'ScheduledDate': !_isAsap && _scheduledDate != null
+            ? Timestamp.fromDate(_scheduledDate!)
+            : null,
+      };
+      final items = <Map<String, dynamic>>[
         for (final item in _selectedItems)
           {
             'ItemName': _displayName(item),
@@ -250,7 +510,40 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
             'ScrapClass': item.isCustom ? item.category! : item.className,
             'Notes': item.notesCtrl.text.trim(),
           },
-      ]);
+      ];
+
+      // The photo upload is the step that needs a connection. Without one,
+      // the request goes to the offline outbox and is sent automatically
+      // later (paper 2.3.3.4).
+      try {
+        if (!kIsWeb && _photo != null) {
+          booking['PhotoURL'] = await firestoreService
+              .uploadBookingPhoto(File(_photo!.path))
+              .timeout(const Duration(seconds: 30));
+        }
+      } catch (e) {
+        if (!BookingOutbox.isNetworkError(e)) rethrow;
+        await BookingOutbox.instance.enqueue(
+          sellerId: auth.uid ?? '',
+          bookingId: bookingId,
+          booking: booking,
+          items: items,
+          photoPath: _photo?.path,
+        );
+        await _clearDraftAfterSend();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('No connection. Your request is saved on this phone '
+              'and will be sent automatically when you are back online.'),
+          duration: Duration(seconds: 6),
+        ));
+        Navigator.pushReplacementNamed(context, '/pickups');
+        return;
+      }
+
+      await firestoreService.createBookingWithItems(booking, items,
+          bookingId: bookingId);
+      await _clearDraftAfterSend();
 
       if (!mounted) return;
       Navigator.push(
@@ -271,6 +564,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
 
   @override
   void dispose() {
+    _draftTimer?.cancel();
     for (final item in _selectedItems) {
       item.weightCtrl.dispose();
       item.notesCtrl.dispose();
@@ -511,15 +805,16 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                           child: Autocomplete<String>(
                             textEditingController: _itemInputCtrl,
                             focusNode: _itemInputFocus,
+                            // Options are class keys; matching covers the
+                            // display name, hint and aliases ("lata", "phone").
                             optionsBuilder: (TextEditingValue value) {
-                              final all = ScrapWeightService.supportedClasses
-                                  .map(_humanize);
-                              if (value.text.isEmpty) return all;
-                              final query = value.text.toLowerCase();
-                              return all.where(
-                                  (h) => h.toLowerCase().contains(query));
+                              return ScrapWeightService.searchPicker(
+                                  value.text);
                             },
-                            onSelected: _addItem,
+                            displayStringForOption:
+                                ScrapWeightService.labelFor,
+                            onSelected: (key) =>
+                                _addEntry(key, isCustom: false),
                             fieldViewBuilder:
                                 (context, controller, focusNode, onSubmit) {
                               return Container(
@@ -586,25 +881,82 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                                                             FontWeight.w600,
                                                         color: AppColors
                                                             .sellerGreen)),
-                                                onTap: () =>
-                                                    onSelected(typed),
+                                                onTap: () => _addItem(typed,
+                                                    asNewItem: true),
                                               ))
-                                        : ListView.builder(
-                                            padding: EdgeInsets.zero,
-                                            shrinkWrap: true,
-                                            itemCount: options.length,
-                                            itemBuilder: (context, i) {
-                                              final opt =
-                                                  options.elementAt(i);
-                                              return ListTile(
-                                                dense: true,
-                                                title: Text(opt,
-                                                    style: const TextStyle(
-                                                        fontSize: 13)),
-                                                onTap: () => onSelected(opt),
-                                              );
-                                            },
-                                          ),
+                                        : Builder(builder: (context) {
+                                            final rows = _groupedOptions(
+                                                options, typed);
+                                            return ListView.builder(
+                                              padding: EdgeInsets.zero,
+                                              shrinkWrap: true,
+                                              itemCount: rows.length,
+                                              itemBuilder: (context, i) {
+                                                final row = rows[i];
+                                                if (row.isHeader) {
+                                                  return Container(
+                                                    width: double.infinity,
+                                                    color:
+                                                        const Color(0xFFF3F4F6),
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 14,
+                                                        vertical: 6),
+                                                    child: Text(
+                                                        row.text.toUpperCase(),
+                                                        style: const TextStyle(
+                                                            fontSize: 11,
+                                                            fontWeight:
+                                                                FontWeight.w800,
+                                                            color: Color(
+                                                                0xFF6B7280))),
+                                                  );
+                                                }
+                                                if (row.isNewItem) {
+                                                  return ListTile(
+                                                    dense: true,
+                                                    leading: const Icon(
+                                                        Icons
+                                                            .add_circle_outline,
+                                                        size: 18,
+                                                        color: AppColors
+                                                            .sellerGreen),
+                                                    title: Text(
+                                                        'Add "${row.text}" as a new item',
+                                                        style: const TextStyle(
+                                                            fontSize: 13,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            color: AppColors
+                                                                .sellerGreen)),
+                                                    onTap: () => _addItem(
+                                                        row.text,
+                                                        asNewItem: true),
+                                                  );
+                                                }
+                                                final hint = ScrapWeightService
+                                                    .pickerHints[row.text];
+                                                return ListTile(
+                                                  dense: true,
+                                                  title: Text(
+                                                      ScrapWeightService
+                                                          .labelFor(row.text),
+                                                      style: const TextStyle(
+                                                          fontSize: 13)),
+                                                  subtitle: hint == null
+                                                      ? null
+                                                      : Text(hint,
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize: 11,
+                                                                  color: Color(
+                                                                      0xFF6B7280))),
+                                                  onTap: () =>
+                                                      onSelected(row.text),
+                                                );
+                                              },
+                                            );
+                                          }),
                                   ),
                                 ),
                               );
@@ -741,18 +1093,33 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                       child: GestureDetector(
                         onTap: () async {
                           final now = DateTime.now();
-                          final picked = await showDatePicker(
+                          final day = await showDatePicker(
                             context: context,
                             initialDate: now.add(const Duration(days: 1)),
                             firstDate: now,
                             lastDate: now.add(const Duration(days: 30)),
                           );
-                          if (picked != null) {
-                            setState(() {
-                              _isAsap = false;
-                              _scheduledDate = picked;
-                            });
+                          if (day == null || !context.mounted) return;
+                          final time = await showTimePicker(
+                            context: context,
+                            initialTime: const TimeOfDay(hour: 9, minute: 0),
+                            helpText: 'Preferred pickup time',
+                          );
+                          if (time == null) return;
+                          final picked = DateTime(day.year, day.month,
+                              day.day, time.hour, time.minute);
+                          if (picked.isBefore(now)) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'Pick a time later than now.')));
+                            return;
                           }
+                          setState(() {
+                            _isAsap = false;
+                            _scheduledDate = picked;
+                          });
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -777,7 +1144,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                               const SizedBox(height: 6),
                               Text(
                                   _scheduledDate != null
-                                      ? '${_scheduledDate!.month}/${_scheduledDate!.day}'
+                                      ? '${_scheduledDate!.month}/${_scheduledDate!.day} ${formatTime(_scheduledDate!)}'
                                       : 'Schedule',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
@@ -842,14 +1209,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                   ]),
                   const SizedBox(height: 16),
                   GestureDetector(
-                    onTap: () async {
-                      final result = await Navigator.push<String>(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) =>
-                                  AddressEntryPage(initialAddress: _address)));
-                      if (result != null) setState(() => _address = result);
-                    },
+                    onTap: _editAddress,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 14),
@@ -891,6 +1251,12 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  PickupMapPreview(
+                    pin: _pin,
+                    showError: _showPinError,
+                    onTap: _openPinPage,
+                  ),
                   const SizedBox(height: 16),
                   TextField(
                       controller: _bookingNotesCtrl,
@@ -929,11 +1295,7 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16))),
-                          onPressed: _selectedItems.isEmpty ||
-                                  _photo == null ||
-                                  _submitting
-                              ? null
-                              : _submit,
+                          onPressed: _canSubmit ? _submit : null,
                           child: _submitting
                               ? const SizedBox(
                                   width: 22,
@@ -945,12 +1307,9 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                                       fontSize: 15,
                                       fontWeight: FontWeight.w800,
                                       letterSpacing: 0.5)))),
-                  if (_photo == null || _selectedItems.isEmpty) ...[
+                  if (_missingStep != null) ...[
                     const SizedBox(height: 8),
-                    Text(
-                        _photo == null
-                            ? 'Take a photo of your scrap to continue.'
-                            : 'Add at least one item to continue.',
+                    Text(_missingStep!,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                             fontSize: 12, color: Color(0xFF9CA3AF))),

@@ -21,6 +21,81 @@ class CollectorNavigationScreen extends StatefulWidget {
 class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
   RouteInfo? _route;
   bool _loading = true;
+  // Arrival only notifies the household; the booking stays Accepted until
+  // the collector separately confirms Complete Pickup.
+  bool _arrived = false;
+  bool _busy = false;
+
+  Future<void> _markArrived(String bookingId) async {
+    setState(() => _busy = true);
+    try {
+      final svc = FirestoreService();
+      final booking = await svc.getBooking(bookingId);
+      if (booking != null) {
+        await svc.sendNotification({
+          'Recipient_ID': booking.sellerId,
+          'Booking_ID': bookingId,
+          'Title': 'Your collector has arrived',
+          'Message': 'Your collector is at your pickup location.',
+          'Type': 'on_the_way',
+        });
+      }
+      if (!mounted) return;
+      setState(() => _arrived = true);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Household notified that you have arrived.')));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Could not notify: $e')));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _completePickup(String bookingId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Complete pickup?'),
+        content: const Text(
+            'Confirm that you have collected the scrap from this household.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Not yet')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Complete',
+                  style: TextStyle(fontWeight: FontWeight.w700))),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _busy = true);
+    try {
+      final svc = FirestoreService();
+      await svc.updateBookingStatus(bookingId, 'Completed');
+      final booking = await svc.getBooking(bookingId);
+      if (booking != null) {
+        await svc.sendNotification({
+          'Recipient_ID': booking.sellerId,
+          'Booking_ID': bookingId,
+          'Title': 'Pickup completed',
+          'Message': 'Your scrap pickup was completed. Rate your collector!',
+          'Type': 'completed',
+        });
+      }
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/collector');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Could not complete: $e')));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   void initState() {
@@ -285,47 +360,69 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.buyerBlue,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                  Builder(builder: (context) {
+                    final bookingId = args['bookingId'] as String?;
+                    if (bookingId == null) return const SizedBox.shrink();
+                    return Column(children: [
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.verified_user_outlined,
+                              size: 18),
+                          label: const Text('Booking Pass',
+                              style: TextStyle(fontWeight: FontWeight.w700)),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.buyerBlue,
+                            side: const BorderSide(color: AppColors.buyerBlue),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
+                          ),
+                          onPressed: () => Navigator.pushNamed(
+                              context, '/booking_pass',
+                              arguments: {'bookingId': bookingId}),
                         ),
-                        elevation: 0,
                       ),
-                      onPressed: () async {
-                        final bookingId = args['bookingId'] as String?;
-                        if (bookingId != null) {
-                          final svc = FirestoreService();
-                          await svc.updateBookingStatus(bookingId, 'Completed');
-                          final booking = await svc.getBooking(bookingId);
-                          if (booking != null) {
-                            await svc.sendNotification({
-                              'Recipient_ID': booking.sellerId,
-                              'Booking_ID': bookingId,
-                              'Title': 'Pickup completed',
-                              'Message':
-                                  'Your scrap pickup was completed. Rate your collector!',
-                              'Type': 'completed',
-                            });
-                          }
-                        }
-                        if (!context.mounted) return;
-                        Navigator.pushReplacementNamed(context, '/collector');
-                      },
-                      child: const Text(
-                        'ARRIVED',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _arrived
+                                ? AppColors.success
+                                : AppColors.buyerBlue,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 0,
+                          ),
+                          onPressed: _busy
+                              ? null
+                              : () => _arrived
+                                  ? _completePickup(bookingId)
+                                  : _markArrived(bookingId),
+                          child: Text(
+                            _arrived ? 'COMPLETE PICKUP' : "I'VE ARRIVED",
+                            style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                      if (!_arrived)
+                        TextButton(
+                          onPressed:
+                              _busy ? null : () => _completePickup(bookingId),
+                          child: const Text('Already picked up? Complete pickup',
+                              style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w600)),
+                        ),
+                    ]);
+                  }),
                 ],
               ),
             ),

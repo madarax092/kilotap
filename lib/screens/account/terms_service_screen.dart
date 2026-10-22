@@ -43,7 +43,7 @@ class TermsServiceScreen extends StatelessWidget {
                 
                 Text('3. Pricing and Payments', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF111827))),
                 SizedBox(height: 8),
-                Text('Prices shown on the app are estimates based on market value. Final payouts are determined at the time of pickup based on the actual measured weight.', style: TextStyle(fontSize: 14, color: Color(0xFF4B5563), height: 1.5)),
+                Text('KiloTap does not set prices or process payments. Any price is agreed directly between the household and the collector at pickup. Weights shown in the app are estimates; the actual weight is measured at pickup.', style: TextStyle(fontSize: 14, color: Color(0xFF4B5563), height: 1.5)),
                 SizedBox(height: 24),
                 
                 Text('4. Privacy Policy', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF111827))),

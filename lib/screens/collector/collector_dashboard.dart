@@ -709,6 +709,25 @@ class _AssignedRouteCard extends StatelessWidget {
                     ),
                   ],
                 ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.verified_user_outlined, size: 18),
+                    label: const Text('Booking Pass',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.buyerBlue,
+                      side: const BorderSide(color: AppColors.buyerBlue),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: () => Navigator.pushNamed(
+                        context, '/booking_pass',
+                        arguments: {'bookingId': booking.bookingId}),
+                  ),
+                ),
               ],
             ),
           );

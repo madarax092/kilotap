@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/address_format.dart';
 import '../core/constants/davao_barangays.dart';
 import '../core/theme/app_colors.dart';
 import '../services/auth_service.dart';
@@ -21,17 +22,37 @@ class AddressEntryPage extends StatefulWidget {
 }
 
 class _AddressEntryPageState extends State<AddressEntryPage> {
-  late final _streetCtrl = TextEditingController(text: widget.initialAddress);
-  String? _barangay;
-  late String _city = supportedCities.first;
+  late final ParsedAddress _initial = parseAddress(widget.initialAddress);
+  late final _streetCtrl = TextEditingController(text: _initial.street);
+  late String? _barangay = _initial.barangay;
+  late final String _city = _initial.city ?? supportedCities.first;
   bool _saving = false;
 
+  bool get _canSave => _streetCtrl.text.trim().isNotEmpty && _barangay != null;
+
+  String get _preview {
+    if (_barangay == null && _streetCtrl.text.trim().isEmpty) return '';
+    if (_barangay == null) return _streetCtrl.text.trim();
+    return composeAddress(
+        street: _streetCtrl.text, barangay: _barangay!, city: _city);
+  }
+
+  Future<void> _pickBarangay() async {
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => _BarangaySheet(selected: _barangay),
+    );
+    if (picked != null) setState(() => _barangay = picked);
+  }
+
   Future<void> _save() async {
-    final street = _streetCtrl.text.trim();
-    if (street.isEmpty || _barangay == null) return;
+    if (!_canSave) return;
     setState(() => _saving = true);
-    final address = 'Barangay $_barangay, $_city';
-    final fullAddress = '$street, $address';
+    final fullAddress = composeAddress(
+        street: _streetCtrl.text, barangay: _barangay!, city: _city);
     try {
       final save = widget.onSave ??
           (addr) => AuthService.instance.updateSellerProfile(address: addr);
@@ -56,9 +77,9 @@ class _AddressEntryPageState extends State<AddressEntryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final canSave = _streetCtrl.text.trim().isNotEmpty && _barangay != null;
+    final preview = _preview;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -73,79 +94,106 @@ class _AddressEntryPageState extends State<AddressEntryPage> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text('Subdivision / Block / Lot / Street',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _streetCtrl,
-            maxLines: 2,
-            onChanged: (_) => setState(() {}),
-            style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
-            decoration: InputDecoration(
-              hintText: 'e.g. Blk 4 Lot 12, Greenwood Subdivision',
-              filled: true,
-              fillColor: const Color(0xFFF5F5F5),
-              contentPadding: const EdgeInsets.all(16),
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.sellerGreen.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                  color: AppColors.sellerGreen.withValues(alpha: 0.25)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.home_outlined,
+                    color: AppColors.sellerGreen, size: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Your address',
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textSecondary)),
+                      const SizedBox(height: 4),
+                      Text(
+                          preview.isEmpty
+                              ? 'Your address will appear here'
+                              : preview,
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: preview.isEmpty
+                                  ? AppColors.textMuted
+                                  : AppColors.textPrimary)),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 20),
-          const Text('Barangay',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-          const SizedBox(height: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButtonFormField<String>(
-                initialValue: _barangay,
-                isExpanded: true,
-                menuMaxHeight: 400,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 14),
-                  hintText: 'Select barangay',
-                ),
-                items: davaoCityBarangays
-                    .map((b) => DropdownMenuItem(value: b, child: Text(b)))
-                    .toList(),
-                onChanged: (v) => setState(() => _barangay = v),
+          _SectionCard(
+            title: 'Street and block',
+            child: TextField(
+              controller: _streetCtrl,
+              maxLines: 2,
+              onChanged: (_) => setState(() {}),
+              style:
+                  const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+              decoration: const InputDecoration(
+                hintText: 'e.g. Blk 4 Lot 12, Greenwood Subdivision',
+                border: InputBorder.none,
               ),
             ),
           ),
-          const SizedBox(height: 20),
-          const Text('City',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-          const SizedBox(height: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButtonFormField<String>(
-                initialValue: _city,
-                isExpanded: true,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 14),
-                ),
-                items: supportedCities
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                    .toList(),
-                onChanged: (v) => setState(() => _city = v!),
+          const SizedBox(height: 12),
+          _SectionCard(
+            title: 'Barangay',
+            child: Material(
+              color: Colors.transparent,
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                onTap: _pickBarangay,
+                title: Text(
+                    _barangay == null
+                        ? 'Select barangay'
+                        : formatBarangay(_barangay!),
+                    style: TextStyle(
+                        fontSize: 15,
+                        color: _barangay == null
+                            ? AppColors.textMuted
+                            : AppColors.textPrimary)),
+                trailing: const Icon(Icons.search,
+                    color: AppColors.textSecondary, size: 20),
               ),
             ),
           ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
+          const SizedBox(height: 12),
+          _SectionCard(
+            title: 'City',
+            child: Material(
+              color: Colors.transparent,
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(_city,
+                    style: const TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                subtitle: const Text('KiloTap currently serves Davao City only',
+                    style: TextStyle(fontSize: 11)),
+                trailing: const Icon(Icons.lock_outline,
+                    color: AppColors.textMuted, size: 18),
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+          child: SizedBox(
             height: 50,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -153,10 +201,11 @@ class _AddressEntryPageState extends State<AddressEntryPage> {
                 foregroundColor: Colors.white,
                 disabledBackgroundColor:
                     AppColors.sellerGreen.withValues(alpha: 0.3),
+                elevation: 0,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
-              onPressed: _saving || !canSave ? null : _save,
+              onPressed: _saving || !_canSave ? null : _save,
               child: _saving
                   ? const SizedBox(
                       width: 22,
@@ -164,10 +213,116 @@ class _AddressEntryPageState extends State<AddressEntryPage> {
                       child: CircularProgressIndicator(
                           color: Colors.white, strokeWidth: 2.5))
                   : const Text('SAVE ADDRESS',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                      style:
+                          TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionCard extends StatelessWidget {
+  final String title;
+  final Widget child;
+  const _SectionCard({required this.title, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title,
+              style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textSecondary)),
+          child,
         ],
+      ),
+    );
+  }
+}
+
+// Search-as-you-type picker for the 182 barangays — easier than scrolling a
+// dropdown. The list is already sorted (numbered ones numerically).
+class _BarangaySheet extends StatefulWidget {
+  final String? selected;
+  const _BarangaySheet({required this.selected});
+
+  @override
+  State<_BarangaySheet> createState() => _BarangaySheetState();
+}
+
+class _BarangaySheetState extends State<_BarangaySheet> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final q = _query.trim().toLowerCase();
+    final matches = davaoCityBarangays
+        .where((b) => q.isEmpty || b.toLowerCase().contains(q))
+        .toList();
+    return SafeArea(
+      child: Padding(
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.75,
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              const Text('Select barangay',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: TextField(
+                  autofocus: true,
+                  onChanged: (v) => setState(() => _query = v),
+                  decoration: InputDecoration(
+                    hintText: 'Search barangay',
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    fillColor: const Color(0xFFF5F5F5),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: matches.isEmpty
+                    ? const Center(
+                        child: Text('No barangay found',
+                            style: TextStyle(color: AppColors.textMuted)))
+                    : ListView.builder(
+                        itemCount: matches.length,
+                        itemBuilder: (context, i) {
+                          final b = matches[i];
+                          return ListTile(
+                            title: Text(formatBarangay(b)),
+                            trailing: b == widget.selected
+                                ? const Icon(Icons.check,
+                                    color: AppColors.sellerGreen)
+                                : null,
+                            onTap: () => Navigator.pop(context, b),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

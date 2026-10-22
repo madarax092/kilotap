@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../core/date_format.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/booking.dart';
 import '../../services/auth_state.dart';
+import '../../services/booking_outbox.dart';
 import '../../services/firestore_service.dart';
 import 'booking_summary_screen.dart';
 import 'chat_detail_screen.dart';
@@ -259,6 +261,7 @@ class MyPickupsScreen extends StatelessWidget {
               ],
             ),
           ),
+          const _OutboxBanner(),
           Expanded(
             child: StreamBuilder<List<Booking>>(
               stream:
@@ -301,7 +304,9 @@ class MyPickupsScreen extends StatelessWidget {
                           initials: _initials(data.collectorName),
                           name: data.collectorName,
                           items: data.itemsSummary,
-                          meta: _formatDate(b.createdAt),
+                          meta: b.pickupType == 'Scheduled'
+                              ? 'Pickup ${pickupScheduleLabel(b)}'
+                              : _formatDate(b.createdAt),
                           stars: data.existingRating != null
                               ? '★ ${data.existingRating!.toStringAsFixed(1)}'
                               : '',
@@ -563,6 +568,72 @@ class _PickupCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// Requests saved on the phone while offline; they are sent automatically,
+// and Send now retries immediately.
+class _OutboxBanner extends StatefulWidget {
+  const _OutboxBanner();
+
+  @override
+  State<_OutboxBanner> createState() => _OutboxBannerState();
+}
+
+class _OutboxBannerState extends State<_OutboxBanner> {
+  bool _sending = false;
+
+  @override
+  void initState() {
+    super.initState();
+    BookingOutbox.instance.refreshCount();
+  }
+
+  Future<void> _sendNow() async {
+    setState(() => _sending = true);
+    final sent = await BookingOutbox.instance.flush();
+    if (!mounted) return;
+    setState(() => _sending = false);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(sent > 0
+            ? 'Sent $sent saved request${sent == 1 ? '' : 's'}.'
+            : 'Still offline. We will keep trying automatically.')));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<int>(
+      valueListenable: BookingOutbox.instance.pendingCount,
+      builder: (context, count, _) {
+        if (count == 0) return const SizedBox.shrink();
+        return Container(
+          margin: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFFBEB),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.warning),
+          ),
+          child: Row(children: [
+            const Icon(Icons.cloud_off, color: AppColors.warning),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                  'Waiting to send ($count). Saved on this phone while offline.',
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF92400E))),
+            ),
+            TextButton(
+              onPressed: _sending ? null : _sendNow,
+              child: Text(_sending ? 'Sending...' : 'Send now',
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ]),
+        );
+      },
     );
   }
 }

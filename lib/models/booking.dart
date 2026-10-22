@@ -13,6 +13,10 @@ class Booking {
   final String pickupAddress;
   final String notes;
   final String photoUrl;
+  // Pickup timing, field names per the paper's Figure 12: 'ASAP' or
+  // 'Scheduled'; scheduledDate holds the chosen date and time when Scheduled.
+  final String pickupType;
+  final DateTime? scheduledDate;
   final DateTime createdAt;
   final DateTime? completedAt;
 
@@ -27,6 +31,8 @@ class Booking {
     this.pickupAddress = '',
     this.notes = '',
     this.photoUrl = '',
+    this.pickupType = 'ASAP',
+    this.scheduledDate,
     required this.createdAt,
     this.completedAt,
   });
@@ -42,6 +48,8 @@ class Booking {
         pickupAddress: m['PickupAddress'] ?? '',
         notes: m['Notes'] ?? '',
         photoUrl: m['PhotoURL'] ?? '',
+        pickupType: m['PickupType'] ?? 'ASAP',
+        scheduledDate: (m['ScheduledDate'] as Timestamp?)?.toDate(),
         createdAt: (m['Created_At'] as Timestamp?)?.toDate() ?? DateTime.now(),
         completedAt: (m['Completed_At'] as Timestamp?)?.toDate(),
       );

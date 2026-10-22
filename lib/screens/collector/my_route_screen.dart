@@ -77,6 +77,8 @@ class MyRouteScreen extends StatelessWidget {
                         ? AuthState.instance.currentLongitude
                         : null,
                     height: 220,
+                    expandable: true,
+                    expandTitle: 'Route to Pickup',
                   ),
                   const SizedBox(height: 16),
                   Container(

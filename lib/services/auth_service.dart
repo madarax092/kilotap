@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../core/address_format.dart';
 import '../core/vehicle_verification.dart';
 import '../core/verification_docs.dart';
 import 'auth_state.dart';
@@ -133,6 +134,10 @@ class AuthService {
           address: s['Address'] ?? '',
           preferredSchedule: s['Preferred_Schedule'] ?? 'ASAP',
         );
+        final pin = s['Address_GPS'];
+        if (pin is GeoPoint) {
+          AuthState.instance.setAddressPin(pin.latitude, pin.longitude);
+        }
       }
     } else if (role == 'Collector') {
       final collectorDoc = await _firestore
@@ -344,6 +349,10 @@ class AuthService {
   }) async {
     final uid = AuthState.instance.uid;
     if (uid == null) return;
+    // A saved pin only stays valid while the barangay and city are the same;
+    // changing either means the old pin likely points somewhere else now.
+    final clearPin = AuthState.instance.hasAddressPin &&
+        addressArea(AuthState.instance.address) != addressArea(address);
     await _firestore
         .collection(colAccount)
         .doc(uid)
@@ -351,6 +360,7 @@ class AuthService {
         .doc(uid)
         .update({
       'Address': address,
+      if (clearPin) 'Address_GPS': FieldValue.delete(),
       if (preferredSchedule != null) 'Preferred_Schedule': preferredSchedule,
     });
     AuthState.instance.setSellerProfile(
@@ -358,6 +368,22 @@ class AuthService {
       preferredSchedule:
           preferredSchedule ?? AuthState.instance.preferredSchedule,
     );
+    if (clearPin) AuthState.instance.setAddressPin(null, null);
+  }
+
+  // Remembers the last confirmed pickup pin so a returning household doesn't
+  // have to place it again. ScrapSeller.Address_GPS is outside the paper's
+  // Table 8 — documented in CLAUDE.md alongside the other added fields.
+  Future<void> updateSellerPin(double lat, double lon) async {
+    final uid = AuthState.instance.uid;
+    if (uid == null) return;
+    await _firestore
+        .collection(colAccount)
+        .doc(uid)
+        .collection(colSeller)
+        .doc(uid)
+        .update({'Address_GPS': GeoPoint(lat, lon)});
+    AuthState.instance.setAddressPin(lat, lon);
   }
 
   Future<void> updateCollectorAddress(String address) async {

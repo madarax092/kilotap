@@ -27,6 +27,7 @@ import 'screens/account/collector_register_screen.dart';
 import 'screens/collector/chat_screen.dart';
 import 'screens/collector/collector_navigation_screen.dart';
 import 'screens/collector/request_details_screen.dart';
+import 'screens/collector/booking_pass_screen.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -66,6 +67,7 @@ class AppRouter {
       case '/chat': return _page(const ChatScreen());
       case '/collector_nav': return _page(const CollectorNavigationScreen(), settings);
       case '/request_details': return _page(const RequestDetailsScreen(), settings);
+      case '/booking_pass': return _page(const BookingPassScreen(), settings);
       default: return _page(const LoginScreen());
     }
   }

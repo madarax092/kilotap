@@ -145,7 +145,7 @@ class RolePickerScreen extends StatelessWidget {
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.textPrimary)),
                           SizedBox(height: 2),
-                          Text('Collector — pick up scrap and earn',
+                          Text('Collector — pick up scrap near you',
                               style: TextStyle(
                                   fontSize: 12,
                                   color: AppColors.textSecondary)),

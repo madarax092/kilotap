@@ -150,6 +150,7 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                     destLat: booking.pickupGps.latitude,
                     destLon: booking.pickupGps.longitude,
                     height: 180,
+                    expandable: true,
                   ),
                   const SizedBox(height: 16),
                   if (booking.photoUrl.isNotEmpty)

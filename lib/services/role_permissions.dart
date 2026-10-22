@@ -38,6 +38,7 @@ class RolePermissions {
     '/profile': manageProfile,
     '/find': findScrap,
     '/idcard': viewIdCard,
+    '/booking_pass': viewIdCard,
     '/route': manageRoute,
     '/earnings': viewEarnings,
     '/collector_profile': manageProfile,

@@ -31,7 +31,7 @@ class HelpSupportScreen extends StatelessWidget {
           if (!isCollector) ...[
             const _FaqTile(question: 'How do I schedule a pickup?', answer: 'Go to the Sell Scrap tab, select the items you want to sell, estimate their weight, and choose either ASAP or a scheduled time window.'),
             const SizedBox(height: 12),
-            const _FaqTile(question: 'How are prices calculated?', answer: 'Prices are determined by the real-time market value of the specific scrap material, multiplied by the estimated weight of your items.'),
+            const _FaqTile(question: 'Does KiloTap set the price?', answer: 'No. KiloTap matches you with a nearby collector and shows the estimated weight (kg) of your items. You and the collector agree on any price directly at pickup.'),
             const SizedBox(height: 12),
             const _FaqTile(question: 'What if the collector doesn\'t arrive?', answer: 'You can report the issue from the My Pickups screen. Navigate to the completed/failed pickup and tap the Report button.'),
           ] else ...[
@@ -39,7 +39,7 @@ class HelpSupportScreen extends StatelessWidget {
             const SizedBox(height: 12),
             const _FaqTile(question: 'How do I update my vehicle details?', answer: 'Go to the Profile tab, tap on Vehicle Details, and update your vehicle type and plate number. This helps households identify you when you arrive.'),
             const SizedBox(height: 12),
-            const _FaqTile(question: 'How do I get paid?', answer: 'Currently, payouts are handled in cash directly with the household or through integrated mobile wallets depending on your arrangement with the platform.'),
+            const _FaqTile(question: 'Does KiloTap handle payment?', answer: 'No. KiloTap does not set prices or process payments. You and the household agree on any price directly at pickup, based on the weight measured on site.'),
           ],
           const SizedBox(height: 32),
           const Text('Contact Us', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF111827))),

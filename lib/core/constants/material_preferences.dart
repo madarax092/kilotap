@@ -22,10 +22,17 @@ class MaterialPreferences {
       'copper',
       'motorcycle_block',
       'vehicle_part_big',
+      'metal_can',
     ],
-    'Plastic': ['plastic_bottle_1L', 'plastic_bottle_500ml', 'plastic_hdpe', 'plastic_pet'],
-    'Glass': ['glass_bottle_1L', 'glass_bottle_330ml'],
-    'Cardboard': ['cardboard_box_large', 'cardboard_box_small', 'cardboard'],
+    'Plastic': [
+      'plastic_bottle_1L',
+      'plastic_bottle_500ml',
+      'plastic_hdpe',
+      'plastic_pet',
+      'plastic_bottle',
+    ],
+    'Glass': ['glass_bottle_1L', 'glass_bottle_330ml', 'glass_bottle'],
+    'Cardboard': ['cardboard_box_large', 'cardboard_box_small', 'cardboard', 'paper'],
     'Appliances': [
       'refrigerator_standard',
       'washing_machine',
@@ -40,6 +47,7 @@ class MaterialPreferences {
       'electric_fan',
       'splittype_aircon',
       'hair_dryer',
+      'microwave',
     ],
     'E-Waste': [
       'crt_television',
@@ -51,7 +59,6 @@ class MaterialPreferences {
       'hi_fi_system',
       'video_recorder_dvd',
       'electric_drill',
-      'microwave',
       'flatscreentv',
       'car_battery',
       'mouse',
@@ -87,6 +94,15 @@ class MaterialPreferences {
       }
     }
     return false;
+  }
+
+  /// The collector-preference category a scanner/dropdown class belongs
+  /// to, or null for a class not in [categoryMap].
+  static String? categoryOf(String className) {
+    for (final entry in categoryMap.entries) {
+      if (entry.value.contains(className)) return entry.key;
+    }
+    return null;
   }
 
   static List<String> getCategoriesFor(List<String> detectedClasses) {

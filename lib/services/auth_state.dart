@@ -48,6 +48,19 @@ class AuthState {
   String get address => _sellerAddress;
   String get preferredSchedule => _preferredSchedule;
 
+  // Last-used pickup pin (ScrapSeller.Address_GPS) — null until the household
+  // confirms one on Sell Scrap, and cleared if their barangay/city changes.
+  double? _addressLat;
+  double? _addressLon;
+  double? get addressLat => _addressLat;
+  double? get addressLon => _addressLon;
+  bool get hasAddressPin => _addressLat != null && _addressLon != null;
+
+  void setAddressPin(double? lat, double? lon) {
+    _addressLat = lat;
+    _addressLon = lon;
+  }
+
   String _vehicleType = '';
   double _vehicleCapacityKg = 0;
   List<Map<String, dynamic>> _vehicles = [];
@@ -183,6 +196,8 @@ class AuthState {
     _email = '';
     _phone = '';
     _sellerAddress = '';
+    _addressLat = null;
+    _addressLon = null;
     _preferredSchedule = 'ASAP';
     _vehicleType = '';
     _vehicleCapacityKg = 0;

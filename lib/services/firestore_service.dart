@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:http/http.dart' as http;
 import '../core/constants/app_constants.dart';
 import '../core/vehicle_verification.dart';
@@ -30,10 +32,18 @@ class FirestoreService {
   // Writes the booking (Table 10) and all its items (Table 11) in one atomic
   // batch, so the new-booking Cloud Function always sees the items when it
   // fires and can match them against collector material preferences.
+  // Booking ID made on the phone, so a request saved offline keeps the same
+  // ID when it is finally sent (no duplicate bookings).
+  String newBookingId() => _db.collection(AppConstants.colBookings).doc().id;
+
+  // With offline persistence the batch is applied locally and queued by
+  // Firestore until the server is reachable, so the UI only waits a short
+  // while for the server's acknowledgement instead of hanging offline.
   Future<String> createBookingWithItems(
-      Map<String, dynamic> booking, List<Map<String, dynamic>> items) async {
+      Map<String, dynamic> booking, List<Map<String, dynamic>> items,
+      {String? bookingId}) async {
     final batch = _db.batch();
-    final bookingRef = _db.collection(AppConstants.colBookings).doc();
+    final bookingRef = _db.collection(AppConstants.colBookings).doc(bookingId);
     booking['Booking_ID'] = bookingRef.id;
     booking['Created_At'] = FieldValue.serverTimestamp();
     batch.set(bookingRef, booking);
@@ -43,9 +53,22 @@ class FirestoreService {
       item['Booking_ID'] = bookingRef.id;
       batch.set(itemRef, item);
     }
-    await batch.commit();
+    final commit = batch.commit();
+    try {
+      await commit.timeout(const Duration(seconds: 10));
+    } on TimeoutException {
+      commit.catchError((Object e) {
+        debugPrint('Queued booking ${bookingRef.id} failed to sync: $e');
+      });
+    }
     return bookingRef.id;
   }
+
+  Stream<Booking?> bookingStream(String id) => _db
+      .collection(AppConstants.colBookings)
+      .doc(id)
+      .snapshots()
+      .map((d) => d.exists ? Booking.fromMap(d.id, d.data()!) : null);
 
   Future<Booking?> getBooking(String id) async {
     final doc = await _db.collection(AppConstants.colBookings).doc(id).get();
@@ -138,13 +161,18 @@ class FirestoreService {
     await ref.set(data);
   }
 
+  // Sorted newest-first in Dart: combining the Recipient_ID filter with an
+  // orderBy on Timestamp would need a composite index.
   Stream<List<AppNotification>> userNotifications(String recipientId) => _db
       .collection(AppConstants.colNotifications)
       .where('Recipient_ID', isEqualTo: recipientId)
-      .orderBy('Timestamp', descending: true)
       .snapshots()
-      .map((s) =>
-          s.docs.map((d) => AppNotification.fromMap(d.id, d.data())).toList());
+      .map((s) {
+        final list =
+            s.docs.map((d) => AppNotification.fromMap(d.id, d.data())).toList();
+        list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        return list;
+      });
 
   Future<void> markNotificationRead(String notificationId) async {
     await _db
