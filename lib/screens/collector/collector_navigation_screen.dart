@@ -7,6 +7,7 @@ import '../../services/auth_state.dart';
 import '../../services/firestore_service.dart';
 import '../../services/google_maps_service.dart';
 import '../../widgets/live_route_map.dart';
+import '../../widgets/report_problem_sheet.dart';
 
 // ─── Collector Navigation Screen ───
 
@@ -421,6 +422,18 @@ class _CollectorNavigationScreenState extends State<CollectorNavigationScreen> {
                                   color: AppColors.textSecondary,
                                   fontWeight: FontWeight.w600)),
                         ),
+                      TextButton.icon(
+                        onPressed: _busy
+                            ? null
+                            : () => showReportProblemSheet(context,
+                                bookingId: bookingId),
+                        icon: const Icon(Icons.flag_outlined,
+                            size: 16, color: AppColors.error),
+                        label: const Text('Report a problem with this pickup',
+                            style: TextStyle(
+                                color: AppColors.error,
+                                fontWeight: FontWeight.w600)),
+                      ),
                     ]);
                   }),
                 ],

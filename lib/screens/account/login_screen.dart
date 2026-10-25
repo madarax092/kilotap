@@ -48,6 +48,29 @@ class _LoginScreenState extends State<LoginScreen>
     _socialAnim = CurvedAnimation(
         parent: _entrance, curve: const Interval(0.75, 1.0, curve: Curves.easeOut));
     _entrance.forward();
+
+    // Arrived here because the account was suspended or closed (on session
+    // restore, or while signed in): say why.
+    final blocked = AuthService.instance.takeBlockedMessage();
+    if (blocked != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _showBlocked(blocked);
+      });
+    }
+  }
+
+  void _showBlocked(String message) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Account not active'),
+        content: Text(message),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+        ],
+      ),
+    );
   }
 
   Future<void> _login() async {
@@ -64,6 +87,12 @@ class _LoginScreenState extends State<LoginScreen>
 
     if (!mounted) return;
     setState(() => _loading = false);
+
+    final blocked = AuthService.instance.takeBlockedMessage();
+    if (blocked != null) {
+      _showBlocked(blocked);
+      return;
+    }
 
     final route = routeForRole(role);
     if (route != null) {
@@ -85,6 +114,12 @@ class _LoginScreenState extends State<LoginScreen>
     final result = await AuthService.instance.signInWithGoogle();
     if (!mounted) return;
     setState(() => _loading = false);
+
+    final blocked = AuthService.instance.takeBlockedMessage();
+    if (blocked != null) {
+      _showBlocked(blocked);
+      return;
+    }
 
     if (result == null) return;
 

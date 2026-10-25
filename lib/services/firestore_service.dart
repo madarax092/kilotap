@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:http/http.dart' as http;
+import '../core/account_status.dart';
 import '../core/constants/app_constants.dart';
 import '../core/vehicle_verification.dart';
 import '../core/verification_docs.dart';
@@ -14,7 +15,9 @@ import '../models/rating.dart';
 import '../models/notification.dart';
 import '../models/audit_log.dart';
 import '../models/message.dart';
+import '../models/report.dart';
 import 'auth_service.dart';
+import 'auth_state.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -380,6 +383,12 @@ class FirestoreService {
 
   // ─── Users (Table 7 UserAccount + Table 8/9 subcollections) ────
 
+  Future<Map<String, dynamic>?> userAccount(String uid) async {
+    if (uid.isEmpty) return null;
+    final doc = await _db.collection(AuthService.colAccount).doc(uid).get();
+    return doc.data();
+  }
+
   Stream<List<Map<String, dynamic>>> listUsers() => _db
       .collection(AuthService.colAccount)
       .snapshots()
@@ -448,5 +457,152 @@ class FirestoreService {
         .where((v) => v['Vehicle_Type'] != vehicleType)
         .toList();
     await _collectorRef(uid).update({'Vehicles': vehicles});
+  }
+
+  // ─── Account moderation (UserAccount.Account_Status) ───────────
+
+  /// Admin only. Suspends, closes or reactivates an account. Nothing is
+  /// deleted. When an account is blocked, its open bookings are settled so
+  /// the other party is not left waiting: a blocked household's Pending and
+  /// Accepted bookings are cancelled, and a blocked collector's Accepted
+  /// bookings go back to Pending for another collector. Returns a short
+  /// summary of what was changed, which is also written to the audit log.
+  Future<String> setAccountStatus({
+    required String uid,
+    required String role,
+    required String status,
+    String reason = '',
+  }) async {
+    final adminId = AuthState.instance.uid ?? '';
+    await _db.collection(AppConstants.colAccount).doc(uid).update({
+      'Account_Status': status,
+      'Status_Reason': reason.trim(),
+      'Status_Changed_At': FieldValue.serverTimestamp(),
+      'Status_Changed_By': adminId,
+    });
+
+    var cancelled = 0;
+    var reopened = 0;
+    if (isAccountBlocked(status)) {
+      if (role == AppConstants.roleCollector) {
+        try {
+          await _collectorRef(uid).update({'Online_Status': false});
+        } catch (_) {
+          // No collector profile yet — nothing to take offline.
+        }
+        final assigned = await _db
+            .collection(AppConstants.colBookings)
+            .where('Collector_ID', isEqualTo: uid)
+            .get();
+        for (final d in assigned.docs) {
+          if (d.data()['Status'] != AppConstants.statusAccepted) continue;
+          await d.reference.update(
+              {'Status': AppConstants.statusPending, 'Collector_ID': ''});
+          reopened++;
+          await sendNotification({
+            'Recipient_ID': d.data()['Seller_ID'],
+            'Booking_ID': d.id,
+            'Title': 'Your pickup is open again',
+            'Message': 'Your collector is no longer available. Your request '
+                'is visible to other collectors again.',
+            'Type': 'booking_reopened',
+          });
+        }
+      } else if (role == AppConstants.roleHousehold) {
+        final own = await _db
+            .collection(AppConstants.colBookings)
+            .where('Seller_ID', isEqualTo: uid)
+            .get();
+        for (final d in own.docs) {
+          final s = d.data()['Status'];
+          if (s != AppConstants.statusPending &&
+              s != AppConstants.statusAccepted) {
+            continue;
+          }
+          await d.reference.update({'Status': AppConstants.statusCancelled});
+          cancelled++;
+          final collectorId = d.data()['Collector_ID'] as String? ?? '';
+          if (collectorId.isNotEmpty) {
+            await sendNotification({
+              'Recipient_ID': collectorId,
+              'Booking_ID': d.id,
+              'Title': 'Booking cancelled',
+              'Message': 'A pickup you accepted was cancelled because the '
+                  'household account is no longer active.',
+              'Type': 'booking_cancelled',
+            });
+          }
+        }
+      }
+    }
+
+    final action = status == accountSuspended
+        ? AppConstants.auditSuspendUser
+        : status == accountClosed
+            ? AppConstants.auditCloseAccount
+            : AppConstants.auditReactivateUser;
+    final verb = status == accountSuspended
+        ? 'suspended'
+        : status == accountClosed
+            ? 'closed'
+            : 'reactivated';
+    final parts = <String>[
+      'Admin $verb this $role account.',
+      if (reason.trim().isNotEmpty) 'Reason: ${reason.trim()}.',
+      if (cancelled > 0) '$cancelled open booking(s) cancelled.',
+      if (reopened > 0) '$reopened accepted booking(s) reopened for others.',
+    ];
+    final summary = parts.join(' ');
+    await logAction({
+      'Actor_ID': adminId,
+      'Action': action,
+      'Target_ID': uid,
+      'Description': summary,
+    });
+    await sendNotification({
+      'Recipient_ID': uid,
+      'Title': status == accountActive
+          ? 'Account reactivated'
+          : (status == accountClosed ? 'Account closed' : 'Account suspended'),
+      'Message': status == accountActive
+          ? 'Your KiloTap account is active again.'
+          : blockedAccountMessage(status, reason),
+      'Type': 'account_status',
+    });
+    return summary;
+  }
+
+  // ─── Reports (not a numbered paper table) ───────────────────────
+
+  Future<void> createReport(Map<String, dynamic> data) async {
+    final ref = _db.collection(AppConstants.colReports).doc();
+    data['Report_ID'] = ref.id;
+    data['Status'] = 'Open';
+    data['Admin_Action'] = 'None';
+    data['Admin_Note'] = '';
+    data['Created_At'] = FieldValue.serverTimestamp();
+    data['Updated_At'] = FieldValue.serverTimestamp();
+    await ref.set(data);
+  }
+
+  /// Every report, newest first (admin).
+  Stream<List<Report>> allReports() => _db
+      .collection(AppConstants.colReports)
+      .orderBy('Created_At', descending: true)
+      .snapshots()
+      .map((s) => s.docs.map((d) => Report.fromMap(d.id, d.data())).toList());
+
+  /// True if [reporterId] already reported this booking (one report each).
+  Future<bool> hasReported(String reporterId, String bookingId) async {
+    final s = await _db
+        .collection(AppConstants.colReports)
+        .where('Reporter_ID', isEqualTo: reporterId)
+        .get();
+    return s.docs.any((d) => d.data()['Booking_ID'] == bookingId);
+  }
+
+  Future<void> updateReport(String reportId, Map<String, dynamic> data) async {
+    data['Updated_At'] = FieldValue.serverTimestamp();
+    await _db.collection(AppConstants.colReports).doc(reportId).update(data);
   }
 }

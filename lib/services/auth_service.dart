@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../core/account_status.dart';
 import '../core/address_format.dart';
 import '../core/vehicle_verification.dart';
 import '../core/verification_docs.dart';
@@ -38,6 +39,18 @@ class AuthService {
   static const colAccount = 'UserAccount';
   static const colSeller = 'ScrapSeller';
   static const colCollector = 'ScrapCollector';
+
+  // Set when sign-in, session restore or an open session is refused because
+  // the account is suspended or closed; the login screen shows it once.
+  String? _blockedMessage;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _statusWatch;
+
+  /// Returns the pending blocked-account message (and clears it), or null.
+  String? takeBlockedMessage() {
+    final m = _blockedMessage;
+    _blockedMessage = null;
+    return m;
+  }
 
   Future<String?> signIn(String email, String password) async {
     try {
@@ -114,7 +127,20 @@ class AuthService {
     final rawRole = data['Role'] as String? ?? 'Household';
     final role = rawRole == 'VerifiedCollector' ? 'Collector' : rawRole;
 
+    // A suspended or closed account may not sign in. Firebase still holds
+    // the session, so end it before reporting the refusal.
+    final status = accountStatusOf(data);
+    if (isAccountBlocked(status)) {
+      _blockedMessage =
+          blockedAccountMessage(status, data['Status_Reason'] as String? ?? '');
+      await _auth.signOut();
+      if (await _googleSignIn.isSignedIn()) await _googleSignIn.signOut();
+      AuthState.instance.logout();
+      return null;
+    }
+
     AuthState.instance.login(role, uid);
+    _watchAccountStatus(uid);
     unawaited(PushNotificationService.instance.registerDeviceToken(uid));
     AuthState.instance.setProfile(
       displayName: data['Display_Name'] ?? '',
@@ -292,6 +318,7 @@ class AuthService {
     }
 
     AuthState.instance.login(role, uid);
+    _watchAccountStatus(uid);
     unawaited(PushNotificationService.instance.registerDeviceToken(uid));
     AuthState.instance.setProfile(
       displayName: fullName,
@@ -549,7 +576,29 @@ class AuthService {
     AuthState.instance.updateOnlineStatus(online);
   }
 
+  // If an admin suspends or closes the account while the user is signed in,
+  // sign them out at once and return to the login screen with the reason.
+  void _watchAccountStatus(String uid) {
+    _statusWatch?.cancel();
+    _statusWatch = _firestore
+        .collection(colAccount)
+        .doc(uid)
+        .snapshots()
+        .listen((snap) async {
+      final data = snap.data();
+      final status = accountStatusOf(data);
+      if (!isAccountBlocked(status) || AuthState.instance.uid != uid) return;
+      await signOut();
+      _blockedMessage =
+          blockedAccountMessage(status, data?['Status_Reason'] as String? ?? '');
+      navigatorKey.currentState
+          ?.pushNamedAndRemoveUntil('/login', (r) => false);
+    }, onError: (_) {});
+  }
+
   Future<void> signOut() async {
+    await _statusWatch?.cancel();
+    _statusWatch = null;
     final uid = AuthState.instance.uid;
     if (uid != null) {
       await PushNotificationService.instance.clearDeviceToken(uid);

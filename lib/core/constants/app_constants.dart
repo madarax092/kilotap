@@ -38,11 +38,18 @@ class AppConstants {
   static const String colNotifications = 'notifications';
   static const String colAuditLogs = 'auditLogs';
   static const String colMessages = 'messages';
+  // Not a numbered paper table — user reports reviewed by an admin.
+  static const String colReports = 'reports';
 
   // ─── Audit Action Types ────────────────────────────────────────────────────
   static const String auditVerifyCollector = 'VERIFY_COLLECTOR';
   static const String auditSuspendUser = 'SUSPEND_USER';
+  static const String auditCloseAccount = 'CLOSE_ACCOUNT';
+  static const String auditReactivateUser = 'REACTIVATE_USER';
   static const String auditResolveReport = 'RESOLVE_REPORT';
+  static const String auditDismissReport = 'DISMISS_REPORT';
+  static const String auditInvestigateReport = 'INVESTIGATE_REPORT';
+  static const String auditWarnUser = 'WARN_USER';
 
   // ─── Spatial Area Ratio Threshold (Paper §2.3.1.3, τ = 0.50) ──────────────
   static const double spatialAreaThreshold = 0.50;

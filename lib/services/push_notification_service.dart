@@ -56,6 +56,7 @@ class PushNotificationService {
     'completed': _bookingsChannel,
     'booking_cancelled': _bookingsChannel,
     'new_booking': _bookingsChannel,
+    'booking_reopened': _bookingsChannel,
     'chat_message': _chatChannel,
     'verification_approved': _verificationChannel,
     'verification_rejected': _verificationChannel,
@@ -140,6 +141,7 @@ class PushNotificationService {
       case 'completed':
       case 'booking_cancelled':
       case 'new_booking':
+      case 'booking_reopened':
         nav.pushNamed(isCollector ? '/find' : '/pickups');
         break;
       case 'chat_message':

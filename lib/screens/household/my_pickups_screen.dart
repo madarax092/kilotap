@@ -5,6 +5,7 @@ import '../../models/booking.dart';
 import '../../services/auth_state.dart';
 import '../../services/booking_outbox.dart';
 import '../../services/firestore_service.dart';
+import '../../widgets/report_problem_sheet.dart';
 import 'booking_summary_screen.dart';
 import 'chat_detail_screen.dart';
 import 'pickup_checklist_screen.dart';
@@ -147,28 +148,46 @@ class MyPickupsScreen extends StatelessWidget {
             true,
             () => _cancelAccepted(context, svc, b, data.collectorName),
           ),
+          _reportAction(context, b),
         ];
       case 'Completed':
-        if (data.existingRating != null) return const [];
         return [
-          (
-            'Rate',
-            Icons.star_outline,
-            AppColors.sellerGreen,
-            Colors.white,
-            false,
-            () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => RateCollectorScreen(
-                        collectorId: b.collectorId,
-                        bookingId: b.bookingId,
-                        collectorName: data.collectorName))),
-          ),
+          if (data.existingRating == null)
+            (
+              'Rate',
+              Icons.star_outline,
+              AppColors.sellerGreen,
+              Colors.white,
+              false,
+              () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => RateCollectorScreen(
+                          collectorId: b.collectorId,
+                          bookingId: b.bookingId,
+                          collectorName: data.collectorName))),
+            ),
+          _reportAction(context, b),
         ];
+      case 'Cancelled':
+        // Only a pickup a collector had accepted has someone to report.
+        if (b.collectorId.isEmpty) return const [];
+        return [_reportAction(context, b)];
       default:
         return const [];
     }
+  }
+
+  (String, IconData, Color, Color, bool, VoidCallback) _reportAction(
+      BuildContext context, Booking b) {
+    return (
+      'Report',
+      Icons.flag_outlined,
+      Colors.white,
+      AppColors.error,
+      true,
+      () => showReportProblemSheet(context, bookingId: b.bookingId),
+    );
   }
 
   Future<void> _cancelAccepted(BuildContext context, FirestoreService svc,

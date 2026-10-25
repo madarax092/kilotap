@@ -30,6 +30,21 @@ service cloud.firestore {
       return myRole() == 'Admin';
     }
 
+    // Account_Status (not in Table 7): 'Active' | 'Suspended' | 'Closed'.
+    // A missing field means Active. A suspended or closed account can still
+    // read its own data but cannot create or change anything shared.
+    function accountActive() {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/UserAccount/$(uid())).data
+             .get('Account_Status', 'Active') == 'Active';
+    }
+
+    // Only an admin may change the moderation fields.
+    function moderationUnchanged() {
+      return !request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(['Account_Status', 'Status_Reason', 'Status_Changed_At', 'Status_Changed_By']);
+    }
+
     function bookingDoc(bookingId) {
       return get(/databases/$(database)/documents/bookings/$(bookingId)).data;
     }
@@ -94,14 +109,17 @@ service cloud.firestore {
 
       allow create: if isOwner(userId)
         && request.resource.data.Auth_UID == userId
-        && request.resource.data.Role in ['Household', 'Collector'];
+        && request.resource.data.Role in ['Household', 'Collector']
+        && request.resource.data.get('Account_Status', 'Active') == 'Active';
 
-      // Owner can edit their own account fields but never self-promote role.
-      // Admin can change anything (e.g. collector verification promotion).
+      // Owner can edit their own account fields but never self-promote role
+      // or lift a suspension. Admin can change anything (verification,
+      // suspension, closing).
       allow update: if isAdmin()
         || (isOwner(userId)
             && request.resource.data.Role == resource.data.Role
-            && request.resource.data.Auth_UID == resource.data.Auth_UID);
+            && request.resource.data.Auth_UID == resource.data.Auth_UID
+            && moderationUnchanged());
 
       allow delete: if isAdmin();
 
@@ -143,18 +161,20 @@ service cloud.firestore {
         || resource.data.Status == 'Pending'
         || isBookingParty(resource.data);
 
-      allow create: if isSignedIn()
+      allow create: if accountActive()
         && request.resource.data.Seller_ID == uid()
         && request.resource.data.Status == 'Pending'
         && request.resource.data.Collector_ID == '';
 
       // A verified collector claiming an unassigned Pending booking, or
       // either already-matched party updating it further (status changes).
+      // Suspended or closed accounts can do neither.
       allow update: if isAdmin()
-        || isBookingParty(resource.data)
+        || (accountActive() && isBookingParty(resource.data))
         || (resource.data.Status == 'Pending'
             && resource.data.Collector_ID == ''
             && request.resource.data.Collector_ID == uid()
+            && accountActive()
             && isVerifiedCollector()
             && canHandleBooking(resource.data));
 
@@ -180,7 +200,7 @@ service cloud.firestore {
       allow read: if isSignedIn();
 
       // Only the seller on a Completed booking can rate it, once.
-      allow create: if isSignedIn()
+      allow create: if accountActive()
         && request.resource.data.Seller_ID == uid()
         && bookingDoc(request.resource.data.Booking_ID).Seller_ID == uid()
         && bookingDoc(request.resource.data.Booking_ID).Status == 'Completed'
@@ -198,7 +218,7 @@ service cloud.firestore {
       // Sender must be the other party on the referenced booking — stops
       // one user from spamming notifications into someone else's inbox.
       allow create: if isAdmin()
-        || (isSignedIn()
+        || (accountActive()
             && request.resource.data.Recipient_ID != uid()
             && isBookingParty(bookingDoc(request.resource.data.Booking_ID)));
 
@@ -219,13 +239,34 @@ service cloud.firestore {
     match /messages/{messageId} {
       allow read: if isSignedIn() && uid() in resource.data.Participants;
 
-      allow create: if isSignedIn()
+      allow create: if accountActive()
         && request.resource.data.Sender_ID == uid()
         && uid() in request.resource.data.Participants
         && request.resource.data.Participants.size() == 2
         && request.resource.data.Recipient_ID in request.resource.data.Participants;
 
       allow update, delete: if false;
+    }
+
+    // ─── Reports (not a numbered paper table) ───────────────────────────
+    // A household or collector reports the other party of a booking they
+    // were on; only an admin reviews and changes reports.
+    match /reports/{reportId} {
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.Reporter_ID == uid());
+
+      allow create: if accountActive()
+        && request.resource.data.Reporter_ID == uid()
+        && request.resource.data.Target_ID != uid()
+        && request.resource.data.Status == 'Open'
+        && isBookingParty(bookingDoc(request.resource.data.Booking_ID))
+        && (bookingDoc(request.resource.data.Booking_ID).Seller_ID
+              == request.resource.data.Target_ID
+            || bookingDoc(request.resource.data.Booking_ID).Collector_ID
+              == request.resource.data.Target_ID);
+
+      allow update: if isAdmin();
+      allow delete: if false;
     }
 
     // ─── ScrapWeights (Table 12) — reference lookup table ───────────────

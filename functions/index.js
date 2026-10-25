@@ -16,6 +16,7 @@ const CHANNEL_BY_TYPE = {
   completed: "kilotap_bookings",
   booking_cancelled: "kilotap_bookings",
   new_booking: "kilotap_bookings",
+  booking_reopened: "kilotap_bookings",
   chat_message: "kilotap_chat",
   verification_approved: "kilotap_verification",
   verification_rejected: "kilotap_verification",
@@ -154,10 +155,24 @@ async function rankedEligibleCollectors(booking, bookingId) {
   ]);
   const scrapClasses = items.docs.map((d) => d.data().ScrapClass || "");
   const pin = booking.PickupGPS;
+
+  // Suspended or closed accounts (UserAccount.Account_Status, set by an
+  // admin) are never alerted. A missing field means Active.
+  const blocked = new Set();
+  if (!collectors.empty) {
+    const accounts =
+      await db.getAll(...collectors.docs.map((d) => d.ref.parent.parent));
+    accounts.forEach((a) => {
+      const status = a.data()?.Account_Status || "Active";
+      if (status !== "Active") blocked.add(a.id);
+    });
+  }
+
   const ranked = [];
   collectors.forEach((doc) => {
     const uid = doc.ref.parent.parent.id;
     if (uid === booking.Seller_ID) return; // paranoia guard
+    if (blocked.has(uid)) return;
     const c = doc.data();
     if (!vehicleCanHandle(c.Vehicle_Type, booking.VehicleRequirement)) return;
     if (!matchesPreference(scrapClasses, c.Preferred_Materials)) return;
