@@ -15,7 +15,9 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
-  final _emailCtrl = TextEditingController();
+  // Filled with the last email that signed in on this phone.
+  final _emailCtrl =
+      TextEditingController(text: AuthService.instance.lastSignInEmail);
   final _passCtrl = TextEditingController();
   bool _loading = false;
   bool _obscureText = true;
@@ -75,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   Future<void> _login() async {
     final email = _emailCtrl.text.trim();
-    final pass = _passCtrl.text.trim();
+    final pass = _passCtrl.text;
     if (email.isEmpty || pass.isEmpty) {
       _showError('Please enter email and password');
       return;
@@ -101,7 +103,8 @@ class _LoginScreenState extends State<LoginScreen>
       _showError(
           'This account has an invalid role ($role) — contact support.');
     } else {
-      _showError('Invalid email or password. Please try again.');
+      _showError('Wrong email or password. If you signed up with Google '
+          'and have not set a password, tap Continue with Google.');
     }
   }
 

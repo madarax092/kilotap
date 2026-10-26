@@ -4,6 +4,7 @@ import '../../services/auth_service.dart';
 import '../../services/auth_state.dart';
 import '../account/help_support_screen.dart';
 import '../account/terms_service_screen.dart';
+import 'system_settings_screen.dart';
 import '../../widgets/admin_bottom_nav.dart';
 
 class AdminProfileScreen extends StatelessWidget {
@@ -84,8 +85,11 @@ class AdminProfileScreen extends StatelessWidget {
                 _MenuItem(
                   icon: Icons.settings_outlined,
                   label: 'System Settings',
-                  subtitle: 'Global configurations',
-                  onTap: () {},
+                  subtitle: 'Dispatch, bookings, announcement, support',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const SystemSettingsScreen())),
                 ),
               ]),
               const SizedBox(height: 28),
@@ -108,7 +112,7 @@ class AdminProfileScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                           builder: (_) =>
-                              const HelpSupportScreen(isCollector: false))),
+                              const HelpSupportScreen(role: 'Admin'))),
                 ),
                 _MenuItem(
                   icon: Icons.description_outlined,

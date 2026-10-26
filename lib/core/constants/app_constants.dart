@@ -40,6 +40,8 @@ class AppConstants {
   static const String colMessages = 'messages';
   // Not a numbered paper table — user reports reviewed by an admin.
   static const String colReports = 'reports';
+  // Not a numbered paper table — admin-editable platform settings.
+  static const String colSystemSettings = 'systemSettings';
 
   // ─── Audit Action Types ────────────────────────────────────────────────────
   static const String auditVerifyCollector = 'VERIFY_COLLECTOR';
@@ -50,6 +52,7 @@ class AppConstants {
   static const String auditDismissReport = 'DISMISS_REPORT';
   static const String auditInvestigateReport = 'INVESTIGATE_REPORT';
   static const String auditWarnUser = 'WARN_USER';
+  static const String auditUpdateSettings = 'UPDATE_SETTINGS';
 
   // ─── Spatial Area Ratio Threshold (Paper §2.3.1.3, τ = 0.50) ──────────────
   static const double spatialAreaThreshold = 0.50;

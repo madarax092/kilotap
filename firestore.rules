@@ -45,6 +45,13 @@ service cloud.firestore {
         .hasAny(['Account_Status', 'Status_Reason', 'Status_Changed_At', 'Status_Changed_By']);
     }
 
+    // An admin can pause new pickup requests in System Settings
+    // (systemSettings/global, not a paper table).
+    function bookingsPaused() {
+      let path = /databases/$(database)/documents/systemSettings/global;
+      return exists(path) && get(path).data.get('Bookings_Paused', false) == true;
+    }
+
     function bookingDoc(bookingId) {
       return get(/databases/$(database)/documents/bookings/$(bookingId)).data;
     }
@@ -133,17 +140,23 @@ service cloud.firestore {
       match /ScrapCollector/{collectorId} {
         allow read: if isSignedIn();
         allow create: if isOwner(userId) && collectorId == userId
-          && request.resource.data.Verification_Status == 'Pending';
+          && request.resource.data.Verification_Status == 'Pending'
+          && request.resource.data.get('Barangay_Cleared', false) == false;
         // Owner can update vehicle/location/materials, but only Admin can
-        // flip Verification_Status or Verified_Vehicles (self-approval would
-        // be a loophole). Once verified, the owner can only make an
-        // admin-approved vehicle their active Vehicle_Type.
+        // flip Verification_Status, Verified_Vehicles or Barangay_Cleared
+        // (self-approval would be a loophole; the owner may only clear the
+        // badge, which happens when they upload a new clearance). Once
+        // verified, the owner can only make an admin-approved vehicle their
+        // active Vehicle_Type.
         allow update: if isAdmin()
           || (isOwner(userId)
               && request.resource.data.Verification_Status
                  == resource.data.Verification_Status
               && request.resource.data.get('Verified_Vehicles', null)
                  == resource.data.get('Verified_Vehicles', null)
+              && (request.resource.data.get('Barangay_Cleared', false)
+                    == resource.data.get('Barangay_Cleared', false)
+                  || request.resource.data.get('Barangay_Cleared', false) == false)
               && (resource.data.Verification_Status != 'Verified'
                   || request.resource.data.Vehicle_Type
                      == resource.data.Vehicle_Type
@@ -162,6 +175,7 @@ service cloud.firestore {
         || isBookingParty(resource.data);
 
       allow create: if accountActive()
+        && !bookingsPaused()
         && request.resource.data.Seller_ID == uid()
         && request.resource.data.Status == 'Pending'
         && request.resource.data.Collector_ID == '';
@@ -246,6 +260,15 @@ service cloud.firestore {
         && request.resource.data.Recipient_ID in request.resource.data.Participants;
 
       allow update, delete: if false;
+    }
+
+    // ─── System settings (not a numbered paper table) ───────────────────
+    // One document, systemSettings/global: dispatch timing, the household
+    // cancel window, pausing new bookings, an announcement banner and the
+    // support contact. Everyone signed in reads it; only an admin edits it.
+    match /systemSettings/{settingsId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() && settingsId == 'global';
     }
 
     // ─── Reports (not a numbered paper table) ───────────────────────────

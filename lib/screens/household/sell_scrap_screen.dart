@@ -16,6 +16,7 @@ import '../../services/auth_service.dart';
 import '../../services/auth_state.dart';
 import '../../services/booking_outbox.dart';
 import '../../services/sell_draft_store.dart';
+import '../../services/system_settings_service.dart';
 import '../../widgets/address_entry_page.dart';
 import '../../widgets/pickup_map_preview.dart';
 import '../../widgets/pin_location_page.dart';
@@ -462,6 +463,23 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
 
   Future<void> _submit() async {
     if (!_canSubmit) return;
+    // An admin can pause new requests in System Settings (the rules refuse
+    // them too); the draft stays saved for when bookings reopen.
+    final settings = SystemSettingsService.instance.current.value;
+    if (settings.bookingsPaused) {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Pickup requests paused'),
+          content: Text(settings.pausedMessage),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+          ],
+        ),
+      );
+      return;
+    }
     if (_selectedItems
         .any((item) => (double.tryParse(item.weightCtrl.text) ?? 0) <= 0)) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -546,11 +564,15 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
       await _clearDraftAfterSend();
 
       if (!mounted) return;
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (_) => BookingSummaryScreen(
-                  bookingId: bookingId, photoPath: _photo?.path)));
+      // Land on My Pickups, with the new request's details open on top —
+      // closing them leaves the household on the Pickups list.
+      final nav = Navigator.of(context);
+      final photoPath = _photo?.path;
+      nav.pushReplacementNamed('/pickups');
+      nav.push(MaterialPageRoute(
+          builder: (_) =>
+              BookingSummaryScreen(bookingId: bookingId, photoPath: photoPath)));
+      return;
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

@@ -7,7 +7,9 @@ import '../core/address_format.dart';
 import '../core/vehicle_verification.dart';
 import '../core/verification_docs.dart';
 import 'auth_state.dart';
+import 'cache_service.dart';
 import 'push_notification_service.dart';
+import 'system_settings_service.dart';
 
 // ─── Auth: Sign In / Sign Up / Sign Out (Tables 7-9) ───
 
@@ -50,6 +52,21 @@ class AuthService {
     final m = _blockedMessage;
     _blockedMessage = null;
     return m;
+  }
+
+  /// The email of the last account that signed in on this phone, so the
+  /// login screen can fill it in. Only the email is kept, never a password.
+  String get lastSignInEmail =>
+      CacheService.instance.getPref(_lastEmailKey) as String? ?? '';
+  static const _lastEmailKey = 'last_sign_in_email';
+
+  Future<void> _rememberEmail(String email) async {
+    if (email.isEmpty) return;
+    try {
+      await CacheService.instance.setPref(_lastEmailKey, email);
+    } catch (_) {
+      // A convenience only; never block sign-in on it.
+    }
   }
 
   Future<String?> signIn(String email, String password) async {
@@ -142,6 +159,7 @@ class AuthService {
     AuthState.instance.login(role, uid);
     _watchAccountStatus(uid);
     unawaited(PushNotificationService.instance.registerDeviceToken(uid));
+    unawaited(_rememberEmail(data['Email'] as String? ?? ''));
     AuthState.instance.setProfile(
       displayName: data['Display_Name'] ?? '',
       email: data['Email'] ?? '',
@@ -226,20 +244,61 @@ class AuthService {
         address: address,
       );
       return role;
-    } on FirebaseAuthException {
+    } on FirebaseAuthException catch (e) {
+      _authError = _registerErrorMessage(e.code);
+      return null;
+    } catch (_) {
+      _authError = _registerErrorMessage('');
       return null;
     }
   }
 
+  // Why the last register / Google sign-up failed, for the form to show.
+  String? _authError;
+
+  String? takeAuthError() {
+    final m = _authError;
+    _authError = null;
+    return m;
+  }
+
+  static String _registerErrorMessage(String code) {
+    switch (code) {
+      case 'email-already-in-use':
+      case 'credential-already-in-use':
+        return 'This email already has a KiloTap account. Sign in instead.';
+      case 'invalid-email':
+        return 'That email address is not valid.';
+      case 'weak-password':
+        return 'That password is too weak. Follow the password rules.';
+      case 'network-request-failed':
+        return 'No internet connection. Check your connection and try again.';
+      default:
+        return 'Registration failed. Please try again.';
+    }
+  }
+
+  // A Google sign-up also sets a password, attached to the same Firebase
+  // account, so the user can later sign in with either Google or their
+  // email and password.
   Future<String?> completeGoogleRegistration({
     required String uid,
     required String email,
+    required String password,
     required String fullName,
     required String phone,
     required String role,
     required String address,
   }) async {
     try {
+      final user = _auth.currentUser;
+      if (user == null || user.uid != uid) return null;
+      final hasPassword =
+          user.providerData.any((p) => p.providerId == 'password');
+      if (!hasPassword) {
+        await user.linkWithCredential(
+            EmailAuthProvider.credential(email: email, password: password));
+      }
       await _createAccountDocs(
         uid: uid,
         email: email,
@@ -249,7 +308,11 @@ class AuthService {
         address: address,
       );
       return role;
+    } on FirebaseAuthException catch (e) {
+      _authError = _registerErrorMessage(e.code);
+      return null;
     } catch (_) {
+      _authError = _registerErrorMessage('');
       return null;
     }
   }
@@ -320,6 +383,7 @@ class AuthService {
     AuthState.instance.login(role, uid);
     _watchAccountStatus(uid);
     unawaited(PushNotificationService.instance.registerDeviceToken(uid));
+    unawaited(_rememberEmail(email));
     AuthState.instance.setProfile(
       displayName: fullName,
       email: email,
@@ -578,7 +642,9 @@ class AuthService {
 
   // If an admin suspends or closes the account while the user is signed in,
   // sign them out at once and return to the login screen with the reason.
+  // Also starts the live System Settings, which need a signed-in user.
   void _watchAccountStatus(String uid) {
+    SystemSettingsService.instance.start();
     _statusWatch?.cancel();
     _statusWatch = _firestore
         .collection(colAccount)
@@ -599,6 +665,7 @@ class AuthService {
   Future<void> signOut() async {
     await _statusWatch?.cancel();
     _statusWatch = null;
+    SystemSettingsService.instance.stop();
     final uid = AuthState.instance.uid;
     if (uid != null) {
       await PushNotificationService.instance.clearDeviceToken(uid);

@@ -5,6 +5,7 @@ import '../../models/booking.dart';
 import '../../services/auth_state.dart';
 import '../../services/booking_outbox.dart';
 import '../../services/firestore_service.dart';
+import '../../services/system_settings_service.dart';
 import '../../widgets/report_problem_sheet.dart';
 import 'booking_summary_screen.dart';
 import 'chat_detail_screen.dart';
@@ -81,8 +82,10 @@ class MyPickupsScreen extends StatelessWidget {
       BuildContext context, Booking b, _CardData data, FirestoreService svc) {
     switch (b.status) {
       case 'Pending':
+        final cancelMin =
+            SystemSettingsService.instance.current.value.cancelWindowMin;
         final withinCancelWindow = DateTime.now().difference(b.createdAt) <=
-            const Duration(minutes: 2);
+            Duration(minutes: cancelMin);
         if (!withinCancelWindow) return const [];
         return [
           (

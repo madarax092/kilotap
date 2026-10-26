@@ -128,10 +128,41 @@ function vehicleCanHandle(collectorVehicle, requiredVehicle) {
 // known location to the pickup pin; Google Maps gives the road ETA on the
 // collector's phone once they open the request. Every eligible collector
 // can still see the booking in Find Scrap — this only limits push alerts.
-const WAVE_SIZE = 5;
-const REMIND_AFTER_MIN = 5; // re-alert a wave once if nobody accepted
-const WIDEN_EVERY_MIN = 10; // then alert the next five, every 10 minutes
-const DISPATCH_WINDOW_MIN = 60; // stop alerting after an hour
+// Defaults; an admin can change them in System Settings
+// (systemSettings/global, not a paper table).
+const DISPATCH_DEFAULTS = {
+  waveSize: 5,
+  remindAfterMin: 5, // re-alert a wave once if nobody accepted
+  widenEveryMin: 10, // then alert the next wave, every 10 minutes
+  windowMin: 60, // stop alerting after an hour
+};
+
+// A setting is used only when it is a whole number within its range, so a
+// bad value can never stop dispatch.
+function setting(data, field, fallback, min, max) {
+  const v = Number(data?.[field]);
+  return Number.isInteger(v) && v >= min && v <= max ? v : fallback;
+}
+
+async function dispatchSettings() {
+  let data = null;
+  try {
+    const snap = await admin.firestore()
+        .collection("systemSettings").doc("global").get();
+    data = snap.exists ? snap.data() : null;
+  } catch (e) {
+    console.warn("systemSettings read failed, using defaults", e);
+  }
+  const d = DISPATCH_DEFAULTS;
+  return {
+    waveSize: setting(data, "Dispatch_Wave_Size", d.waveSize, 1, 20),
+    remindAfterMin:
+      setting(data, "Dispatch_Remind_After_Min", d.remindAfterMin, 1, 60),
+    widenEveryMin:
+      setting(data, "Dispatch_Widen_Every_Min", d.widenEveryMin, 1, 60),
+    windowMin: setting(data, "Dispatch_Window_Min", d.windowMin, 10, 240),
+  };
+}
 
 function distanceKm(lat1, lon1, lat2, lon2) {
   const rad = (d) => (d * Math.PI) / 180;
@@ -216,29 +247,33 @@ async function alertCollectors(bookingId, booking, uids, reminder) {
   await batch.commit();
 }
 
-// First wave: the nearest five, as soon as the booking is created. The app
-// writes the booking and its items in one batch, so the items exist here.
+// First wave: the nearest few (default five), as soon as the booking is
+// created. The app writes the booking and its items in one batch, so the
+// items exist here.
 exports.fanOutNewBookingNotifications = onDocumentCreated(
     "bookings/{bookingId}",
     async (event) => {
       const booking = event.data?.data();
       if (!booking || booking.Status !== "Pending") return;
+      const {waveSize} = await dispatchSettings();
       const ranked =
         await rankedEligibleCollectors(booking, event.params.bookingId);
       await alertCollectors(event.params.bookingId, booking,
-          ranked.slice(0, WAVE_SIZE).map((r) => r.uid), false);
+          ranked.slice(0, waveSize).map((r) => r.uid), false);
     },
 );
 
 // Every minute, for bookings still Pending within the dispatch window:
-// remind each alerted collector once, REMIND_AFTER_MIN after their first
-// alert, and alert the next five nearest every WIDEN_EVERY_MIN. Who has
-// been alerted is read from the notifications already sent, so bookings
-// need no extra fields. Eligibility is re-checked each run.
+// remind each alerted collector once, remindAfterMin after their first
+// alert, and alert the next wave every widenEveryMin. Who has been alerted
+// is read from the notifications already sent, so bookings need no extra
+// fields. Eligibility is re-checked each run.
 exports.widenPendingBookingAlerts = onSchedule("every 1 minutes",
     async () => {
       const db = admin.firestore();
       const now = Date.now();
+      const {waveSize, remindAfterMin, widenEveryMin, windowMin} =
+        await dispatchSettings();
       const pending = await db.collection("bookings")
           .where("Status", "==", "Pending").get();
       for (const doc of pending.docs) {
@@ -246,7 +281,7 @@ exports.widenPendingBookingAlerts = onSchedule("every 1 minutes",
         const created = booking.Created_At?.toMillis?.();
         if (!created) continue;
         const ageMin = (now - created) / 60000;
-        if (ageMin > DISPATCH_WINDOW_MIN) continue;
+        if (ageMin > windowMin) continue;
 
         const sent = await db.collection("notifications")
             .where("Booking_ID", "==", doc.id).get();
@@ -263,14 +298,14 @@ exports.widenPendingBookingAlerts = onSchedule("every 1 minutes",
 
         const remind = [];
         alerts.forEach((a, uid) => {
-          if (a.count === 1 && now - a.first >= REMIND_AFTER_MIN * 60000) {
+          if (a.count === 1 && now - a.first >= remindAfterMin * 60000) {
             remind.push(uid);
           }
         });
         await alertCollectors(doc.id, booking, remind, true);
 
         const allowed =
-          WAVE_SIZE * (1 + Math.floor(ageMin / WIDEN_EVERY_MIN));
+          waveSize * (1 + Math.floor(ageMin / widenEveryMin));
         if (alerts.size < allowed) {
           const ranked = await rankedEligibleCollectors(booking, doc.id);
           const next = ranked

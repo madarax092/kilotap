@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
-import '../../services/auth_service.dart';
+import '../../widgets/register_form.dart';
 
-final RegExp _passwordRule = RegExp(r'^(?=.*[A-Za-z])(?=.*\d).{8,}$');
-
-class CollectorRegisterScreen extends StatefulWidget {
+class CollectorRegisterScreen extends StatelessWidget {
   final String? googleUid;
   final String? googleEmail;
   final String? googleDisplayName;
@@ -16,87 +13,6 @@ class CollectorRegisterScreen extends StatefulWidget {
     this.googleEmail,
     this.googleDisplayName,
   });
-
-  @override
-  State<CollectorRegisterScreen> createState() =>
-      _CollectorRegisterScreenState();
-}
-
-class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
-  late final _nameCtrl =
-      TextEditingController(text: widget.googleDisplayName ?? '');
-  final _phoneCtrl = TextEditingController();
-  late final _emailCtrl = TextEditingController(text: widget.googleEmail ?? '');
-  final _passCtrl = TextEditingController();
-  final _confirmPassCtrl = TextEditingController();
-  final _addrCtrl = TextEditingController();
-  bool _loading = false;
-
-  bool get _isGoogleFlow => widget.googleUid != null;
-
-  Future<void> _register() async {
-    final email = _emailCtrl.text.trim();
-    final pass = _passCtrl.text.trim();
-    final confirmPass = _confirmPassCtrl.text.trim();
-    final name = _nameCtrl.text.trim();
-    final phone = _phoneCtrl.text.trim();
-    final addr = _addrCtrl.text.trim();
-    if (email.isEmpty || name.isEmpty || (!_isGoogleFlow && pass.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please fill in all required fields')));
-      return;
-    }
-    if (!_isGoogleFlow) {
-      if (!_passwordRule.hasMatch(pass)) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text(
-                'Password must be at least 8 characters and include a letter and a number')));
-        return;
-      }
-      if (pass != confirmPass) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Passwords do not match')));
-        return;
-      }
-    }
-    setState(() => _loading = true);
-    final role = _isGoogleFlow
-        ? await AuthService.instance.completeGoogleRegistration(
-            uid: widget.googleUid!,
-            email: email,
-            fullName: name,
-            phone: phone,
-            role: 'Collector',
-            address: addr.isNotEmpty ? addr : 'Davao City',
-          )
-        : await AuthService.instance.register(
-            email: email,
-            password: pass,
-            fullName: name,
-            phone: phone,
-            role: 'Collector',
-            address: addr.isNotEmpty ? addr : 'Davao City',
-          );
-    if (!mounted) return;
-    setState(() => _loading = false);
-    if (role != null) {
-      Navigator.pushNamedAndRemoveUntil(context, '/collector', (r) => false);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Registration failed. Try a different email.')));
-    }
-  }
-
-  @override
-  void dispose() {
-    _nameCtrl.dispose();
-    _phoneCtrl.dispose();
-    _emailCtrl.dispose();
-    _passCtrl.dispose();
-    _confirmPassCtrl.dispose();
-    _addrCtrl.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,182 +40,34 @@ class _CollectorRegisterScreenState extends State<CollectorRegisterScreen> {
           ),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        children: [
-          const SizedBox(height: 20),
-          const Text('ACCOUNT DETAILS',
-              style: TextStyle(
-                  fontSize: 11,
-                  color: AppColors.buyerBlue,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1)),
-          const SizedBox(height: 14),
-          _Field(
-              label: 'Full Name',
-              hint: 'Juan Dela Cruz',
-              controller: _nameCtrl),
-          _Field(
-              label: 'Phone Number',
-              hint: '09********',
-              controller: _phoneCtrl,
-              keyboardType: TextInputType.phone,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(11),
-              ]),
-          _Field(
-              label: 'Email Address',
-              hint: 'Collector@email.com',
-              controller: _emailCtrl,
-              readOnly: _isGoogleFlow),
-          if (!_isGoogleFlow) ...[
-            _Field(
-                label: 'Password',
-                hint: 'Create password',
-                controller: _passCtrl,
-                obscure: true),
-            _Field(
-                label: 'Confirm Password',
-                hint: 'Re-enter password',
-                controller: _confirmPassCtrl,
-                obscure: true),
-          ],
-          _Field(
-              label: 'Address', hint: 'Barangay, City', controller: _addrCtrl),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            decoration: BoxDecoration(
-              border: Border.all(
-                  color: AppColors.buyerBlue.withValues(alpha: 0.3), width: 1),
-              borderRadius: BorderRadius.circular(12),
-              color: AppColors.buyerBlue.withValues(alpha: 0.05),
-            ),
-            child: const Text(
-              'Vehicle details and documents can be set up\nin your Profile after registration.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 12, color: AppColors.textSecondary, height: 1.4),
-            ),
+      body: RegisterForm(
+        role: 'Collector',
+        accent: AppColors.buyerBlue,
+        emailHint: 'collector@email.com',
+        addressHint: 'Barangay, City',
+        addressRequired: false,
+        fallbackAddress: 'Davao City',
+        homeRoute: '/collector',
+        googleUid: googleUid,
+        googleEmail: googleEmail,
+        googleDisplayName: googleDisplayName,
+        footer: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border.all(
+                color: AppColors.buyerBlue.withValues(alpha: 0.3), width: 1),
+            borderRadius: BorderRadius.circular(12),
+            color: AppColors.buyerBlue.withValues(alpha: 0.05),
           ),
-          const SizedBox(height: 28),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.buyerBlue,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12))),
-              onPressed: _loading ? null : _register,
-              child: _loading
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                          color: Colors.white, strokeWidth: 2))
-                  : const Text('CREATE ACCOUNT',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-            ),
-          ),
-          const SizedBox(height: 30),
-        ],
-      ),
-    );
-  }
-}
-
-class _Field extends StatefulWidget {
-  final String label, hint;
-  final TextEditingController? controller;
-  final bool obscure;
-  final TextInputType? keyboardType;
-  final List<TextInputFormatter>? inputFormatters;
-  final bool readOnly;
-  const _Field(
-      {required this.label,
-      required this.hint,
-      this.controller,
-      this.obscure = false,
-      this.keyboardType,
-      this.inputFormatters,
-      this.readOnly = false});
-
-  @override
-  State<_Field> createState() => _FieldState();
-}
-
-class _FieldState extends State<_Field> {
-  late bool _obscureText;
-
-  @override
-  void initState() {
-    super.initState();
-    _obscureText = widget.obscure;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(widget.label,
-            style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        TextField(
-          controller: widget.controller,
-          obscureText: _obscureText,
-          keyboardType: widget.keyboardType,
-          inputFormatters: widget.inputFormatters,
-          readOnly: widget.readOnly,
-          style: TextStyle(
-              fontSize: 15,
-              color: widget.readOnly
-                  ? AppColors.textSecondary
-                  : AppColors.textPrimary,
-              fontWeight: FontWeight.w400),
-          decoration: InputDecoration(
-            hintText: widget.hint,
-            hintStyle: const TextStyle(
-                fontSize: 15,
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w400),
-            filled: true,
-            fillColor: Colors.white,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
-            enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
-            focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide:
-                    const BorderSide(color: AppColors.buyerBlue, width: 1.5)),
-            suffixIcon: widget.obscure
-                ? IconButton(
-                    icon: Icon(
-                        _obscureText
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        color: AppColors.textSecondary,
-                        size: 22),
-                    onPressed: () =>
-                        setState(() => _obscureText = !_obscureText),
-                  )
-                : null,
+          child: const Text(
+            'Vehicle details and documents can be set up\nin your Profile after registration.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontSize: 12, color: AppColors.textSecondary, height: 1.4),
           ),
         ),
-      ]),
+      ),
     );
   }
 }

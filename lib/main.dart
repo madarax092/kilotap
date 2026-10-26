@@ -61,6 +61,12 @@ class KiloTapApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.sellerGreen),
         fontFamily: 'Arial',
         useMaterial3: true,
+        // One transition for every opened page: a fade with a short upward
+        // slide. Bottom-nav tabs stay instant (router.dart _tab).
+        pageTransitionsTheme: const PageTransitionsTheme(builders: {
+          TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+          TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
+        }),
       ),
       onGenerateRoute: AppRouter.generateRoute,
       initialRoute: '/',

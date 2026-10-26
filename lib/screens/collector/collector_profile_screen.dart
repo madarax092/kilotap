@@ -131,7 +131,7 @@ class CollectorProfileScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                           builder: (_) =>
-                              const HelpSupportScreen(isCollector: true))),
+                              const HelpSupportScreen(role: 'Collector'))),
                 ),
                 _MenuItem(
                   icon: Icons.description_outlined,

@@ -314,7 +314,11 @@ class FirestoreService {
     } else {
       docs.add(updated);
     }
-    await ref.update({'Verification_Docs': docs});
+    // A new clearance needs a new review, so the old badge comes off.
+    await ref.update({
+      'Verification_Docs': docs,
+      if (docType == barangayClearanceDocType) 'Barangay_Cleared': false,
+    });
   }
 
   // Applies the admin's overall decision to every individual document's
@@ -329,10 +333,38 @@ class FirestoreService {
     final docs = List<Map<String, dynamic>>.from(
         (doc.data()?['Verification_Docs'] as List<dynamic>? ?? [])
             .map((d) => Map<String, dynamic>.from(d as Map)));
+    // A slot with nothing uploaded (the optional Barangay Clearance) keeps
+    // 'pending', so it can't count as an approved document later.
     final updated = docs
-        .map((d) => {...d, 'status': status.toLowerCase()})
+        .map((d) => isDocUploaded(d) ? {...d, 'status': status.toLowerCase()} : d)
         .toList();
-    await ref.update({'Verification_Docs': updated});
+    final clearanceUploaded =
+        isDocUploaded(verificationDocOf(updated, barangayClearanceDocType));
+    await ref.update({
+      'Verification_Docs': updated,
+      'Barangay_Cleared': clearanceUploaded && status == 'Verified',
+    });
+  }
+
+  // Decides one document on its own — used for a Barangay Clearance a
+  // collector uploads after their account was already verified.
+  Future<void> setVerificationDocStatus(
+      String uid, String docType, String status) async {
+    final ref = _db
+        .collection(AppConstants.colAccount)
+        .doc(uid)
+        .collection(AppConstants.colCollector)
+        .doc(uid);
+    final doc = await ref.get();
+    final docs = verificationDocsFrom(doc.data())
+        .map((d) =>
+            d['type'] == docType ? {...d, 'status': status.toLowerCase()} : d)
+        .toList();
+    await ref.update({
+      'Verification_Docs': docs,
+      if (docType == barangayClearanceDocType)
+        'Barangay_Cleared': status == 'Verified',
+    });
   }
 
   // Sorted in Dart, not via .orderBy() — combining array-contains with

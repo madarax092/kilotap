@@ -4,6 +4,7 @@ import '../../models/booking.dart';
 import '../../services/auth_state.dart';
 import '../../services/firestore_service.dart';
 import '../../models/notification.dart';
+import '../../widgets/announcement_banner.dart';
 import '../notifications_screen.dart';
 import 'chat_households_screen.dart';
 import 'documents_page.dart';
@@ -112,6 +113,7 @@ class CollectorDashboard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
+          const AnnouncementBanner(),
           StreamBuilder<List<Booking>>(
             stream: firestoreService
                 .collectorBookings(AuthState.instance.uid ?? ''),
