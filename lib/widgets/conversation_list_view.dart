@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_colors.dart';
+import 'empty_section_text.dart';
 import '../services/auth_state.dart';
 import '../services/firestore_service.dart';
 import '../models/message.dart';
@@ -39,13 +39,8 @@ class ConversationListView extends StatelessWidget {
           latestByOther.putIfAbsent(other, () => m);
         }
         if (latestByOther.isEmpty) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Text('No conversations yet.',
-                  style: TextStyle(color: AppColors.textSecondary)),
-            ),
-          );
+          return const EmptySectionText('No conversations yet.',
+              centered: true);
         }
         final entries = latestByOther.entries.toList();
         return ListView.builder(

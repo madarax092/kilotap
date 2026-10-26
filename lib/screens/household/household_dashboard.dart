@@ -5,6 +5,7 @@ import '../../services/auth_state.dart';
 import '../../services/firestore_service.dart';
 import '../../models/notification.dart';
 import '../../widgets/announcement_banner.dart';
+import '../../widgets/empty_section_text.dart';
 import '../../widgets/permission_prompt.dart';
 import '../notifications_screen.dart';
 import 'impact_page.dart';
@@ -232,22 +233,13 @@ class HouseholdDashboard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: active.isEmpty
-                        ? Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                    color: const Color(0xFFE5E7EB),
-                                    width: 1.5)),
-                            child: const Text('No active pickup right now.',
-                                style: TextStyle(color: Color(0xFF6B7280))),
-                          )
-                        : _ActivePickupCard(booking: active.first),
-                  ),
+                  if (active.isEmpty)
+                    const EmptySectionText('No active pickup right now.')
+                  else
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: _ActivePickupCard(booking: active.first),
+                    ),
                   const SizedBox(height: 24),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -272,6 +264,9 @@ class HouseholdDashboard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
+                  if (completed.isEmpty)
+                    const EmptySectionText('No completed pickups yet.')
+                  else
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Container(
@@ -287,10 +282,7 @@ class HouseholdDashboard extends StatelessWidget {
                                 blurRadius: 10,
                                 offset: Offset(0, 4))
                           ]),
-                      child: completed.isEmpty
-                          ? const Text('No completed pickups yet.',
-                              style: TextStyle(color: Color(0xFF6B7280)))
-                          : _RecentActivity(
+                      child: _RecentActivity(
                               svc: firestoreService,
                               bookings: (completed
                                     ..sort((a, b) =>

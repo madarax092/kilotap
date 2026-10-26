@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/empty_section_text.dart';
 import '../core/theme/app_colors.dart';
 import '../models/notification.dart';
 import '../services/auth_state.dart';
@@ -72,10 +73,8 @@ class NotificationsScreen extends StatelessWidget {
                 final notifications =
                     snapshot.data ?? const <AppNotification>[];
                 if (notifications.isEmpty) {
-                  return const Center(
-                    child: Text('No notifications yet.',
-                        style: TextStyle(color: AppColors.textSecondary)),
-                  );
+                  return const EmptySectionText('No notifications yet.',
+                      centered: true);
                 }
                 return ListView.separated(
                   padding: const EdgeInsets.all(16),

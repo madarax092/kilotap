@@ -18,6 +18,7 @@ import '../../services/booking_outbox.dart';
 import '../../services/sell_draft_store.dart';
 import '../../services/system_settings_service.dart';
 import '../../widgets/address_entry_page.dart';
+import '../../widgets/empty_section_text.dart';
 import '../../widgets/pickup_map_preview.dart';
 import '../../widgets/pin_location_page.dart';
 import 'booking_summary_screen.dart';
@@ -1072,13 +1073,9 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                         ]),
                       ),
                     ] else
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Text(
-                            'No items added yet — pick a class above and tap +.',
-                            style: TextStyle(
-                                color: Color(0xFF6B7280), fontSize: 13)),
-                      ),
+                      const EmptySectionText(
+                          'No items added yet — pick a class above and tap +.',
+                          padding: EdgeInsets.symmetric(vertical: 12)),
                   ]),
                   const SizedBox(height: 24),
                   const Text('PICKUP DETAILS',

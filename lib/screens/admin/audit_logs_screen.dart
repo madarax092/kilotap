@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/empty_section_text.dart';
 import '../../core/date_format.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/audit_log.dart';
@@ -154,13 +155,9 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
                         _group == 'All' || _infoFor(l.action).$2 == _group)
                     .toList();
                 if (logs.isEmpty) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Text('No audit log entries here yet.',
-                          style: TextStyle(color: Color(0xFF6B7280))),
-                    ),
-                  );
+                  return const EmptySectionText(
+                      'No audit log entries here yet.',
+                      centered: true);
                 }
                 return ListView.separated(
                   padding:

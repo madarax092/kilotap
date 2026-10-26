@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/empty_section_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/file_type_utils.dart';
@@ -105,13 +106,9 @@ class _VerifyCollectorScreenState extends State<VerifyCollectorScreen> {
                     if (pending.isEmpty &&
                         vehicleRequests.isEmpty &&
                         clearanceRequests.isEmpty) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(24),
-                          child: Text('No pending verifications.',
-                              style: TextStyle(color: Color(0xFF6B7280))),
-                        ),
-                      );
+                      return const EmptySectionText(
+                          'No pending verifications.',
+                          centered: true);
                     }
                     return ListView(
                       padding: const EdgeInsets.symmetric(horizontal: 20),

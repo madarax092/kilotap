@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/empty_section_text.dart';
 import '../../core/account_status.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
@@ -101,9 +102,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 child: !snapshot.hasData
                     ? const Center(child: CircularProgressIndicator())
                     : filtered.isEmpty
-                        ? const Center(
-                            child: Text('No users found.',
-                                style: TextStyle(color: Color(0xFF6B7280))))
+                        ? const EmptySectionText('No users found.',
+                            centered: true)
                         : ListView(
                             padding: const EdgeInsets.symmetric(horizontal: 24),
                             children: [

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/empty_section_text.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/booking.dart';
 import '../../services/auth_state.dart';
@@ -170,11 +171,7 @@ class MyCollectionScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         if (stats.recent.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 24),
-                            child: Text('No completed pickups yet.',
-                                style: TextStyle(color: Color(0xFF6B7280))),
-                          )
+                          const EmptySectionText('No completed pickups yet.')
                         else
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 24),

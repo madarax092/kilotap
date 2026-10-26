@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/empty_section_text.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/booking.dart';
 import '../../services/auth_state.dart';
@@ -47,13 +48,8 @@ class MyRouteScreen extends StatelessWidget {
           }
           final active = snapshot.data!.where((b) => b.status == 'Accepted');
           if (active.isEmpty) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text('No active pickups right now.',
-                    style: TextStyle(color: AppColors.textSecondary)),
-              ),
-            );
+            return const EmptySectionText('No active pickups right now.',
+                centered: true);
           }
           final booking = active.first;
           return FutureBuilder<_RouteData>(

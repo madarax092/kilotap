@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/empty_section_text.dart';
 import '../../core/account_status.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/date_format.dart';
@@ -103,13 +104,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     : !snapshot.hasData
                         ? const Center(child: CircularProgressIndicator())
                         : shown.isEmpty
-                            ? Center(
-                                child: Text(
-                                    _filter == 'Open'
-                                        ? 'No open reports.'
-                                        : 'No reports here.',
-                                    style: const TextStyle(
-                                        color: Color(0xFF6B7280))))
+                            ? EmptySectionText(
+                                _filter == 'Open'
+                                    ? 'No open reports.'
+                                    : 'No reports here.',
+                                centered: true)
                             : ListView(
                                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 30),
                                 children: [

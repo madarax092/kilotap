@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../widgets/empty_section_text.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../core/constants/material_preferences.dart';
 import '../../core/date_format.dart';
@@ -282,15 +283,9 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                               vehicleCanHandle(myVehicle, b.vehicleRequirement))
                           .toList();
                       if (bookings.isEmpty) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(24),
-                            child: Text(
-                                'No pickup requests match your vehicle right now.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: Color(0xFF6B7280))),
-                          ),
-                        );
+                        return const EmptySectionText(
+                            'No pickup requests match your vehicle right now.',
+                            centered: true);
                       }
                       return FutureBuilder<List<_MatchedBooking>>(
                         future:
@@ -314,15 +309,9 @@ class _FindScrapScreenState extends State<FindScrapScreen> {
                           }
                           final matched = matchSnap.data!;
                           if (matched.isEmpty) {
-                            return const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(24),
-                                child: Text(
-                                    'No pickup requests match your preferred materials right now.',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(color: Color(0xFF6B7280))),
-                              ),
-                            );
+                            return const EmptySectionText(
+                                'No pickup requests match your preferred materials right now.',
+                                centered: true);
                           }
                           return ListView.builder(
                             padding: const EdgeInsets.only(top: 20, bottom: 40),

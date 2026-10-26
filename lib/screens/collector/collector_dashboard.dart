@@ -5,6 +5,7 @@ import '../../services/auth_state.dart';
 import '../../services/firestore_service.dart';
 import '../../models/notification.dart';
 import '../../widgets/announcement_banner.dart';
+import '../../widgets/empty_section_text.dart';
 import '../../widgets/permission_prompt.dart';
 import '../../widgets/required_actions_card.dart';
 import '../notifications_screen.dart';
@@ -213,11 +214,8 @@ class CollectorDashboard extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   if (active.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24),
-                      child: Text('No assigned pickups yet — find one nearby.',
-                          style: TextStyle(color: Color(0xFF6B7280))),
-                    )
+                    const EmptySectionText(
+                        'No assigned pickups yet — find one nearby.')
                   else
                     ...active.map((b) => Padding(
                           padding: const EdgeInsets.only(bottom: 12),
@@ -249,6 +247,9 @@ class CollectorDashboard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
+                  if (completed.isEmpty)
+                    const EmptySectionText('No completed pickups yet.')
+                  else
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Container(
@@ -262,13 +263,7 @@ class CollectorDashboard extends StatelessWidget {
                                 blurRadius: 10,
                                 offset: Offset(0, 4))
                           ]),
-                      child: completed.isEmpty
-                          ? const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 8),
-                              child: Text('No completed pickups yet.',
-                                  style: TextStyle(color: Color(0xFF6B7280))),
-                            )
-                          : _RecentCollections(
+                      child: _RecentCollections(
                               svc: firestoreService,
                               bookings: (completed
                                     ..sort((a, b) =>

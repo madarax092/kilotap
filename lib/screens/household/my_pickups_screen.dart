@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/empty_section_text.dart';
 import '../../core/date_format.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/booking.dart';
@@ -294,14 +295,9 @@ class MyPickupsScreen extends StatelessWidget {
                 }
                 final bookings = snapshot.data!;
                 if (bookings.isEmpty) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Text(
-                          'No pickups yet — book one from the Sell tab.',
-                          style: TextStyle(color: Color(0xFF6B7280))),
-                    ),
-                  );
+                  return const EmptySectionText(
+                      'No pickups yet — book one from the Sell tab.',
+                      centered: true);
                 }
                 return ListView.builder(
                   padding:

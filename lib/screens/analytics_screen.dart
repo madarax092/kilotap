@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../models/booking.dart';
 import '../services/firestore_service.dart';
+import '../widgets/empty_section_text.dart';
 
 class AnalyticsScreen extends StatelessWidget {
   const AnalyticsScreen({super.key});
@@ -97,7 +98,10 @@ class AnalyticsScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 28),
                     children: [
                       const SizedBox(height: 8),
-                      _Card('COMPLETED PICKUPS (Last 7 Days)', [
+                      _Card('COMPLETED PICKUPS (Last 7 Days)',
+                          emptyMessage: data.volume.every((v) => v == 0)
+                              ? 'No completed pickups in the last 7 days.'
+                              : null, [
                         SizedBox(
                           height: 80,
                           child: Row(
@@ -117,22 +121,20 @@ class AnalyticsScreen extends StatelessWidget {
                           ),
                         ),
                       ]),
-                      _Card('MATERIAL BREAKDOWN (by weight)', [
-                        if (data.topClasses.isEmpty)
-                          const Text('No completed pickups yet.',
-                              style: TextStyle(fontSize: 12, color: AppColors.textSecondary))
-                        else
+                      _Card('MATERIAL BREAKDOWN (by weight)',
+                          emptyMessage: data.topClasses.isEmpty
+                              ? 'No completed pickups yet.'
+                              : null, [
                           ...data.topClasses.map((e) => _MatB(
                               e.key,
                               data.totalWeight == 0
                                   ? '0%'
                                   : '${(e.value / data.totalWeight * 100).toStringAsFixed(0)}%')),
                       ]),
-                      _Card('TOP COLLECTORS', [
-                        if (data.topCollectors.isEmpty)
-                          const Text('No completed pickups yet.',
-                              style: TextStyle(fontSize: 12, color: AppColors.textSecondary))
-                        else
+                      _Card('TOP COLLECTORS',
+                          emptyMessage: data.topCollectors.isEmpty
+                              ? 'No completed pickups yet.'
+                              : null, [
                           ...data.topCollectors.asMap().entries.map((e) => _TopR(
                               '${e.key + 1}',
                               e.value.name,
@@ -175,25 +177,42 @@ class _TopCollector {
 class _Card extends StatelessWidget {
   final String title;
   final List<Widget> children;
-  const _Card(this.title, this.children);
+  // When set, the section has no data: the title and this message are shown
+  // on the page background, without the card.
+  final String? emptyMessage;
+  const _Card(this.title, this.children, {this.emptyMessage});
+
   @override
-  Widget build(BuildContext context) => Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-          color: AppColors.pureWhite,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.divider)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title,
-            style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1)),
-        const SizedBox(height: 12),
-        ...children
-      ]));
+  Widget build(BuildContext context) {
+    final heading = Text(title,
+        style: const TextStyle(
+            fontSize: 11,
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1));
+    if (emptyMessage != null) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(0, 4, 0, 20),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          heading,
+          const SizedBox(height: 8),
+          EmptySectionText(emptyMessage!, padding: EdgeInsets.zero),
+        ]),
+      );
+    }
+    return Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+            color: AppColors.pureWhite,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.divider)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          heading,
+          const SizedBox(height: 12),
+          ...children
+        ]));
+  }
 }
 
 class _MatB extends StatelessWidget {

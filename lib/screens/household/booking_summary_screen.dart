@@ -7,6 +7,7 @@ import '../../models/booking.dart';
 import '../../models/booking_item.dart';
 import '../../services/firestore_service.dart';
 import '../../widgets/collector_info_card.dart';
+import '../../widgets/empty_section_text.dart';
 import '../../widgets/full_screen_image_page.dart';
 
 class BookingSummaryScreen extends StatelessWidget {
@@ -138,17 +139,8 @@ class _Photo extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasLocal = !kIsWeb && (localPath ?? '').isNotEmpty;
     if (url.isEmpty && !hasLocal) {
-      return Container(
-        height: 80,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF3F4F6),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Center(
-          child: Text('No photo for this pickup',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-        ),
-      );
+      return const EmptySectionText('No photo for this pickup.',
+          padding: EdgeInsets.zero);
     }
     final image = url.isNotEmpty
         ? Image.network(url,
