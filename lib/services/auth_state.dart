@@ -1,3 +1,4 @@
+import '../core/vehicle_verification.dart';
 import 'role_permissions.dart';
 
 // Shared by every post-login navigation site (login_screen.dart,
@@ -110,6 +111,17 @@ class AuthState {
     _verifiedVehicles = types;
   }
 
+  /// Plate number of the active vehicle ('' for a pushcart or when unset).
+  String get activePlateNumber =>
+      plateNumberOf({'Vehicles': _vehicles}, _vehicleType);
+
+  // ScrapCollector.Barangay_Cleared (admin-set, not in Table 9).
+  bool _barangayCleared = false;
+  bool get barangayCleared => _barangayCleared;
+  void setBarangayCleared(bool cleared) {
+    _barangayCleared = cleared;
+  }
+
   void setIdDetails({
     String? profilePhotoUrl,
     DateTime? birthdate,
@@ -215,6 +227,7 @@ class AuthState {
     _birthdate = null;
     _signatureUrl = '';
     _verifiedVehicles = [];
+    _barangayCleared = false;
   }
 
   // 'VerifiedCollector' is a permission tier, not a stored Role value —

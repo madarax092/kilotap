@@ -5,9 +5,10 @@ import '../../services/auth_state.dart';
 import '../../services/firestore_service.dart';
 import '../../models/notification.dart';
 import '../../widgets/announcement_banner.dart';
+import '../../widgets/permission_prompt.dart';
+import '../../widgets/required_actions_card.dart';
 import '../notifications_screen.dart';
 import 'chat_households_screen.dart';
-import 'documents_page.dart';
 
 class CollectorDashboard extends StatelessWidget {
   const CollectorDashboard({super.key});
@@ -113,6 +114,7 @@ class CollectorDashboard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
+          const FirstRunPermissionPrompt(),
           const AnnouncementBanner(),
           StreamBuilder<List<Booking>>(
             stream: firestoreService
@@ -147,57 +149,7 @@ class CollectorDashboard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  if (!AuthState.instance.hasPermission('accept_pickup'))
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: GestureDetector(
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const DocumentsPage())),
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 16),
-                          decoration: BoxDecoration(
-                            color: AppColors.warning,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(12)),
-                                child: const Icon(Icons.warning_amber_rounded,
-                                    color: Colors.white, size: 22),
-                              ),
-                              const SizedBox(width: 14),
-                              const Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Action Required',
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 15)),
-                                    SizedBox(height: 2),
-                                    Text('Verify profile to accept pickups',
-                                        style: TextStyle(
-                                            color: Colors.white, fontSize: 12)),
-                                  ],
-                                ),
-                              ),
-                              const Icon(Icons.chevron_right,
-                                  color: Colors.white, size: 20),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                  const RequiredActionsCard(),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: GestureDetector(

@@ -219,6 +219,7 @@ class AuthService {
           signatureUrl: c['Signature_URL'] ?? '',
         );
         AuthState.instance.setVerifiedVehicles(effectiveVerifiedVehicles(c));
+        AuthState.instance.setBarangayCleared(hasBarangayClearance(c));
       }
     }
     return role;

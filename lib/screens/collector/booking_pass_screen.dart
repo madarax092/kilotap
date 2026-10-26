@@ -300,6 +300,22 @@ class _CollectorCard extends StatelessWidget {
                     style: const TextStyle(
                         fontSize: 13, color: AppColors.textSecondary)),
               ],
+              if (auth.activePlateNumber.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text('Plate: ${auth.activePlateNumber}',
+                    style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary)),
+              ],
+              if (auth.barangayCleared) ...[
+                const SizedBox(height: 2),
+                const Text('Barangay Cleared',
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.success)),
+              ],
             ],
           ),
         ),

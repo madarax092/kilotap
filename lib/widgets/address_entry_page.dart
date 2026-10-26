@@ -27,8 +27,20 @@ class _AddressEntryPageState extends State<AddressEntryPage> {
   late String? _barangay = _initial.barangay;
   late final String _city = _initial.city ?? supportedCities.first;
   bool _saving = false;
+  // Errors appear under the fields after the first Save attempt.
+  bool _showErrors = false;
 
-  bool get _canSave => _streetCtrl.text.trim().isNotEmpty && _barangay != null;
+  String? get _streetError {
+    final s = _streetCtrl.text.trim();
+    if (s.isEmpty) return 'Enter your street, block or lot';
+    if (s.length < 3) return 'Street is too short';
+    return null;
+  }
+
+  String? get _barangayError =>
+      _barangay == null ? 'Select your barangay' : null;
+
+  bool get _canSave => _streetError == null && _barangayError == null;
 
   String get _preview {
     if (_barangay == null && _streetCtrl.text.trim().isEmpty) return '';
@@ -49,7 +61,10 @@ class _AddressEntryPageState extends State<AddressEntryPage> {
   }
 
   Future<void> _save() async {
-    if (!_canSave) return;
+    if (!_canSave) {
+      setState(() => _showErrors = true);
+      return;
+    }
     setState(() => _saving = true);
     final fullAddress = composeAddress(
         street: _streetCtrl.text, barangay: _barangay!, city: _city);
@@ -137,6 +152,7 @@ class _AddressEntryPageState extends State<AddressEntryPage> {
           const SizedBox(height: 20),
           _SectionCard(
             title: 'Street and block',
+            error: _showErrors ? _streetError : null,
             child: TextField(
               controller: _streetCtrl,
               maxLines: 2,
@@ -152,6 +168,7 @@ class _AddressEntryPageState extends State<AddressEntryPage> {
           const SizedBox(height: 12),
           _SectionCard(
             title: 'Barangay',
+            error: _showErrors ? _barangayError : null,
             child: Material(
               color: Colors.transparent,
               child: ListTile(
@@ -205,7 +222,7 @@ class _AddressEntryPageState extends State<AddressEntryPage> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
-              onPressed: _saving || !_canSave ? null : _save,
+              onPressed: _saving ? null : _save,
               child: _saving
                   ? const SizedBox(
                       width: 22,
@@ -226,7 +243,8 @@ class _AddressEntryPageState extends State<AddressEntryPage> {
 class _SectionCard extends StatelessWidget {
   final String title;
   final Widget child;
-  const _SectionCard({required this.title, required this.child});
+  final String? error;
+  const _SectionCard({required this.title, required this.child, this.error});
 
   @override
   Widget build(BuildContext context) {
@@ -236,7 +254,8 @@ class _SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(
+            color: error != null ? AppColors.error : const Color(0xFFE5E7EB)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,6 +266,12 @@ class _SectionCard extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                   color: AppColors.textSecondary)),
           child,
+          if (error != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(error!,
+                  style: const TextStyle(fontSize: 12, color: AppColors.error)),
+            ),
         ],
       ),
     );

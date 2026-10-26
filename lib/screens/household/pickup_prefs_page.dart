@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/auth_service.dart';
+import '../../services/app_permissions.dart';
 import '../../services/auth_state.dart';
+import '../../widgets/permission_prompt.dart';
 
 class PickupPrefsPage extends StatefulWidget {
   const PickupPrefsPage({super.key});
@@ -21,8 +23,6 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
   late String _timeWindow = _timeWindows.contains(AuthState.instance.preferredSchedule)
       ? AuthState.instance.preferredSchedule
       : _timeWindows.first;
-  bool _pushNotifications = true;
-  bool _smsNotifications = true;
   bool _saving = false;
 
   @override
@@ -104,41 +104,38 @@ class _PickupPrefsPageState extends State<PickupPrefsPage> {
 
           const SizedBox(height: 12),
 
+          const SizedBox(height: 12),
+          const Text('PHONE PERMISSIONS',
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1,
+                  color: Color(0xFF6B7280))),
+          const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
             ),
-            child: Column(
+            child: const Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SwitchListTile(
-                  value: _pushNotifications,
-                  activeThumbColor: AppColors.sellerGreen,
-                  onChanged: (v) => setState(() => _pushNotifications = v),
-                  title: const Text('Push Notifications',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
-                  subtitle: const Text('Receive alerts when a collector accepts',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                ),
-                const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFE5E7EB)),
-                SwitchListTile(
-                  value: _smsNotifications,
-                  activeThumbColor: AppColors.sellerGreen,
-                  onChanged: (v) => setState(() => _smsNotifications = v),
-                  title: const Text('SMS Notifications',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
-                  subtitle: const Text('Receive text messages for updates',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                ),
+                PermissionStatusTile(
+                    permission: AppPermission.notifications,
+                    reason: 'Alerts when a collector accepts or arrives.'),
+                Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFE5E7EB)),
+                PermissionStatusTile(
+                    permission: AppPermission.location,
+                    reason: 'Finds your pickup location automatically.'),
+                Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFE5E7EB)),
+                PermissionStatusTile(
+                    permission: AppPermission.camera,
+                    reason: 'Takes the photo of your scrap.'),
               ],
             ),
           ),
 
-          const SizedBox(height: 30),
           const SizedBox(height: 32),
           SizedBox(
             width: double.infinity, height: 54,

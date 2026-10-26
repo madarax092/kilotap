@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/file_type_utils.dart';
+import '../../core/verification_docs.dart';
 import '../../services/auth_state.dart';
 import '../../services/firestore_service.dart';
 
@@ -104,6 +105,10 @@ class _DocumentsPageState extends State<DocumentsPage> {
         updated.add(entry);
       }
       AuthState.instance.updateVerificationDocs(updated);
+      // A new clearance needs a new review (see setVerificationDocUrl).
+      if (docType == barangayClearanceDocType) {
+        AuthState.instance.setBarangayCleared(false);
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Uploaded — pending admin review.')));
@@ -145,7 +150,8 @@ class _DocumentsPageState extends State<DocumentsPage> {
           const Text(
             'Take a photo or upload a PDF/DOC of each document. The system '
             'administrator reviews these before you can receive bookings. '
-            'Max 5MB per file.',
+            'The Barangay Clearance is optional: if it is approved, you get '
+            'a "Barangay Cleared" badge that households see. Max 5MB per file.',
             style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 20),
@@ -158,7 +164,9 @@ class _DocumentsPageState extends State<DocumentsPage> {
               final status = (d['status'] as String? ?? 'pending');
               final url = d['url'] as String? ?? '';
               return _DocCard(
-                title: type,
+                title: isOptionalVerificationDoc(type)
+                    ? '$type (optional)'
+                    : type,
                 status: _statusLabel(status),
                 statusColor: _statusColor(status),
                 thumbnailUrl: url,

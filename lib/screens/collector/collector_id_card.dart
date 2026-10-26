@@ -247,9 +247,16 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
                                 Text(
                                     auth.vehicleType.isEmpty
                                         ? 'Vehicle not set'
-                                        : '${auth.vehicleType} Operator',
+                                        : '${auth.vehicleType} Operator'
+                                            '${auth.activePlateNumber.isEmpty ? '' : ' · ${auth.activePlateNumber}'}',
                                     style: const TextStyle(
                                         fontSize: 11, color: Colors.white60)),
+                                if (auth.barangayCleared)
+                                  const Text('Barangay Cleared',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white)),
                                 const SizedBox(height: 8),
                                 Text('★ ${auth.avgRating.toStringAsFixed(1)}',
                                     style: const TextStyle(
@@ -371,7 +378,7 @@ class _CollectorIDCardState extends State<CollectorIDCard> {
             const _SectionTitle('ID DETAILS'),
             _DetailTile(
               icon: Icons.photo_camera_outlined,
-              label: 'ID Photo',
+              label: 'Formal Photo',
               value: auth.profilePhotoUrl.isEmpty ? 'Add photo' : 'Change photo',
               busy: _saving == 'photo',
               onTap: _saving == null ? _changePhoto : null,

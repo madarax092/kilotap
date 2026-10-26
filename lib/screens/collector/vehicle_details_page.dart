@@ -2,7 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/input_validators.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/vehicle_verification.dart';
 import '../../services/auth_service.dart';
 import '../../services/auth_state.dart';
 import '../../services/firestore_service.dart';
@@ -19,12 +21,38 @@ class _VehicleEntry {
   String photoUrl;
   bool uploading = false;
   final TextEditingController capacityCtrl;
+  // Vehicles[].Plate_Number — not in the paper's Table 9. A pushcart has none.
+  final TextEditingController plateCtrl;
   _VehicleEntry(
-      {required this.type, this.photoUrl = '', required this.capacityCtrl});
+      {required this.type,
+      this.photoUrl = '',
+      required this.capacityCtrl,
+      String plate = ''})
+      : plateCtrl = TextEditingController(text: plate);
+
+  void dispose() {
+    capacityCtrl.dispose();
+    plateCtrl.dispose();
+  }
+}
+
+// Philippine plates: letters and numbers, 4 to 8 characters, with an
+// optional space or dash (e.g. ABC 1234, 123 ABC, AB 12345).
+String? _validatePlate(String? value) {
+  final v = (value ?? '').trim().toUpperCase();
+  if (v.isEmpty) return 'Enter the plate number';
+  final compact = v.replaceAll(RegExp(r'[\s-]'), '');
+  if (!RegExp(r'^[A-Z0-9]{4,8}$').hasMatch(compact) ||
+      !compact.contains(RegExp(r'[A-Z]')) ||
+      !compact.contains(RegExp(r'\d'))) {
+    return 'Use letters and numbers, like ABC 1234';
+  }
+  return null;
 }
 
 class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
   static const _maxVehicles = 2;
+  final _formKey = GlobalKey<FormState>();
   late final List<_VehicleEntry> _entries = _loadEntries();
   bool _saving = false;
 
@@ -50,6 +78,7 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
               photoUrl: v['Photo_URL'] as String? ?? '',
               capacityCtrl: TextEditingController(
                   text: '${(v['Vehicle_Capacity_Kg'] as num?) ?? 20}'),
+              plate: v['Plate_Number'] as String? ?? '',
             ))
         .toList();
   }
@@ -63,7 +92,7 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
   void _removeVehicle(int i) {
     if (_entries.length <= 1) return;
     setState(() {
-      _entries[i].capacityCtrl.dispose();
+      _entries[i].dispose();
       _entries.removeAt(i);
     });
   }
@@ -131,6 +160,7 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
   }
 
   Future<void> _save() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
     final error = _validate();
     if (error != null) {
       ScaffoldMessenger.of(context)
@@ -143,6 +173,8 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
               'Vehicle_Type': e.type,
               'Vehicle_Capacity_Kg': double.tryParse(e.capacityCtrl.text) ?? 0,
               if (e.photoUrl.isNotEmpty) 'Photo_URL': e.photoUrl,
+              if (vehicleNeedsPlate(e.type))
+                'Plate_Number': e.plateCtrl.text.trim().toUpperCase(),
             })
         .toList();
     try {
@@ -168,7 +200,7 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
   @override
   void dispose() {
     for (final e in _entries) {
-      e.capacityCtrl.dispose();
+      e.dispose();
     }
     super.dispose();
   }
@@ -188,7 +220,10 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: ListView(
+      body: Form(
+        key: _formKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         children: [
           const SizedBox(height: 12),
@@ -274,6 +309,7 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
           ),
           const SizedBox(height: 20),
         ],
+      ),
       ),
     );
   }
@@ -388,6 +424,43 @@ class _VehicleCard extends StatelessWidget {
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
         ),
+        // The capacity error shows on its own line under the row.
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: FormField<String>(
+            validator: (_) => validatePositiveNumber(
+                entry.capacityCtrl.text, 'capacity',
+                max: 50000),
+            builder: (field) => field.hasError
+                ? Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(field.errorText!,
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.error)),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ),
+        if (vehicleNeedsPlate(entry.type))
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+            child: TextFormField(
+              controller: entry.plateCtrl,
+              textCapitalization: TextCapitalization.characters,
+              validator: _validatePlate,
+              decoration: InputDecoration(
+                labelText: 'Plate Number',
+                hintText: 'ABC 1234',
+                prefixIcon: const Icon(Icons.pin_outlined,
+                    color: AppColors.textSecondary, size: 22),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none),
+              ),
+            ),
+          ),
         ListTile(
           onTap: entry.uploading ? null : onPickPhoto,
           leading: const Icon(Icons.photo_camera_outlined,

@@ -441,6 +441,21 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
     }
   }
 
+  // Weight errors show as soon as something invalid is typed, and for empty
+  // weights after a Submit attempt.
+  bool _showWeightErrors = false;
+
+  String? _weightError(_SellItem item) {
+    final text = item.weightCtrl.text.trim();
+    if (text.isEmpty && !_showWeightErrors) return null;
+    final kg = double.tryParse(text);
+    if (text.isEmpty) return 'Enter kg';
+    if (kg == null) return 'Numbers only';
+    if (kg <= 0) return 'Must be > 0';
+    if (kg > 5000) return 'Too heavy';
+    return null;
+  }
+
   bool get _canSubmit =>
       _selectedItems.isNotEmpty &&
       _photo != null &&
@@ -480,10 +495,11 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
       );
       return;
     }
-    if (_selectedItems
-        .any((item) => (double.tryParse(item.weightCtrl.text) ?? 0) <= 0)) {
+    _showWeightErrors = true;
+    if (_selectedItems.any((item) => _weightError(item) != null)) {
+      setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Enter a valid weight (kg) for every item.')));
+          content: Text('Fix the weight shown in red for each item.')));
       return;
     }
     if (_selectedItems.any((item) => item.isCustom && item.category == null)) {
@@ -1482,6 +1498,9 @@ class _SellScrapScreenState extends State<SellScrapScreen> {
                     decoration: InputDecoration(
                       isDense: true,
                       suffixText: 'kg',
+                      errorText: _weightError(item),
+                      errorMaxLines: 2,
+                      errorStyle: const TextStyle(fontSize: 10),
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 10),
                       border: OutlineInputBorder(

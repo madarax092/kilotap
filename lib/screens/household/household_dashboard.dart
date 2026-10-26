@@ -5,6 +5,7 @@ import '../../services/auth_state.dart';
 import '../../services/firestore_service.dart';
 import '../../models/notification.dart';
 import '../../widgets/announcement_banner.dart';
+import '../../widgets/permission_prompt.dart';
 import '../notifications_screen.dart';
 import 'impact_page.dart';
 import 'chat_detail_screen.dart';
@@ -114,6 +115,7 @@ class HouseholdDashboard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
+          const FirstRunPermissionPrompt(),
           const AnnouncementBanner(),
           StreamBuilder<List<Booking>>(
             stream:
